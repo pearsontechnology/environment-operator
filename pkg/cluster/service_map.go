@@ -44,10 +44,8 @@ func (s ServiceMap) AddService(svc v1.Service) {
 	name := svc.Name
 	biteservice := s.CreateOrGet(name)
 
-	if len(svc.Spec.Ports) > 0 {
-		biteservice.Port = int(svc.Spec.Ports[0].Port)
-	} else {
-		biteservice.Port = 0
+	for _, port := range svc.Spec.Ports {
+		biteservice.Ports = append(biteservice.Ports, int(port.Port))
 	}
 }
 

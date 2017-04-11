@@ -7,6 +7,8 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 )
 
+// SupportedThirdPartyResources contains all supported TPRs on bitesize
+// cluster.
 var SupportedThirdPartyResources = []string{
 	"mongo", "mysql", "cassandra", "redis",
 }

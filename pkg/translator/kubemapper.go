@@ -29,6 +29,16 @@ type KubeMapper struct {
 
 // Service extracts Kubernetes object from Bitesize definition
 func (w *KubeMapper) Service() (*api_v1.Service, error) {
+	var ports []api_v1.ServicePort
+
+	for _, p := range w.BiteService.Ports {
+		servicePort := api_v1.ServicePort{
+			Port:       int32(p),
+			TargetPort: intstr.FromInt(p),
+			Name:       fmt.Sprintf("tcp-port-%d", p),
+		}
+		ports = append(ports, servicePort)
+	}
 	retval := &api_v1.Service{
 		ObjectMeta: api_v1.ObjectMeta{
 			Name:      w.BiteService.Name,
@@ -40,13 +50,7 @@ func (w *KubeMapper) Service() (*api_v1.Service, error) {
 			},
 		},
 		Spec: api_v1.ServiceSpec{
-			Ports: []api_v1.ServicePort{
-				{
-					Port:       int32(w.BiteService.Port),
-					TargetPort: intstr.FromInt(w.BiteService.Port),
-					Name:       "tcp-port",
-				},
-			},
+			Ports: ports,
 		},
 	}
 	return retval, nil
@@ -92,7 +96,7 @@ func (w *KubeMapper) Deployment() (*v1beta1.Deployment, error) {
 		return nil, err
 	}
 	if w.BiteService.Version != "" {
-		container.Image, _ = util.ApplicationImage(w.BiteService)
+		container.Image = util.Image(w.BiteService.Application, w.BiteService.Version)
 	}
 
 	volumes, err := w.volumes()
@@ -209,7 +213,7 @@ func (w *KubeMapper) volumes() ([]api_v1.Volume, error) {
 
 // Ingress extracts Kubernetes object from Bitesize definition
 func (w *KubeMapper) Ingress() (*v1beta1.Ingress, error) {
-	port := intstr.FromInt(w.BiteService.Port)
+	port := intstr.FromInt(w.BiteService.Ports[0])
 	retval := &v1beta1.Ingress{
 		ObjectMeta: api_v1.ObjectMeta{
 			Name:      w.BiteService.Name,

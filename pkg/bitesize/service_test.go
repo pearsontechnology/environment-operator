@@ -5,6 +5,8 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/pearsontechnology/environment-operator/pkg/util"
+
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -17,6 +19,11 @@ func TestUnmarshalPorts(t *testing.T) {
 	t.Run("empty ports return default", testPortsEmpty)
 }
 
+func TestFindByName(t *testing.T) {
+	t.Run("find existing service", testFindByNameExist)
+	t.Run("find non-existing service", testFindByNameNotFound)
+}
+
 func testPortsString(t *testing.T) {
 	svc := &Service{}
 	str := `
@@ -27,7 +34,7 @@ func testPortsString(t *testing.T) {
 		t.Errorf("could not unmarshal yaml: %s", err.Error())
 	}
 
-	if !eqIntArrays(svc.Ports, []int{81, 88, 89}) {
+	if !util.EqualArrays(svc.Ports, []int{81, 88, 89}) {
 		t.Errorf("Ports not equal. Expected: [81 88 89], got: %v", svc.Ports)
 	}
 
@@ -80,29 +87,7 @@ func testPortsEmpty(t *testing.T) {
 	}
 }
 
-func eqIntArrays(a, b []int) bool {
-
-	if a == nil && b == nil {
-		return true
-	}
-
-	if a == nil || b == nil {
-		return false
-	}
-
-	if len(a) != len(b) {
-		return false
-	}
-
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-
-	return true
-}
-func TestFindByNameExist(t *testing.T) {
+func testFindByNameExist(t *testing.T) {
 	var svc = Services{
 		{Name: "ads"},
 		{Name: "vpd"},
@@ -114,7 +99,7 @@ func TestFindByNameExist(t *testing.T) {
 	}
 }
 
-func TestFindByNameNotFound(t *testing.T) {
+func testFindByNameNotFound(t *testing.T) {
 	var svc = Services{
 		{Name: "ads"},
 		{Name: "vpd"},

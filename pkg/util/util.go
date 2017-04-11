@@ -3,8 +3,6 @@ package util
 import (
 	"fmt"
 	"os"
-
-	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 )
 
 // func trimBlueGreenFromName(orig string) string {
@@ -31,9 +29,9 @@ func Project() string {
 }
 
 // ApplicationImage returns full image name given bitesize.Service object
-func ApplicationImage(svc *bitesize.Service) (string, error) {
-	return Image(svc.Application, svc.Version), nil
-}
+// func ApplicationImage(svc *bitesize.Service) (string, error) {
+// 	return Image(svc.Application, svc.Version), nil
+// }
 
 // Image returns full  app image given app and version
 func Image(app, version string) string {
@@ -41,4 +39,27 @@ func Image(app, version string) string {
 		"%s/%s/%s:%s",
 		Registry(), Project(), app, version,
 	)
+}
+
+func EqualArrays(a, b []int) bool {
+
+	if a == nil && b == nil {
+		return true
+	}
+
+	if a == nil || b == nil {
+		return false
+	}
+
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+
+	return true
 }
