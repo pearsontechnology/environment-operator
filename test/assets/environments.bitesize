@@ -3,6 +3,19 @@ environments:
 - name: environment1
   services:
   - name: service1_environment1
+    namespace: environment-stg
+    volumes:
+    - name: vol1
+      size: 1G
+      path: /tmp/asd
 - name: environment2
+  namespace: environment-dev
   services:
   - name: service1_environment2
+    external_url: www.test.com
+    volumes:
+    - name: vol1
+      size: 1G
+      path: /tmp/asd
+      modes: ReadWriteMany
+  - name: service2_environment2

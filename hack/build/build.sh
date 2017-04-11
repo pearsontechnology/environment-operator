@@ -24,12 +24,11 @@ mkdir -p ${bin_dir} || true
 #CC="/usr/local/bin/gcc-6" GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -v -x \
 #	--ldflags '-extldflags "-static"' -o ${bin_dir}/environment-operator ./cmd/operator/main.go
 
- docker run --rm -v "$(pwd)":/usr/src/github.com/pearsontechnology/environment-operator \
-  	-w /usr/src/github.com/pearsontechnology/environment-operator \
-  	-e GOPATH=/usr \
+ docker run --rm -v "$(pwd)":/go/src/github.com/pearsontechnology/environment-operator \
+  	-w /go/src/github.com/pearsontechnology/environment-operator \
   	-e CGO_ENABLED=1 \
   	geribatai/golang:1.8 \
-   	go build -o ${bin_dir}/environment-operator ./cmd/operator/main.go
+   	go build -v -o ${bin_dir}/environment-operator ./cmd/operator/main.go
 
 
 echo "== Building docker image ${FULL_IMAGE}"

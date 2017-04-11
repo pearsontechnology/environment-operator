@@ -2,7 +2,10 @@ package bitesize
 
 import (
 	"fmt"
+	"path/filepath"
 	"sort"
+
+	"github.com/pearsontechnology/environment-operator/pkg/config"
 
 	validator "gopkg.in/validator.v2"
 )
@@ -35,6 +38,13 @@ func (slice Environments) Swap(i, j int) {
 	slice[i], slice[j] = slice[j], slice[i]
 }
 
+// LoadEnvironment returns bitesize.Environment object
+// constructed from environment variables
+func LoadEnvironmentFromConfig(c config.Config) (*Environment, error) {
+	fp := filepath.Join(c.GitLocalPath, c.EnvFile)
+	return LoadEnvironment(fp, c.EnvName)
+}
+
 // UnmarshalYAML implements the yaml.Unmarshaler interface for BitesizeEnvironment.
 func (e *Environment) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var err error
@@ -53,4 +63,18 @@ func (e *Environment) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	sort.Sort(e.Services)
 	return nil
+}
+
+// LoadEnvironment loads named environment from a filename with a given path
+func LoadEnvironment(path, envName string) (*Environment, error) {
+	e, err := LoadFromFile(path)
+	if err != nil {
+		return nil, err
+	}
+	for _, env := range e.Environments {
+		if env.Name == envName {
+			return &env, nil
+		}
+	}
+	return nil, fmt.Errorf("Environment %s not found in %s", envName, path)
 }

@@ -3,8 +3,6 @@ package bitesize
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
-	"strings"
 
 	validator "gopkg.in/validator.v2"
 	yaml "gopkg.in/yaml.v2"
@@ -37,7 +35,7 @@ type Test struct {
 
 // HealthCheck maps to LivenessProbe in Kubernetes
 type HealthCheck struct {
-	Command      []string `yaml:"command" validate:"volume_modes"`
+	Command      []string `yaml:"command"`
 	InitialDelay int      `yaml:"initial_delay,omitempty"`
 	Timeout      int      `yaml:"timeout,omitempty"`
 	// XXX          map[string]interface{} `yaml:",inline"`
@@ -69,13 +67,9 @@ func (e *HealthCheck) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	*e = *ee
 
-	// if err = checkOverflow(e.XXX, "health_check"); err != nil {
-	// 	return err
+	// if err = validator.Validate(e); err != nil {
+	// 	return fmt.Errorf("health_check.%s", err.Error())
 	// }
-
-	if err = validator.Validate(e); err != nil {
-		return fmt.Errorf("health_check.%s", err.Error())
-	}
 	return nil
 }
 
@@ -115,37 +109,13 @@ func LoadFromFile(path string) (*EnvironmentsBitesize, error) {
 	return LoadFromString(string(contents))
 }
 
-// LoadEnvironment loads named environment from a filename with a given path
-func LoadEnvironment(path, envName string) (*Environment, error) {
-	e, err := LoadFromFile(path)
-	if err != nil {
-		return nil, err
-	}
-	for _, env := range e.Environments {
-		if env.Name == envName {
-			return &env, nil
-		}
-	}
-	return nil, fmt.Errorf("Environment %s not found in %s", envName, path)
-}
-
-// Registry returns docker registry setting
-func Registry() string {
-	return os.Getenv("DOCKER_REGISTRY")
-}
-
-// Project returns project's name. TODO: Should be loaded from namespace labels..
-func Project() string {
-	return os.Getenv("PROJECT")
-}
-
-func checkOverflow(m map[string]interface{}, ctx string) error {
-	if len(m) > 0 {
-		var keys []string
-		for k := range m {
-			keys = append(keys, k)
-		}
-		return fmt.Errorf("%s: unknown fields (%s)", ctx, strings.Join(keys, ", "))
-	}
-	return nil
-}
+// func checkOverflow(m map[string]interface{}, ctx string) error {
+// 	if len(m) > 0 {
+// 		var keys []string
+// 		for k := range m {
+// 			keys = append(keys, k)
+// 		}
+// 		return fmt.Errorf("%s: unknown fields (%s)", ctx, strings.Join(keys, ", "))
+// 	}
+// 	return nil
+// }

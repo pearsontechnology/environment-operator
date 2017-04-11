@@ -3,10 +3,14 @@ package translator
 // translator package converts objects between Kubernetes and Bitesize
 
 import (
-	"encoding/json"
 	"fmt"
+	"strings"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
+	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
+	"github.com/pearsontechnology/environment-operator/pkg/util"
 	"k8s.io/client-go/pkg/api/unversioned"
 	api_v1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
@@ -48,12 +52,47 @@ func (w *KubeMapper) Service() (*api_v1.Service, error) {
 	return retval, nil
 }
 
+// PersistentVolumeClaims returns a list of claims for a biteservice
+func (w *KubeMapper) PersistentVolumeClaims() ([]api_v1.PersistentVolumeClaim, error) {
+	var retval []api_v1.PersistentVolumeClaim
+
+	for _, vol := range w.BiteService.Volumes {
+		ret := api_v1.PersistentVolumeClaim{
+			ObjectMeta: api_v1.ObjectMeta{
+				Name:      vol.Name,
+				Namespace: w.Namespace,
+				Labels: map[string]string{
+					"creator":    "pipeline",
+					"deployment": w.BiteService.Name,
+					"mount_path": vol.Path,
+					"size":       vol.Size,
+				},
+			},
+			Spec: api_v1.PersistentVolumeClaimSpec{
+				VolumeName:  vol.Name,
+				AccessModes: getAccessModesFromString(vol.Modes),
+				Selector: &unversioned.LabelSelector{
+					MatchLabels: map[string]string{
+						"name": vol.Name,
+					},
+				},
+			},
+		}
+
+		retval = append(retval, ret)
+	}
+	return retval, nil
+}
+
 // Deployment extracts Kubernetes object from Bitesize definition
 func (w *KubeMapper) Deployment() (*v1beta1.Deployment, error) {
 	replicas := int32(w.BiteService.Replicas)
 	container, err := w.container()
 	if err != nil {
 		return nil, err
+	}
+	if w.BiteService.Version != "" {
+		container.Image, _ = util.ApplicationImage(w.BiteService)
 	}
 
 	volumes, err := w.volumes()
@@ -99,6 +138,7 @@ func (w *KubeMapper) Deployment() (*v1beta1.Deployment, error) {
 			},
 		},
 	}
+
 	return retval, nil
 }
 
@@ -115,7 +155,7 @@ func (w *KubeMapper) container() (*api_v1.Container, error) {
 
 	retval := &api_v1.Container{
 		Name:         w.BiteService.Name,
-		Image:        "", // TODO: we will need to do something here
+		Image:        "",
 		Env:          evars,
 		VolumeMounts: mounts,
 	}
@@ -205,21 +245,13 @@ func (w *KubeMapper) Ingress() (*v1beta1.Ingress, error) {
 	return retval, nil
 }
 
-// ThirdPartyResourceData extracts Kubernetes object from Bitesize definition
-func (w *KubeMapper) ThirdPartyResourceData() (*v1beta1.ThirdPartyResourceData, error) {
-	data := map[string]interface{}{
-		"spec": map[string]interface{}{
-			"version": w.BiteService.Version,
-			"options": w.BiteService.Options,
+// ThirdPartyResource extracts Kubernetes object from Bitesize definition
+func (w *KubeMapper) ThirdPartyResource() (*ext.PrsnExternalResource, error) {
+	retval := &ext.PrsnExternalResource{
+		TypeMeta: unversioned.TypeMeta{
+			Kind:       strings.Title(w.BiteService.Type),
+			APIVersion: "prsn.io/v1",
 		},
-	}
-
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-
-	retval := &v1beta1.ThirdPartyResourceData{
 		ObjectMeta: api_v1.ObjectMeta{
 			Labels: map[string]string{
 				"creator": "pipeline",
@@ -228,7 +260,30 @@ func (w *KubeMapper) ThirdPartyResourceData() (*v1beta1.ThirdPartyResourceData, 
 			Namespace: w.Namespace,
 			Name:      w.BiteService.Name,
 		},
-		Data: jsonData,
+		Spec: ext.PrsnExternalResourceSpec{
+			Version: w.BiteService.Version,
+			Options: w.BiteService.Options,
+		},
 	}
+
+	log.Debugf("PrsnExternalResource: %+v", *retval)
+
 	return retval, nil
+}
+
+func getAccessModesFromString(modes string) []api_v1.PersistentVolumeAccessMode {
+	strmodes := strings.Split(modes, ",")
+	accessModes := []api_v1.PersistentVolumeAccessMode{}
+	for _, s := range strmodes {
+		s = strings.Trim(s, " ")
+		switch {
+		case s == "ReadWriteOnce":
+			accessModes = append(accessModes, api_v1.ReadWriteOnce)
+		case s == "ReadOnlyMany":
+			accessModes = append(accessModes, api_v1.ReadOnlyMany)
+		case s == "ReadWriteMany":
+			accessModes = append(accessModes, api_v1.ReadWriteMany)
+		}
+	}
+	return accessModes
 }

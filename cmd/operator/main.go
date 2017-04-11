@@ -1,107 +1,71 @@
 package main
 
 import (
-	"path/filepath"
+	"net/http"
+	"os"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/kelseyhightower/envconfig"
-	"github.com/kylelemons/godebug/pretty"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
+	"github.com/pearsontechnology/environment-operator/pkg/cluster"
+	"github.com/pearsontechnology/environment-operator/pkg/config"
 	"github.com/pearsontechnology/environment-operator/pkg/git"
-	"github.com/pearsontechnology/environment-operator/pkg/kubernetes"
+	"github.com/pearsontechnology/environment-operator/pkg/reaper"
+	"github.com/pearsontechnology/environment-operator/pkg/web"
 	"github.com/pearsontechnology/environment-operator/version"
+
+	"github.com/gorilla/handlers"
 )
 
-// Config contains environment variables used to configure the app
-type Config struct {
-	GitRepo        string `envconfig:"GIT_REMOTE_REPOSITORY"`
-	GitBranch      string `envconfig:"GIT_BRANCH" default:"master"`
-	GitKey         string `envconfig:"GIT_PRIVATE_KEY"`
-	EnvName        string `envconfig:"ENVIRONMENT_NAME"`
-	EnvFile        string `envconfig:"BITESIZE_FILE"`
-	Namespace      string `envconfig:"NAMESPACE"`
-	DockerRegistry string `envconfig:"DOCKER_REGISTRY" default:"bitesize-registry.default.svc.cluster.local"`
+var cfg config.Config
+var gitClient *git.Git
+var client *cluster.Cluster
+var reap reaper.Reaper
+
+func init() {
+	var err error
+
+	cfg = config.Load()
+	gitClient = git.Client()
+
+	client, err = cluster.Client()
+	if err != nil {
+		log.Fatalf("Error creating kubernetes client: %s", err.Error())
+	}
+
+	reap = reaper.Reaper{
+		Namespace: cfg.Namespace,
+		Wrapper:   client,
+	}
+
+	if cfg.Debug != "" {
+		log.SetLevel(log.DebugLevel)
+	}
+}
+
+func webserver() {
+	logged := handlers.CombinedLoggingHandler(os.Stderr, web.Router())
+	authenticated := web.Auth(logged)
+
+	if err := http.ListenAndServe(":8080", authenticated); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
-	var cfg Config
-	err := envconfig.Process("operator", &cfg)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+	log.Infof("Starting up environment-operator version %s", version.Version)
 
-	g := &git.Git{
-		LocalPath:  "/tmp/repository",
-		RemotePath: cfg.GitRepo,
-		BranchName: cfg.GitBranch,
-		SSHKey:     cfg.GitKey,
-	}
+	go webserver()
 
-	client, err := kubernetes.NewWrapper()
-
-	if err != nil {
-		log.Errorf("Error creating kubernetes client: %s", err.Error())
-	}
-
-	log.Infof("Staring up environment-operator version %s", version.Version)
-
-	if err := g.Clone(); err != nil {
-		log.Errorf("Error on initial clone: %s", err.Error())
-	}
+	gitClient.Clone()
 
 	for {
-		updateGitRepo(g)
-		compareConfig(cfg, g, client)
+		gitClient.Refresh()
+		gitConfiguration, _ := bitesize.LoadEnvironmentFromConfig(cfg)
+		client.ApplyIfChanged(gitConfiguration)
 
+		go reap.Cleanup(gitConfiguration)
 		time.Sleep(30000 * time.Millisecond)
 	}
 
-}
-
-func compareConfig(cfg Config, g *git.Git, client *kubernetes.Wrapper) {
-	fp := filepath.Join(g.LocalPath, cfg.EnvFile)
-	gitEnv, _ := bitesize.LoadEnvironment(fp, cfg.EnvName)
-	kubeEnv, _ := kubernetes.LoadFromClient(client, cfg.Namespace)
-
-	// Tests are obsolete.
-	gitEnv.Tests = []bitesize.Test{}
-	kubeEnv.Tests = []bitesize.Test{}
-	gitEnv.Deployment = nil
-	kubeEnv.Deployment = nil
-
-	// XXX: remove tprs for now
-	var newServices bitesize.Services
-	for _, s := range gitEnv.Services {
-		if s.Type == "" {
-			d := kubeEnv.Services.FindByName(s.Name)
-			if d != nil {
-				s.Version = d.Version
-			}
-			newServices = append(newServices, s)
-		}
-	}
-	gitEnv.Services = newServices
-	// XXX: the end
-
-	compareConfig := &pretty.Config{
-		Diffable:       true,
-		SkipZeroFields: true,
-	}
-	diff := compareConfig.Compare(kubeEnv, gitEnv)
-	if diff != "" {
-		log.Infof(diff)
-		client.ApplyEnvironment(gitEnv)
-		// Need to apply gitEnv here
-	}
-}
-
-func updateGitRepo(g *git.Git) {
-	if ok, err := g.UpdatesExist(); ok {
-		if err != nil {
-			log.Error(err.Error())
-		}
-		log.Infof("Updates in repository: %s", g.RemotePath)
-		g.CloneOrPull()
-	}
 }

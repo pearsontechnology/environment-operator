@@ -11,14 +11,14 @@ func validVolumeModes(v interface{}, param string) error {
 
 	if st.Kind() != reflect.String {
 		return fmt.Errorf(
-			"invalid volume mode: %v. Valid modes: %s",
+			"Invalid volume mode: %v. Valid modes: %s",
 			st,
 			"ReadWriteOnce,ReadOnlyMany,ReadWriteMany",
 		)
 	}
 
-	if !validNames[st.String()] {
-		return fmt.Errorf("invalid volume mode: %v", st)
+	if validNames[st.String()] == false {
+		return fmt.Errorf("Invalid volume mode: %v", st)
 	}
 	return nil
 }

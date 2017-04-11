@@ -1,5 +1,5 @@
-hash: 54a1068ec29d7f26b4b220515c1a0c7101abe4d6fea73a19ed9f45bfbbdd4b42
-updated: 2017-03-06T10:55:53.601845326Z
+hash: 19851b06100c4afe9d9008b367f4af3fb3f59630174909ffc5442e654384645b
+updated: 2017-04-06T11:55:45.799898045+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -59,6 +59,12 @@ imports:
   - proto
 - name: github.com/google/gofuzz
   version: bbcb9da2d746f8bdbd6a936686a0a6067ada0ec5
+- name: github.com/gorilla/context
+  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+- name: github.com/gorilla/handlers
+  version: 3a5767ca75ece5f7f1440b1d16975247f8d8b221
+- name: github.com/gorilla/mux
+  version: 599cba5e7b6137d46ddf58fb1765f5d928e69604
 - name: github.com/jonboulle/clockwork
   version: 72f9bd7c4e0c2a40055ab3d0f09654f730cce982
 - name: github.com/juju/ratelimit
@@ -68,6 +74,7 @@ imports:
 - name: github.com/kylelemons/godebug
   version: a616ab194758ae0a11290d87ca46ee8c440117b0
   subpackages:
+  - diff
   - pretty
 - name: github.com/mailru/easyjson
   version: d5b7844b561a7bc640052f1b935f7b800330d7e0
@@ -75,6 +82,8 @@ imports:
   - buffer
   - jlexer
   - jwriter
+- name: github.com/motemen/go-loghttp
+  version: f1552ae0d8e6d1980d67843f78b761a5fade8f67
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
 - name: github.com/PuerkitoBio/purell
@@ -82,7 +91,7 @@ imports:
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/Sirupsen/logrus
-  version: 0208149b40d863d2c1a2f8fe5753096a9cf2cc8b
+  version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: github.com/spf13/pflag
   version: 5ccb023bc27df288a957c5e994cd44fd19619465
 - name: github.com/ugorji/go
@@ -181,6 +190,7 @@ imports:
   - pkg/api/meta
   - pkg/api/meta/metatypes
   - pkg/api/resource
+  - pkg/api/testapi
   - pkg/api/unversioned
   - pkg/api/v1
   - pkg/api/validation/path
@@ -206,9 +216,18 @@ imports:
   - pkg/apis/certificates
   - pkg/apis/certificates/install
   - pkg/apis/certificates/v1alpha1
+  - pkg/apis/componentconfig
+  - pkg/apis/componentconfig/install
+  - pkg/apis/componentconfig/v1alpha1
   - pkg/apis/extensions
   - pkg/apis/extensions/install
   - pkg/apis/extensions/v1beta1
+  - pkg/apis/imagepolicy
+  - pkg/apis/imagepolicy/install
+  - pkg/apis/imagepolicy/v1alpha1
+  - pkg/apis/kubeadm
+  - pkg/apis/kubeadm/install
+  - pkg/apis/kubeadm/v1alpha1
   - pkg/apis/policy
   - pkg/apis/policy/install
   - pkg/apis/policy/v1beta1
@@ -221,9 +240,15 @@ imports:
   - pkg/auth/user
   - pkg/conversion
   - pkg/conversion/queryparams
+  - pkg/federation/apis/federation
+  - pkg/federation/apis/federation/install
+  - pkg/federation/apis/federation/v1beta1
   - pkg/fields
   - pkg/genericapiserver/openapi/common
+  - pkg/kubelet/qos
+  - pkg/kubelet/types
   - pkg/labels
+  - pkg/master/ports
   - pkg/runtime
   - pkg/runtime/serializer
   - pkg/runtime/serializer/json
@@ -238,6 +263,7 @@ imports:
   - pkg/util
   - pkg/util/cert
   - pkg/util/clock
+  - pkg/util/config
   - pkg/util/errors
   - pkg/util/flowcontrol
   - pkg/util/framer
@@ -263,6 +289,7 @@ imports:
   - plugin/pkg/client/auth/gcp
   - plugin/pkg/client/auth/oidc
   - rest
+  - rest/fake
   - testing
   - tools/clientcmd/api
   - tools/metrics

@@ -3,6 +3,8 @@ package git
 import (
 	"os"
 
+	"github.com/pearsontechnology/environment-operator/pkg/config"
+
 	git2go "gopkg.in/libgit2/git2go.v24"
 )
 
@@ -12,6 +14,17 @@ type Git struct {
 	LocalPath  string
 	RemotePath string
 	BranchName string
+}
+
+func Client() *Git {
+	cfg := config.Load()
+
+	return &Git{
+		LocalPath:  cfg.GitLocalPath,
+		RemotePath: cfg.GitRepo,
+		BranchName: cfg.GitBranch,
+		SSHKey:     cfg.GitKey,
+	}
 }
 
 // CloneOrPull checks if repo exists in local path. If it does, it

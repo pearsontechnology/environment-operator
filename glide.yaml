@@ -12,3 +12,10 @@ import:
 - package: github.com/kylelemons/godebug
   subpackages:
   - pretty
+- package: github.com/motemen/go-loghttp
+- package: github.com/gorilla/handlers
+  version: ^1.2.0
+- package: golang.org/x/net
+  subpackages:
+  - context
+- package: github.com/coreos/go-oidc

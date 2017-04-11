@@ -1,9 +1,7 @@
-package unit
+package kubernetes
 
 import (
 	"testing"
-
-	"github.com/pearsontechnology/environment-operator/pkg/kubernetes"
 
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/pkg/api/resource"
@@ -135,6 +133,9 @@ func testFullBitesizeEnvironment(t *testing.T) {
 			ObjectMeta: v1.ObjectMeta{
 				Name:      "test",
 				Namespace: "test",
+				Labels: map[string]string{
+					"creator": "pipeline",
+				},
 			},
 			Spec: v1beta1.IngressSpec{
 				Rules: []v1beta1.IngressRule{
@@ -145,19 +146,14 @@ func testFullBitesizeEnvironment(t *testing.T) {
 			},
 		},
 	)
-	bt, err := kubernetes.LoadFromClient(client, "test")
+	cluster := Cluster{Interface: client}
+	environment, err := cluster.LoadEnvironment("test")
 	if err != nil {
 		t.Error(err)
 	}
-	if bt == nil {
+	if environment == nil {
 		t.Error("Bitesize object is nil")
 	}
-
-	if len(bt.Environments) != 1 {
-		t.Errorf("Unexpected environment count: %d, expected: 1", len(bt.Environments))
-	}
-
-	environment := bt.Environments[0]
 
 	if environment.Name != "Development" {
 		t.Errorf("Unexpected environment name: %s", environment.Name)
@@ -171,7 +167,6 @@ func testFullBitesizeEnvironment(t *testing.T) {
 	if svc.Name != "test" {
 		t.Errorf("Unexpected service name: %s, expected: test", svc.Name)
 	}
-
 	// TODO: test ingresses, env variables, replica count
 
 	if svc.ExternalURL != "www.test.com" {

@@ -25,9 +25,20 @@ type Service struct {
 	Options      map[string]string   `yaml:"options,omitempty"`
 	HTTPSOnly    string
 	HTTPSBackend string
-	Type         string `yaml:"type,omitempty"`
+	Type         string        `yaml:"type,omitempty"`
+	Status       ServiceStatus `yaml:"status,omitempty"`
 	// XXX          map[string]interface{} `yaml:",inline"`
 }
+
+type ServiceStatus struct {
+	DeployedAt        string
+	AvailableReplicas int
+	DesiredReplicas   int
+	CurrentReplicas   int
+}
+
+// Services implement sort.Interface
+type Services []Service
 
 // ServiceWithDefaults returns new *Service object with default values set
 func ServiceWithDefaults() *Service {
@@ -35,22 +46,6 @@ func ServiceWithDefaults() *Service {
 		Ports:    []int{80},
 		Replicas: 1,
 	}
-}
-
-// Services implement sort.Interface
-type Services []Service
-
-func stringToIntArray(str string) []int {
-	var retval []int
-
-	pstr := strings.Split(str, ",")
-	for _, p := range pstr {
-		j, err := strconv.Atoi(p)
-		if err == nil {
-			retval = append(retval, j)
-		}
-	}
-	return retval
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for BitesizeService.
@@ -119,4 +114,17 @@ func unmarshalPorts(unmarshal func(interface{}) error) ([]int, error) {
 		ports = []int{80}
 	}
 	return ports, nil
+}
+
+func stringToIntArray(str string) []int {
+	var retval []int
+
+	pstr := strings.Split(str, ",")
+	for _, p := range pstr {
+		j, err := strconv.Atoi(p)
+		if err == nil {
+			retval = append(retval, j)
+		}
+	}
+	return retval
 }

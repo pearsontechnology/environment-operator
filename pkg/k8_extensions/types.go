@@ -1,18 +1,22 @@
-package kubernetes
+package k8_extensions
 
 import (
 	"encoding/json"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/pkg/api/unversioned"
+	"k8s.io/client-go/pkg/api/v1"
 )
+
+var SupportedThirdPartyResources = []string{
+	"mongo", "mysql", "cassandra", "redis",
+}
 
 // PrsnExternalResource represents ThirdpartyResources mapped from
 // kubernetes to externally running services (e.g. RDS, cassandra, mongo etc.)
 type PrsnExternalResource struct {
-	metav1.TypeMeta `json:", inline"`
+	unversioned.TypeMeta `json:", inline"`
 
-	ObjectMeta metav1.ObjectMeta `json:"metadata"`
+	ObjectMeta v1.ObjectMeta `json:"metadata"`
 
 	Spec PrsnExternalResourceSpec `json:"spec"`
 }
@@ -20,37 +24,38 @@ type PrsnExternalResource struct {
 // PrsnExternalResourceSpec represents format for these mappings - which is
 // basically it's version and  options
 type PrsnExternalResourceSpec struct {
-	Version string            `json:"version"`
-	Options map[string]string `json:"options"`
+	Version  string            `json:"version"`
+	Options  map[string]string `json:"options"`
+	Replicas int               `json:"replicas"`
 }
 
 // PrsnExternalResourceList is a list of PrsnExternalResource
 type PrsnExternalResourceList struct {
-	metav1.TypeMeta `json:",inline"`
-	ObjectMeta      metav1.ListMeta `json:"metadata"`
+	unversioned.TypeMeta `json:",inline"`
+	ObjectMeta           unversioned.ListMeta `json:"metadata"`
 
 	Items []PrsnExternalResource `json:"items"`
 }
 
 // GetObjectKind required to satisfy Object interface
-func (tpr *PrsnExternalResource) GetObjectKind() schema.ObjectKind {
+func (tpr *PrsnExternalResource) GetObjectKind() unversioned.ObjectKind {
 	return &tpr.TypeMeta
 }
 
 // GetObjectMeta required to satisfy ObjectMetaAccessor interface
-func (tpr *PrsnExternalResource) GetObjectMeta() metav1.Object {
-	return &tpr.ObjectMeta
+func (tpr *PrsnExternalResource) GetObjectMeta() unversioned.ObjectKind {
+	return &tpr.TypeMeta
 }
 
 // GetObjectKind required to satisfy Object interface
-func (tprList *PrsnExternalResourceList) GetObjectKind() schema.ObjectKind {
-	return &tprList.TypeMeta
-}
+// func (tprList *PrsnExternalResourceList) GetObjectKind() unversioned.ObjectKind {
+// 	return &tprList.TypeMeta
+// }
 
 // GetListMeta required to satisfy ListMetaAccessor interface
-func (tprList *PrsnExternalResourceList) GetListMeta() metav1.List {
-	return &tprList.ObjectMeta
-}
+// func (tprList *PrsnExternalResourceList) GetListMeta() v1.List {
+// 	return &tprList.ObjectMeta
+// }
 
 // The code below is used only to work around a known problem with third-party
 // resources and ugorji. If/when these issues are resolved, the code below

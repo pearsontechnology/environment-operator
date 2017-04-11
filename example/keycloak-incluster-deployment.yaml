@@ -1,0 +1,55 @@
+# This is an example, quick and dirty, ephemeral keycloak server
+# you can run in-cluster. Meant only for testing. Default 
+# username/password admin/admin
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    name: keycloak
+  name: keycloak
+  namespace: sample-app-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: keycloak
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        name: keycloak
+      name: keycloak
+    spec:
+      containers:
+      - name: keycloak
+        env:
+        - name: KEYCLOAK_USER
+          value: admin
+        - name: KEYCLOAK_PASSWORD
+          value: admin
+        image: jboss/keycloak
+        securityContext:
+          runAsUser: 1000
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: keycloak
+  name: keycloak
+  namespace: sample-app-dev
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    name: keycloak
