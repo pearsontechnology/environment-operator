@@ -5,6 +5,7 @@ import (
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/diff"
+	"github.com/pearsontechnology/environment-operator/pkg/util"
 
 	log "github.com/Sirupsen/logrus"
 	"k8s.io/client-go/kubernetes/fake"
@@ -17,6 +18,7 @@ func TestKubernetesClusterClient(t *testing.T) {
 	// t.Run("service count", testServiceCount)
 	// t.Run("volumes", testVolumes)
 	t.Run("full bitesize construct", testFullBitesizeEnvironment)
+	t.Run("test service ports", testServicePorts)
 	// t.Run("a/b deployment service", testABSingleService)
 }
 
@@ -100,13 +102,13 @@ func validMeta(namespace, name string) v1.ObjectMeta {
 	}
 }
 
-func testFullBitesizeEnvironment(t *testing.T) {
+func loadTestEnvironment() *fake.Clientset {
 	capacity, _ := resource.ParseQuantity("59G")
 	validLabels := map[string]string{"creator": "pipeline"}
 	nsLabels := map[string]string{"environment": "Development"}
 	replicaCount := int32(1)
 
-	client := fake.NewSimpleClientset(
+	return fake.NewSimpleClientset(
 		&v1.Namespace{
 			ObjectMeta: v1.ObjectMeta{
 				Name:   "test",
@@ -208,6 +210,11 @@ func testFullBitesizeEnvironment(t *testing.T) {
 						Protocol: "TCP",
 						Port:     80,
 					},
+					{
+						Name:     "whatevs2",
+						Protocol: "TCP",
+						Port:     8081,
+					},
 				},
 			},
 		},
@@ -237,6 +244,25 @@ func testFullBitesizeEnvironment(t *testing.T) {
 			},
 		},
 	)
+}
+
+func testServicePorts(t *testing.T) {
+	client := loadTestEnvironment()
+	cluster := Cluster{Interface: client, TestMode: true}
+	environment, err := cluster.LoadEnvironment("test")
+	if err != nil {
+		t.Error(err)
+	}
+
+	svc := environment.Services.FindByName("test")
+	if !util.EqualArrays(svc.Ports, []int{80, 8081}) {
+		t.Errorf("Ports not equal. Expected: [80 8081], got: %v", svc.Ports)
+	}
+}
+
+func testFullBitesizeEnvironment(t *testing.T) {
+
+	client := loadTestEnvironment()
 	cluster := Cluster{Interface: client, TestMode: true}
 	environment, err := cluster.LoadEnvironment("test")
 	if err != nil {
