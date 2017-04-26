@@ -107,9 +107,16 @@ func (s ServiceMap) AddIngress(ingress v1beta1.Ingress) {
 	name := ingress.Name
 	biteservice := s.CreateOrGet(name)
 
+	ssl := ingress.Labels["ssl"]
+	httpsOnly := ingress.Labels["httpsOnly"]
+	httpsBackend := ingress.Labels["httpsBackend"]
+
 	if len(ingress.Spec.Rules) > 0 {
 		externalURL = ingress.Spec.Rules[0].Host
 	}
 
 	biteservice.ExternalURL = externalURL
+	biteservice.HTTPSBackend = httpsBackend
+	biteservice.HTTPSOnly = httpsOnly
+	biteservice.Ssl = ssl
 }

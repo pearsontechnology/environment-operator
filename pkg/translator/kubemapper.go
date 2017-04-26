@@ -225,16 +225,30 @@ func (w *KubeMapper) volumes() ([]api_v1.Volume, error) {
 
 // Ingress extracts Kubernetes object from Bitesize definition
 func (w *KubeMapper) Ingress() (*v1beta1.Ingress, error) {
+	labels := map[string]string{
+		"creator":     "pipeline",
+		"application": w.BiteService.Application,
+		"name":        w.BiteService.Name,
+	}
+
+	if w.BiteService.Ssl != "" {
+		labels["ssl"] = w.BiteService.Ssl
+	}
+
+	if w.BiteService.HTTPSBackend != "" {
+		labels["httpsBackend"] = w.BiteService.HTTPSBackend
+	}
+
+	if w.BiteService.HTTPSOnly != "" {
+		labels["httpsOnly"] = w.BiteService.HTTPSOnly
+	}
+
 	port := intstr.FromInt(w.BiteService.Ports[0])
 	retval := &v1beta1.Ingress{
 		ObjectMeta: api_v1.ObjectMeta{
 			Name:      w.BiteService.Name,
 			Namespace: w.Namespace,
-			Labels: map[string]string{
-				"creator":     "pipeline",
-				"application": w.BiteService.Application,
-				"name":        w.BiteService.Name,
-			},
+			Labels:    labels,
 		},
 		Spec: v1beta1.IngressSpec{
 			Rules: []v1beta1.IngressRule{

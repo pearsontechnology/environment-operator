@@ -23,10 +23,10 @@ type Service struct {
 	EnvVars      []EnvVar            `yaml:"env,omitempty"`
 	Volumes      []Volume            `yaml:"volumes,omitempty"`
 	Options      map[string]string   `yaml:"options,omitempty"`
-	HTTPSOnly    string
-	HTTPSBackend string
-	Type         string        `yaml:"type,omitempty"`
-	Status       ServiceStatus `yaml:"status,omitempty"`
+	HTTPSOnly    string              `yaml:"httpsOnly,omitempty" validate:"regexp=^(true|false)*$"`
+	HTTPSBackend string              `yaml:"httpsBackend,omitempty" validate:"regexp=^(true|false)*$"`
+	Type         string              `yaml:"type,omitempty"`
+	Status       ServiceStatus       `yaml:"status,omitempty"`
 	// XXX          map[string]interface{} `yaml:",inline"`
 }
 
