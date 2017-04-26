@@ -14,7 +14,7 @@ func envVars(deployment v1beta1.Deployment) []bitesize.EnvVar {
 	for _, e := range deployment.Spec.Template.Spec.Containers[0].Env {
 		var v bitesize.EnvVar
 
-		if e.ValueFrom != nil {
+		if e.ValueFrom != nil && e.ValueFrom.SecretKeyRef != nil {
 			v = bitesize.EnvVar{
 				Value:  e.ValueFrom.SecretKeyRef.Key,
 				Secret: e.Name,
