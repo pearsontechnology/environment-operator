@@ -170,9 +170,21 @@ func (w *KubeMapper) envVars() ([]api_v1.EnvVar, error) {
 	var retval []api_v1.EnvVar
 
 	for _, e := range w.BiteService.EnvVars {
-		evar := api_v1.EnvVar{
-			Name:  e.Name,
-			Value: e.Value,
+		var evar api_v1.EnvVar
+		if e.Secret != "" {
+			evar = api_v1.EnvVar{
+				Name: e.Secret,
+				ValueFrom: &api_v1.EnvVarSource{
+					SecretKeyRef: &api_v1.SecretKeySelector{
+						Key: e.Value,
+					},
+				},
+			}
+		} else {
+			evar = api_v1.EnvVar{
+				Name:  e.Name,
+				Value: e.Value,
+			}
 		}
 		retval = append(retval, evar)
 	}

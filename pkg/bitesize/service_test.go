@@ -87,6 +87,49 @@ func testPortsEmpty(t *testing.T) {
 	}
 }
 
+func TestEnvVars(t *testing.T) {
+	t.Run("test equal env vars", testEnvVarsEqual)
+	t.Run("test diff env vars", testEnvVarsDiff)
+}
+
+func testEnvVarsEqual(t *testing.T) {
+	e1 := EnvVar{Name: "a", Value: "1"}
+	e2 := EnvVar{Name: "a", Value: "1"}
+
+	if e1 != e2 {
+		t.Errorf("Expected %+v to be equal to %+v, got false", e1, e2)
+	}
+
+	e1 = EnvVar{Secret: "secret", Value: "zzz"}
+	e2 = EnvVar{Secret: "secret", Value: "zzz"}
+
+	if e1 != e2 {
+		t.Errorf("Expected %+v to be equal to %+v, got false", e1, e2)
+	}
+}
+
+func testEnvVarsDiff(t *testing.T) {
+	e1 := EnvVar{Name: "a", Value: "1"}
+	e2 := EnvVar{Name: "a", Value: "2"}
+	if e1 == e2 {
+		t.Errorf("Expected %+v to be not equal to %+v, got true", e1, e2)
+	}
+
+	e1 = EnvVar{Secret: "secret", Value: "zzz"}
+	e2 = EnvVar{Secret: "secret", Value: "zza"}
+
+	if e1 == e2 {
+		t.Errorf("Expected %+v to be no equal to %+v, got true", e1, e2)
+	}
+
+	e1 = EnvVar{Secret: "secret", Value: "zzz"}
+	e2 = EnvVar{Name: "a", Value: "2"}
+
+	if e1 == e2 {
+		t.Errorf("Expected %+v to be no equal to %+v, got true", e1, e2)
+	}
+}
+
 func testFindByNameExist(t *testing.T) {
 	var svc = Services{
 		{Name: "ads"},

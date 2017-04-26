@@ -170,6 +170,14 @@ func loadTestEnvironment() *fake.Clientset {
 										Name:  "test3",
 										Value: "3",
 									},
+									{
+										Name: "test4",
+										ValueFrom: &v1.EnvVarSource{
+											SecretKeyRef: &v1.SecretKeySelector{
+												Key: "ttt",
+											},
+										},
+									},
 								},
 
 								VolumeMounts: []v1.VolumeMount{
@@ -290,7 +298,13 @@ func testFullBitesizeEnvironment(t *testing.T) {
 		t.Errorf("Unexpected external URL: %s, expected: www.test.com", svc.ExternalURL)
 	}
 
-	if len(svc.EnvVars) != 3 {
-		t.Errorf("Unexpected environment variable count: %d, expected: 3", len(svc.EnvVars))
+	if len(svc.EnvVars) != 4 {
+		t.Errorf("Unexpected environment variable count: %d, expected: 4", len(svc.EnvVars))
+	}
+
+	secretEnvVar := svc.EnvVars[3]
+
+	if secretEnvVar.Secret != "test4" || secretEnvVar.Value != "ttt" {
+		t.Errorf("Unexpected envvar[3]: %+v", secretEnvVar)
 	}
 }

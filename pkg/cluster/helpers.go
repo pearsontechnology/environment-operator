@@ -12,9 +12,18 @@ import (
 func envVars(deployment v1beta1.Deployment) []bitesize.EnvVar {
 	var retval []bitesize.EnvVar
 	for _, e := range deployment.Spec.Template.Spec.Containers[0].Env {
-		v := bitesize.EnvVar{
-			Name:  e.Name,
-			Value: e.Value,
+		var v bitesize.EnvVar
+
+		if e.ValueFrom != nil {
+			v = bitesize.EnvVar{
+				Value:  e.ValueFrom.SecretKeyRef.Key,
+				Secret: e.Name,
+			}
+		} else {
+			v = bitesize.EnvVar{
+				Name:  e.Name,
+				Value: e.Value,
+			}
 		}
 		retval = append(retval, v)
 	}
