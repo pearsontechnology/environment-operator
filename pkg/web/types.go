@@ -22,6 +22,7 @@ type StatusService struct {
 	URL        string         `json:"external_url,omitempty"`
 	DeployedAt string         `json:"deployed_at,omitempty"`
 	Replicas   StatusReplicas `json:"replicas,omitempty"`
+	Status     string         `json:"status,omitempty"`
 	Pods       []StatusPod    `json:"pods,omitempty"`
 }
 

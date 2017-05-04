@@ -1,5 +1,5 @@
-hash: 19851b06100c4afe9d9008b367f4af3fb3f59630174909ffc5442e654384645b
-updated: 2017-04-06T11:55:45.799898045+01:00
+hash: 8ea702f4d4135d06a694021cabeb1a8460ad3a44f02bc64d484546bc58933af8
+updated: 2017-04-28T17:09:18.259656926+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -152,7 +152,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: a3f3340b5840cee44f372bddb5880fcbc419b46a
 - name: k8s.io/apimachinery
-  version: 7080e31e90e981181435294bca96c80a37db8941
+  version: 75b8dd260ef0469d96d578705a87cffd0e09dab8
 - name: k8s.io/client-go
   version: e121606b0d09b2e1c467183ee46217fa85a6b672
   subpackages:
@@ -264,6 +264,7 @@ imports:
   - pkg/util/cert
   - pkg/util/clock
   - pkg/util/config
+  - pkg/util/diff
   - pkg/util/errors
   - pkg/util/flowcontrol
   - pkg/util/framer
@@ -291,6 +292,7 @@ imports:
   - rest
   - rest/fake
   - testing
+  - tools/cache
   - tools/clientcmd/api
   - tools/metrics
   - transport

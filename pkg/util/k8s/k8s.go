@@ -14,6 +14,7 @@ import (
 type Client struct {
 	Interface kubernetes.Interface
 	Namespace string
+	TPRClient rest.Interface
 }
 
 // ClientForNamespace configures REST client to operate in a given namespace
@@ -27,44 +28,20 @@ func ClientForNamespace(ns string) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{Interface: clientset, Namespace: ns}, nil
-}
-
-// Service builds Service client
-func (c *Client) Service() *Service {
-	return &Service{Interface: c.Interface, Namespace: c.Namespace}
-}
-
-// Deployment builds Deployment client
-func (c *Client) Deployment() *Deployment {
-	return &Deployment{Interface: c.Interface, Namespace: c.Namespace}
-}
-
-// PVC builds PersistentVolumeClaim client
-func (c *Client) PVC() *PersistentVolumeClaim {
-	return &PersistentVolumeClaim{Interface: c.Interface, Namespace: c.Namespace}
-}
-
-// Ingress builds Ingress client
-func (c *Client) Ingress() *Ingress {
-	return &Ingress{Interface: c.Interface, Namespace: c.Namespace}
-}
-
-// Ns builds Ingress client
-func (c *Client) Ns() *Namespace {
-	return &Namespace{Interface: c.Interface, Namespace: c.Namespace}
-}
-
-// ThirdPartyResource() builds TPR client
-func (c *Client) ThirdPartyResource(kind string) *ThirdPartyResource {
-	var restcli *rest.RESTClient
-	var err error
-
-	config, err := rest.InClusterConfig()
+	restcli, err := TPRClient()
 	if err != nil {
-		return &ThirdPartyResource{}
+		return nil, err
 	}
 
+	return &Client{Interface: clientset, Namespace: ns, TPRClient: restcli}, nil
+}
+
+// TPRClient returns rest.RESTClient for ThirdPartyResources
+func TPRClient() (*rest.RESTClient, error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
 	config.GroupVersion = &unversioned.GroupVersion{
 		Group:   "prsn.io",
 		Version: "v1",
@@ -94,16 +71,41 @@ func (c *Client) ThirdPartyResource(kind string) *ThirdPartyResource {
 	// TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	// },
 	// }
+	return rest.RESTClientFor(config)
+}
 
-	restcli, err = rest.RESTClientFor(config)
-	if err != nil {
-		return &ThirdPartyResource{}
-	}
+// Service builds Service client
+func (c *Client) Service() *Service {
+	return &Service{Interface: c.Interface, Namespace: c.Namespace}
+}
 
+// Deployment builds Deployment client
+func (c *Client) Deployment() *Deployment {
+	return &Deployment{Interface: c.Interface, Namespace: c.Namespace}
+}
+
+// PVC builds PersistentVolumeClaim client
+func (c *Client) PVC() *PersistentVolumeClaim {
+	return &PersistentVolumeClaim{Interface: c.Interface, Namespace: c.Namespace}
+}
+
+// Ingress builds Ingress client
+func (c *Client) Ingress() *Ingress {
+	return &Ingress{Interface: c.Interface, Namespace: c.Namespace}
+}
+
+// Ns builds Ingress client
+func (c *Client) Ns() *Namespace {
+	return &Namespace{Interface: c.Interface, Namespace: c.Namespace}
+}
+
+// ThirdPartyResource builds TPR client
+func (c *Client) ThirdPartyResource(kind string) *ThirdPartyResource {
 	return &ThirdPartyResource{
-		Interface: restcli,
+		Interface: c.TPRClient,
 		Namespace: c.Namespace,
-		Type:      kind}
+		Type:      kind,
+	}
 }
 
 func listOptions() v1.ListOptions {

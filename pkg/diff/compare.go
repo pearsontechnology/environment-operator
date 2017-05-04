@@ -25,7 +25,9 @@ func Compare(config1, config2 bitesize.Environment) string {
 		d := c2.Services.FindByName(s.Name)
 
 		if d != nil {
-			s.Version = d.Version
+			if s.Version == "" {
+				s.Version = d.Version
+			}
 			s.Status = d.Status
 			s.Deployment = d.Deployment
 		}

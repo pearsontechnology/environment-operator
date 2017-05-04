@@ -8,11 +8,14 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
+	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
+	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/api/unversioned"
-	api_v1 "k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/client-go/pkg/util/intstr"
 )
@@ -28,19 +31,19 @@ type KubeMapper struct {
 }
 
 // Service extracts Kubernetes object from Bitesize definition
-func (w *KubeMapper) Service() (*api_v1.Service, error) {
-	var ports []api_v1.ServicePort
+func (w *KubeMapper) Service() (*v1.Service, error) {
+	var ports []v1.ServicePort
 
 	for _, p := range w.BiteService.Ports {
-		servicePort := api_v1.ServicePort{
+		servicePort := v1.ServicePort{
 			Port:       int32(p),
 			TargetPort: intstr.FromInt(p),
 			Name:       fmt.Sprintf("tcp-port-%d", p),
 		}
 		ports = append(ports, servicePort)
 	}
-	retval := &api_v1.Service{
-		ObjectMeta: api_v1.ObjectMeta{
+	retval := &v1.Service{
+		ObjectMeta: v1.ObjectMeta{
 			Name:      w.BiteService.Name,
 			Namespace: w.Namespace,
 			Labels: map[string]string{
@@ -49,7 +52,7 @@ func (w *KubeMapper) Service() (*api_v1.Service, error) {
 				"application": w.BiteService.Application,
 			},
 		},
-		Spec: api_v1.ServiceSpec{
+		Spec: v1.ServiceSpec{
 			Ports: ports,
 		},
 	}
@@ -57,12 +60,12 @@ func (w *KubeMapper) Service() (*api_v1.Service, error) {
 }
 
 // PersistentVolumeClaims returns a list of claims for a biteservice
-func (w *KubeMapper) PersistentVolumeClaims() ([]api_v1.PersistentVolumeClaim, error) {
-	var retval []api_v1.PersistentVolumeClaim
+func (w *KubeMapper) PersistentVolumeClaims() ([]v1.PersistentVolumeClaim, error) {
+	var retval []v1.PersistentVolumeClaim
 
 	for _, vol := range w.BiteService.Volumes {
-		ret := api_v1.PersistentVolumeClaim{
-			ObjectMeta: api_v1.ObjectMeta{
+		ret := v1.PersistentVolumeClaim{
+			ObjectMeta: v1.ObjectMeta{
 				Name:      vol.Name,
 				Namespace: w.Namespace,
 				Labels: map[string]string{
@@ -72,7 +75,7 @@ func (w *KubeMapper) PersistentVolumeClaims() ([]api_v1.PersistentVolumeClaim, e
 					"size":       vol.Size,
 				},
 			},
-			Spec: api_v1.PersistentVolumeClaimSpec{
+			Spec: v1.PersistentVolumeClaimSpec{
 				VolumeName:  vol.Name,
 				AccessModes: getAccessModesFromString(vol.Modes),
 				Selector: &unversioned.LabelSelector{
@@ -105,7 +108,7 @@ func (w *KubeMapper) Deployment() (*v1beta1.Deployment, error) {
 	}
 
 	retval := &v1beta1.Deployment{
-		ObjectMeta: api_v1.ObjectMeta{
+		ObjectMeta: v1.ObjectMeta{
 			Name:      w.BiteService.Name,
 			Namespace: w.Namespace,
 			Labels: map[string]string{
@@ -123,8 +126,8 @@ func (w *KubeMapper) Deployment() (*v1beta1.Deployment, error) {
 					"name":    w.BiteService.Name,
 				},
 			},
-			Template: api_v1.PodTemplateSpec{
-				ObjectMeta: api_v1.ObjectMeta{
+			Template: v1.PodTemplateSpec{
+				ObjectMeta: v1.ObjectMeta{
 					Name:      w.BiteService.Name,
 					Namespace: w.Namespace,
 					Labels: map[string]string{
@@ -134,9 +137,9 @@ func (w *KubeMapper) Deployment() (*v1beta1.Deployment, error) {
 						"version":     w.BiteService.Version,
 					},
 				},
-				Spec: api_v1.PodSpec{
+				Spec: v1.PodSpec{
 					NodeSelector: map[string]string{"role": "minion"},
-					Containers:   []api_v1.Container{*container},
+					Containers:   []v1.Container{*container},
 					Volumes:      volumes,
 				},
 			},
@@ -146,7 +149,7 @@ func (w *KubeMapper) Deployment() (*v1beta1.Deployment, error) {
 	return retval, nil
 }
 
-func (w *KubeMapper) container() (*api_v1.Container, error) {
+func (w *KubeMapper) container() (*v1.Container, error) {
 	mounts, err := w.volumeMounts()
 	if err != nil {
 		return nil, err
@@ -157,7 +160,7 @@ func (w *KubeMapper) container() (*api_v1.Container, error) {
 		return nil, err
 	}
 
-	retval := &api_v1.Container{
+	retval := &v1.Container{
 		Name:         w.BiteService.Name,
 		Image:        "",
 		Env:          evars,
@@ -166,22 +169,22 @@ func (w *KubeMapper) container() (*api_v1.Container, error) {
 	return retval, nil
 }
 
-func (w *KubeMapper) envVars() ([]api_v1.EnvVar, error) {
-	var retval []api_v1.EnvVar
+func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
+	var retval []v1.EnvVar
 
 	for _, e := range w.BiteService.EnvVars {
-		var evar api_v1.EnvVar
+		var evar v1.EnvVar
 		if e.Secret != "" {
-			evar = api_v1.EnvVar{
+			evar = v1.EnvVar{
 				Name: e.Secret,
-				ValueFrom: &api_v1.EnvVarSource{
-					SecretKeyRef: &api_v1.SecretKeySelector{
+				ValueFrom: &v1.EnvVarSource{
+					SecretKeyRef: &v1.SecretKeySelector{
 						Key: e.Value,
 					},
 				},
 			}
 		} else {
-			evar = api_v1.EnvVar{
+			evar = v1.EnvVar{
 				Name:  e.Name,
 				Value: e.Value,
 			}
@@ -191,14 +194,14 @@ func (w *KubeMapper) envVars() ([]api_v1.EnvVar, error) {
 	return retval, nil
 }
 
-func (w *KubeMapper) volumeMounts() ([]api_v1.VolumeMount, error) {
-	var retval []api_v1.VolumeMount
+func (w *KubeMapper) volumeMounts() ([]v1.VolumeMount, error) {
+	var retval []v1.VolumeMount
 
 	for _, v := range w.BiteService.Volumes {
 		if v.Name == "" || v.Path == "" {
 			return nil, fmt.Errorf("Volume must have both name and path set")
 		}
-		vol := api_v1.VolumeMount{
+		vol := v1.VolumeMount{
 			Name:      v.Name,
 			MountPath: v.Path,
 		}
@@ -207,13 +210,13 @@ func (w *KubeMapper) volumeMounts() ([]api_v1.VolumeMount, error) {
 	return retval, nil
 }
 
-func (w *KubeMapper) volumes() ([]api_v1.Volume, error) {
-	var retval []api_v1.Volume
+func (w *KubeMapper) volumes() ([]v1.Volume, error) {
+	var retval []v1.Volume
 	for _, v := range w.BiteService.Volumes {
-		vol := api_v1.Volume{
+		vol := v1.Volume{
 			Name: v.Name,
-			VolumeSource: api_v1.VolumeSource{
-				PersistentVolumeClaim: &api_v1.PersistentVolumeClaimVolumeSource{
+			VolumeSource: v1.VolumeSource{
+				PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
 					ClaimName: v.Name,
 				},
 			},
@@ -245,7 +248,7 @@ func (w *KubeMapper) Ingress() (*v1beta1.Ingress, error) {
 
 	port := intstr.FromInt(w.BiteService.Ports[0])
 	retval := &v1beta1.Ingress{
-		ObjectMeta: api_v1.ObjectMeta{
+		ObjectMeta: v1.ObjectMeta{
 			Name:      w.BiteService.Name,
 			Namespace: w.Namespace,
 			Labels:    labels,
@@ -282,7 +285,7 @@ func (w *KubeMapper) ThirdPartyResource() (*ext.PrsnExternalResource, error) {
 			Kind:       strings.Title(w.BiteService.Type),
 			APIVersion: "prsn.io/v1",
 		},
-		ObjectMeta: api_v1.ObjectMeta{
+		ObjectMeta: v1.ObjectMeta{
 			Labels: map[string]string{
 				"creator": "pipeline",
 				"name":    w.BiteService.Name,
@@ -301,18 +304,18 @@ func (w *KubeMapper) ThirdPartyResource() (*ext.PrsnExternalResource, error) {
 	return retval, nil
 }
 
-func getAccessModesFromString(modes string) []api_v1.PersistentVolumeAccessMode {
+func getAccessModesFromString(modes string) []v1.PersistentVolumeAccessMode {
 	strmodes := strings.Split(modes, ",")
-	accessModes := []api_v1.PersistentVolumeAccessMode{}
+	accessModes := []v1.PersistentVolumeAccessMode{}
 	for _, s := range strmodes {
 		s = strings.Trim(s, " ")
 		switch {
 		case s == "ReadWriteOnce":
-			accessModes = append(accessModes, api_v1.ReadWriteOnce)
+			accessModes = append(accessModes, v1.ReadWriteOnce)
 		case s == "ReadOnlyMany":
-			accessModes = append(accessModes, api_v1.ReadOnlyMany)
+			accessModes = append(accessModes, v1.ReadOnlyMany)
 		case s == "ReadWriteMany":
-			accessModes = append(accessModes, api_v1.ReadWriteMany)
+			accessModes = append(accessModes, v1.ReadWriteMany)
 		}
 	}
 	return accessModes

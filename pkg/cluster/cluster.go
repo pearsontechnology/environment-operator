@@ -26,7 +26,12 @@ func Client() (*Cluster, error) {
 		return nil, err
 	}
 
-	return &Cluster{Interface: clientset}, nil
+	tprclient, err := k8s.TPRClient()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Cluster{Interface: clientset, TPRClient: tprclient}, nil
 }
 
 // ApplyIfChanged compares bitesize Environment passed as an argument to
@@ -59,6 +64,7 @@ func (cluster *Cluster) ApplyEnvironment(e *bitesize.Environment) {
 		client := &k8s.Client{
 			Interface: cluster.Interface,
 			Namespace: e.Namespace,
+			TPRClient: cluster.TPRClient,
 		}
 
 		if service.Type == "" {
@@ -102,6 +108,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 	client := &k8s.Client{
 		Namespace: namespace,
 		Interface: cluster.Interface,
+		TPRClient: cluster.TPRClient,
 	}
 
 	ns, err := client.Ns().Get()
@@ -143,12 +150,10 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 
 	// We need to exclude this part from unit tests as we cannot
 	// fake client.ThirdPartyResource()
-	if cluster.TestMode == false {
-		for _, supported := range k8_extensions.SupportedThirdPartyResources {
-			tprs, _ := client.ThirdPartyResource(supported).List()
-			for _, tpr := range tprs {
-				serviceMap.AddThirdPartyResource(tpr)
-			}
+	for _, supported := range k8_extensions.SupportedThirdPartyResources {
+		tprs, _ := client.ThirdPartyResource(supported).List()
+		for _, tpr := range tprs {
+			serviceMap.AddThirdPartyResource(tpr)
 		}
 	}
 

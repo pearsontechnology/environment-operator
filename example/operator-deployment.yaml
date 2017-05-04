@@ -49,7 +49,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: geribatai/environment-operator:5c2bce85a31dacc0879fddfa7a75c3094aea2608
+        image: geribatai/environment-operator:7e96b00855e001ccb5fad1d1ede156f318777eee
         imagePullPolicy: Always
         securityContext:
           runAsUser: 1000

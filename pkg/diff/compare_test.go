@@ -74,3 +74,32 @@ func TestDiffNames(t *testing.T) {
 		t.Error("Expected diff, got the same")
 	}
 }
+
+func TestDiffVersionsSame(t *testing.T) {
+	var saTests = []struct {
+		versionA string
+		versionB string
+		expected bool
+	}{
+		{"1", "1", true},
+		{"1", "2", false},
+		{"", "1", true},  // assume the same if environments.bitesize does not have version
+		{"1", "", false}, // assume diff if environments.bitesize have version but not the cluster
+	}
+
+	for _, tst := range saTests {
+		a := bitesize.Environment{
+			Name: "a", Services: []bitesize.Service{{Name: "a", Version: tst.versionA}},
+		}
+		b := bitesize.Environment{
+			Name: "a", Services: []bitesize.Service{{Name: "a", Version: tst.versionB}},
+		}
+
+		if (Compare(a, b) == "") != tst.expected {
+			t.Errorf(
+				"Unexpected version compare(%s,%s) should be %t",
+				tst.versionA, tst.versionB, tst.expected,
+			)
+		}
+	}
+}

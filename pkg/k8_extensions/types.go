@@ -3,6 +3,8 @@ package k8_extensions
 import (
 	"encoding/json"
 
+	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api/meta"
 	"k8s.io/client-go/pkg/api/unversioned"
 	"k8s.io/client-go/pkg/api/v1"
 )
@@ -40,13 +42,18 @@ type PrsnExternalResourceList struct {
 }
 
 // GetObjectKind required to satisfy Object interface
-func (tpr *PrsnExternalResource) GetObjectKind() unversioned.ObjectKind {
+func (tpr PrsnExternalResource) GetObjectKind() unversioned.ObjectKind {
 	return &tpr.TypeMeta
 }
 
 // GetObjectMeta required to satisfy ObjectMetaAccessor interface
-func (tpr *PrsnExternalResource) GetObjectMeta() unversioned.ObjectKind {
-	return &tpr.TypeMeta
+// func (tpr PrsnExternalResource) GetObjectMeta() v1.ObjectMeta {
+// 	return tpr.ObjectMeta
+// }
+
+func (tpr PrsnExternalResource) GetObjectMeta() meta.Object {
+
+	return &tpr.ObjectMeta
 }
 
 // GetObjectKind required to satisfy Object interface

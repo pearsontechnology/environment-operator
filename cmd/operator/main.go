@@ -45,7 +45,11 @@ func init() {
 
 func webserver() {
 	logged := handlers.CombinedLoggingHandler(os.Stderr, web.Router())
-	authenticated := web.Auth(logged)
+	authenticated := logged
+
+	if cfg.UseAuth {
+		authenticated = web.Auth(logged)
+	}
 
 	if err := http.ListenAndServe(":8080", authenticated); err != nil {
 		log.Fatal(err)

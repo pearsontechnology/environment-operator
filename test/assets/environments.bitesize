@@ -19,3 +19,6 @@ environments:
       path: /tmp/asd
       modes: ReadWriteMany
   - name: service2_environment2
+  - name: testdb
+    type: "mysql"
+    version: "5.6"

@@ -20,6 +20,7 @@ func Router() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/deploy", postDeploy).Methods("POST")
 	r.HandleFunc("/status", getStatus).Methods("GET")
+	r.HandleFunc("/status/{service}", getServiceStatus).Methods("GET")
 
 	return r
 }
@@ -75,8 +76,12 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	status := map[string]string{
+		"status": "deploying",
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Success"))
+	json.NewEncoder(w).Encode(status)
 }
 
 func getStatus(w http.ResponseWriter, r *http.Request) {
@@ -101,10 +106,21 @@ func getStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, svc := range e.Services {
+		status := "red"
+		if svc.Status.AvailableReplicas == svc.Status.DesiredReplicas {
+			status = "orange"
+		}
+
+		if svc.Status.AvailableReplicas == svc.Status.DesiredReplicas &&
+			svc.Status.DesiredReplicas == svc.Status.CurrentReplicas {
+			status = "green"
+		}
+
 		statusService := StatusService{
 			Name:       svc.Name,
 			Version:    svc.Version,
 			DeployedAt: svc.Status.DeployedAt,
+			Status:     status,
 			Replicas: StatusReplicas{
 				Available: svc.Status.AvailableReplicas,
 				UpToDate:  svc.Status.CurrentReplicas,
@@ -115,30 +131,57 @@ func getStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(s)
 
-	// LoadEnvironmentFromCluster
-	// services.each
-	// ret[name]
-	// ret[version]
+}
 
-	// Status will get:
-	// list of running pods
-	// versions of running pods (label version)
-	// pods running vs pods desired
-	// events for deployment
-	// deployment created_at
+func getServiceStatus(w http.ResponseWriter, r *http.Request) {
 
-	// { name: "asd",
-	//   current_replicas: X,
-	//   desired_replicas: Y,
-	//   created_at: x-x-x-x x:x
-	//   instances: [
-	//      a : {
-	//           version: a,
-	//           created_at: x-x-x-x
-	//      },
-	//      b: {
-	//         version: a,
-	//         created_at: x-x-x-x
-	//      }
+	vars := mux.Vars(r)
+	serviceName := vars["service"]
 
+	w.Header().Set("Content-Type", "application/json")
+
+	client, err := cluster.Client()
+	if err != nil {
+		log.Errorf("Error getting cluster client: %s", err.Error())
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	}
+
+	cfg := config.Load()
+	e, err := client.LoadEnvironment(cfg.Namespace)
+	if err != nil {
+		log.Errorf("Error getting cluster client: %s", err.Error())
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	svc := e.Services.FindByName(serviceName)
+	if svc == nil {
+		log.Errorf("Error getting service: %s", err.Error())
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	status := "red"
+	if svc.Status.AvailableReplicas == svc.Status.DesiredReplicas {
+		status = "orange"
+	}
+
+	if svc.Status.AvailableReplicas == svc.Status.DesiredReplicas &&
+		svc.Status.DesiredReplicas == svc.Status.CurrentReplicas {
+		status = "green"
+	}
+
+	statusService := StatusService{
+		Name:       svc.Name,
+		Version:    svc.Version,
+		DeployedAt: svc.Status.DeployedAt,
+		Status:     status,
+		Replicas: StatusReplicas{
+			Available: svc.Status.AvailableReplicas,
+			UpToDate:  svc.Status.CurrentReplicas,
+			Desired:   svc.Status.DesiredReplicas,
+		},
+	}
+
+	json.NewEncoder(w).Encode(statusService)
 }
