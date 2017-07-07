@@ -160,13 +160,10 @@ func getServiceStatus(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-
 	status := "red"
 	if svc.Status.AvailableReplicas == svc.Status.DesiredReplicas {
 		status = "orange"
-	}
-
-	if svc.Status.AvailableReplicas == svc.Status.DesiredReplicas &&
+	} else if svc.Status.AvailableReplicas == svc.Status.DesiredReplicas &&
 		svc.Status.DesiredReplicas == svc.Status.CurrentReplicas {
 		status = "green"
 	}

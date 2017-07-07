@@ -23,6 +23,8 @@ type Config struct {
 	OIDCAllowedGroups string `envconfig:"OIDC_ALLOWED_GROUPS"`
 	OIDCClientID      string `envconfig:"OIDC_CLIENT_ID" default:"bitesize"`
 
+	TokenFile string `envconfig:"AUTH_TOKEN_FILE"`
+
 	Debug string `envconfig:"DEBUG"`
 }
 

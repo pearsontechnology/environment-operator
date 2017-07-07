@@ -1,6 +1,5 @@
 # Changelog
 
-## v0.0.1..v0.0.2 
+## v0.0.3
 
-* [d9728fb](https://github.com/pearsontechnology/environment-operator/commit/d9728fb1b31598417630c8cfcc4e3a467254651f) Add validator cmd [Simas Cepaitis](mailto:simas.cepaitis@pearson.com)
-
+* Add support for AUTH_TOKEN_FILE environment variable. If this variable is set, static token auth file is used to authenticate clients. Secret volume mount can be used for authentication.

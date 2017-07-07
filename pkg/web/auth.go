@@ -14,12 +14,23 @@ import (
 type AuthClient struct {
 	Client        *oidc.Client
 	AllowedGroups []string
+	Token         string
 }
 
 func NewAuthClient() (*AuthClient, error) {
 	cfg := config.Load()
 
 	retval := &AuthClient{}
+
+	// Handle AUTH_TOKEN_FILE
+	if cfg.TokenFile != "" {
+		b, err := ioutil.ReadFile(cfg.TokenFile)
+		if err != nil {
+			return nil, err
+		}
+		retval.Token = string(b)
+		return retval, nil
+	}
 
 	provider, err := oidc.FetchProviderConfig(http.DefaultClient, cfg.OIDCIssuerURL)
 	if err != nil {
@@ -46,6 +57,10 @@ func NewAuthClient() (*AuthClient, error) {
 }
 
 func (a *AuthClient) Authenticate(token string) bool {
+	if a.Token != "" {
+		return a.Token == token
+	}
+
 	jwt, err := jose.ParseJWT(token)
 	if err != nil {
 		log.Errorf("Error parsing JWT: %s", err.Error())
