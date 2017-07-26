@@ -84,6 +84,11 @@ func (c *Client) Deployment() *Deployment {
 	return &Deployment{Interface: c.Interface, Namespace: c.Namespace}
 }
 
+// HorizontalPodAutoscaler builds HPA client
+func (c *Client) HorizontalPodAutoscaler() *HorizontalPodAutoscaler {
+	return &HorizontalPodAutoscaler{Interface: c.Interface, Namespace: c.Namespace}
+}
+
 // PVC builds PersistentVolumeClaim client
 func (c *Client) PVC() *PersistentVolumeClaim {
 	return &PersistentVolumeClaim{Interface: c.Interface, Namespace: c.Namespace}

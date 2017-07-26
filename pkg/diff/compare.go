@@ -37,6 +37,21 @@ func Compare(config1, config2 bitesize.Environment) string {
 	c1.Services = newServices
 	// XXX: the end
 
+	// Ignore diff between service replicas when hpa is configured
+	var correctedServices bitesize.Services
+	gitServices := c1.Services
+	clusterServices := c2.Services
+	for _, gs := range gitServices {
+		cs := clusterServices.FindByName(gs.Name)
+		if cs != nil {
+			if cs.HPA.MinReplicas != 0 {
+				gs.Replicas = cs.Replicas
+			}
+		}
+		correctedServices = append(correctedServices, gs)
+	}
+	c1.Services = correctedServices
+
 	compareConfig := &pretty.Config{
 		Diffable:       true,
 		SkipZeroFields: true,
