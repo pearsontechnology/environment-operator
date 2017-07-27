@@ -54,6 +54,10 @@ func (w *KubeMapper) Service() (*v1.Service, error) {
 		},
 		Spec: v1.ServiceSpec{
 			Ports: ports,
+			Selector: map[string]string{
+				"creator":     "pipeline",
+				"name":        w.BiteService.Name,
+			},
 		},
 	}
 	return retval, nil
