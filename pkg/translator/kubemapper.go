@@ -106,6 +106,7 @@ func (w *KubeMapper) Deployment() (*v1beta1.Deployment, error) {
 		container.Image = util.Image(w.BiteService.Application, w.BiteService.Version)
 	}
 
+	imagePullSecrets, err := w.imagePullSecrets()
 	volumes, err := w.volumes()
 	if err != nil {
 		return nil, err
@@ -144,10 +145,25 @@ func (w *KubeMapper) Deployment() (*v1beta1.Deployment, error) {
 				Spec: v1.PodSpec{
 					NodeSelector: map[string]string{"role": "minion"},
 					Containers:   []v1.Container{*container},
+					ImagePullSecrets: imagePullSecrets,
 					Volumes:      volumes,
 				},
 			},
 		},
+	}
+
+	return retval, nil
+}
+func (w *KubeMapper) imagePullSecrets() ([]v1.LocalObjectReference, error) {
+	var retval []v1.LocalObjectReference
+
+	result := strings.Split(util.RegistrySecrets(), ",")
+	for i := range result{
+		var namevalue v1.LocalObjectReference
+		namevalue = v1.LocalObjectReference{
+			Name: result[i],
+		}
+		retval = append(retval, namevalue)
 	}
 
 	return retval, nil

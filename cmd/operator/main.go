@@ -62,6 +62,7 @@ func main() {
 	err := gitClient.Clone()
 	if err != nil {
 		log.Errorf("Git clone error: %s", err.Error())
+		log.Errorf("Git Client Information: \n RemotePath=%s \n LocalPath=%s \n Branch=%s \n SSHkey= \n %s", gitClient.RemotePath, gitClient.LocalPath, gitClient.BranchName, gitClient.SSHKey)
 	}
 
 	for {

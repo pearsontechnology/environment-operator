@@ -23,6 +23,10 @@ func Registry() string {
 	return os.Getenv("DOCKER_REGISTRY")
 }
 
+func RegistrySecrets() string {
+	return os.Getenv("DOCKER_PULL_SECRETS")
+}
+
 // Project returns project's name. TODO: Should be loaded from namespace labels..
 func Project() string {
 	return os.Getenv("PROJECT")

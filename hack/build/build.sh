@@ -24,6 +24,22 @@ mkdir -p ${bin_dir} || true
 #CC="/usr/local/bin/gcc-6" GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -v -x \
 #	--ldflags '-extldflags "-static"' -o ${bin_dir}/environment-operator ./cmd/operator/main.go
 
+echo "**************************************************************"
+echo "***************** Running Unit Tests *************************"
+echo "**************************************************************"
+
+ docker run --rm -v "$(pwd)":/go/src/github.com/pearsontechnology/environment-operator \
+  	-w /go/src/github.com/pearsontechnology/environment-operator \
+  	-e CGO_ENABLED=1 \
+  	geribatai/golang:1.8 \
+    go test -v  ./pkg/bitesize ./pkg/cluster ./pkg/diff ./pkg/translator ./pkg/web
+    #Need to fix failing tests in git and reaper packages before they get re-enable as below
+    #go test -v ./pkg/bitesize ./pkg/cluster ./pkg/diff ./pkg/git ./pkg/reaper ./pkg/translator ./pkg/web
+
+echo "**************************************************************"
+echo "***************** Building Source ****************************"
+echo "**************************************************************"
+
  docker run --rm -v "$(pwd)":/go/src/github.com/pearsontechnology/environment-operator \
   	-w /go/src/github.com/pearsontechnology/environment-operator \
   	-e CGO_ENABLED=1 \
@@ -31,6 +47,9 @@ mkdir -p ${bin_dir} || true
     go build -v -o ${bin_dir}/environment-operator ./cmd/operator/main.go
 #    /bin/sh -c  "apk update && apk add build-base && go build -v -o ${bin_dir}/environment-operator ./cmd/operator/main.go"
 
+echo "**************************************************************"
+echo "***************** Building Docker Image and Pushing **********"
+echo "**************************************************************"
 
 echo "== Building docker image ${FULL_IMAGE}"
 docker build --tag "${FULL_IMAGE}" -f hack/build/Dockerfile .

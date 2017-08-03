@@ -3,12 +3,6 @@
 
 More information on environment operator can be found in https://docs.google.com/document/d/1VYarE5SepyvVFjkXJfnpM3JAgybxkBT53TZzqsOv_pc
 
-## Running Tests
-
-Unit tests are stored next to the source files. E2E tests are stored in `test/e2e` (currently none). To run e2e test suite, run
-```
-% go test -v ./test/e2e
-```
 
 
 ## Building new docker image
@@ -17,6 +11,10 @@ Unit tests are stored next to the source files. E2E tests are stored in `test/e2
 `IMAGE` environment variable set (e.g. `IMAGE=bitesize-registry.default.svc.cluster.local:5000/core/environment-operator`).
 By default, image will be tagged with the HEAD commit tag. If you want to override
 it and release versioned image, set `IMAGE_TAG` environment variable.
+
+## Running Tests
+
+Unit tests are stored next to the source files. Unit tests for each package are executed via the hack/build/build.sh script above
 
 ## Deploying sample environment-operator
 
