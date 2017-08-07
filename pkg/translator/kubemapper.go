@@ -143,10 +143,10 @@ func (w *KubeMapper) Deployment() (*v1beta1.Deployment, error) {
 					},
 				},
 				Spec: v1.PodSpec{
-					NodeSelector: map[string]string{"role": "minion"},
-					Containers:   []v1.Container{*container},
+					NodeSelector:     map[string]string{"role": "minion"},
+					Containers:       []v1.Container{*container},
 					ImagePullSecrets: imagePullSecrets,
-					Volumes:      volumes,
+					Volumes:          volumes,
 				},
 			},
 		},
@@ -158,7 +158,7 @@ func (w *KubeMapper) imagePullSecrets() ([]v1.LocalObjectReference, error) {
 	var retval []v1.LocalObjectReference
 
 	result := strings.Split(util.RegistrySecrets(), ",")
-	for i := range result{
+	for i := range result {
 		var namevalue v1.LocalObjectReference
 		namevalue = v1.LocalObjectReference{
 			Name: result[i],

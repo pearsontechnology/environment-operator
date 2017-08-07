@@ -1,0 +1,3 @@
+approvals = 2  #LGTM approvals required before merging
+pattern = "(?i)LGTM"
+self_approval_off = true #Prevent authors from approving their own commit
