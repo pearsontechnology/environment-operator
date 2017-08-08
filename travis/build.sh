@@ -28,7 +28,7 @@ echo "**************************************************************************
 docker run --rm -v "$(pwd)":/go/src/github.com/pearsontechnology/environment-operator \
 	-w /go/src/github.com/pearsontechnology/environment-operator \
 	-e CGO_ENABLED=1 \
-  	geribatai/golang:1.8 \
+  	pearsontechnology/golang:1.8 \
     go build -v -o ${bin_dir}/environment-operator ./cmd/operator/main.go
 
 REPO=pearsontechnology/environment-operator
