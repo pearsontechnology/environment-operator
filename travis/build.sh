@@ -38,6 +38,11 @@ if [[ $TRAVIS_BRANCH == *"master"* ]]; then
   FULL_IMAGE="${REPO}:${releaseVersion}"
   buildDocker
 
+elif [ $TRAVIS_PULL_REQUEST != "false" ]; then
+
+  FULL_IMAGE="${REPO}:${TRAVIS_PULL_REQUEST_BRANCH}"
+  buildDocker
+
 else
 
   FULL_IMAGE="${REPO}:${TRAVIS_BRANCH}"
