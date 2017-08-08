@@ -22,7 +22,7 @@ mkdir -p ${bin_dir} || true
 docker login -u $DOCKER_USER -p $DOCKER_PASS
 
 echo "*******************************************************************************************"
-echo "***************** Building Source from Branch ${TRAVIS_BRANCH} ****************************"
+echo "***************** Building Source *********************************************************"
 echo "*******************************************************************************************"
 
 docker run --rm -v "$(pwd)":/go/src/github.com/pearsontechnology/environment-operator \
