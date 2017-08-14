@@ -1,0 +1,23 @@
+sudo: false
+services:
+  - docker
+language: bash
+env:
+  global:
+    #DOCKER_USER
+    - secure: "UHR07rdakQgVwskhYcJNnjhxNewmF+Ae3wM4utThTZBvSY87aZqPCwQCBs9rU3uih/CfYmEF56zNAEXjkLoGFNaZ7zL8HS1C3gNj8vi0df3UEh8Cvw9YJH4L8wiSy5qBx2xvHOWVFZdkL3WoJx3N1O4NgCSuSnml4K0hKvvibbSOAjpMRcSoA9qXaOZLw5mkDXjZoqAPfIhia63XXjB6Md8UV1N54QxCphHLDolBBnivuakD8N1peG7UZ/6Pu9hplya3CyZdtxvH+csg8dD1HaBV3tHVlsA3vEgCJuYNPJbHqrMUlXsOyIIkMw/1zU7MsDIdEd/SBB1PZIw0P587i9onioliGGOcstzH0ntq/xOutw8f21k9KVqJq7kup5Xp+al3KZ/TQwXMmgQRwBx1DkV9LbROXMRP8UojnSrVHXg6U8pD4xqwUJOILWP6/EDCmGZ53I4kGFmbWipu2kz7VyjyqoEIUKDQQnkbVKhGNCw4cRpU83J+/atCCf3I6+mQ57dBx9ZqDhF3A/pV8cQrCx9E25TQcB0+uErN2826Q/uAprq+FCPF4RkvvMkN4MKqg4lXw0RHlc++28dQoZa9oDPIiHQLyrEP30LokEp4WrdtD0RWn+mVedJnrogCqK/g6KAYbr/0HiWP/LguDlcLwG2Ep8Ss071ILuko7DDQox8="
+    #DOCKER_PASS
+    - secure: "RD7wK/g9AikzmZgeKHwBq5ibsCIOPYAH3WzOJvFAIR57D3Xc7vOXfzcJRz6O0GH35jIwTg8fExbXAy6VArnrgl8ohsSa6jK3WLSmTo90qqXwfWKMKpYRD0P90SW3wXr/6ceHKg8805Dg3jZVLmndCH97S/ridplUuG/zy20bXQi3ZOSZNuwxbDGR4BUKboBytMLdT6wAsOZ7/wL2wX3vfAaOnEUGb02ZCTvqrrc1o217WkFrbcVAH0S1TY6ZJPmsArqFCblzwLIH6JaLJlN5fIAU3QSmVoyGWUFDeigUpJQeRn8ckeraz8tj+rRUFzc0+P+L4CiVaXstX53wLBiUwhr3ekKSxPg6zymSBhPBYxfBwtHDe8iQ0pf42GvsPh0ZjEhOiuuSITtyHxuCJVCgv8oH15CyBLRJqjDFGsJpUHEE8rorZr+lkpuM57YFnKxuBEUxNbfYLMzKG4GN/jkQVctA43f3z2i6WbIux0p7JjomqQncpkWJcSDPmCP65dtr1wGdL7qhubUbajBuo7/dR9Dwmbf5gxSD/5q3HuL6J8DhlpYJmpSXT/698L3WwYonYHsM82w+co788rMFP0lthL7I20OmRMkS0AypaZhJP8mARKGqwWsJ2uaqmGXkvFUCcNjpLIwO76Mz76AUQrdbgwEFISdRgMEwK3JbNCPgp8A="
+install:
+  - ${TRAVIS_BUILD_DIR}/travis/releaseVersioning.sh
+before_script:
+  - ${TRAVIS_BUILD_DIR}/travis/unittest.sh
+script:
+  - ${TRAVIS_BUILD_DIR}/travis/build.sh
+after_success:
+  - ${TRAVIS_BUILD_DIR}/travis/releaseTagging.sh
+#safelist
+branches:
+  only:
+    - dev
+    - master

@@ -2,3 +2,5 @@ _output
 .DS_Store
 *-secret.yaml
 key
+.idea/*
+*.iml
