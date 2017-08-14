@@ -22,7 +22,8 @@ func (s ServiceMap) CreateOrGet(name string) *bitesize.Service {
 	// Create with some defaults -- defaults should probably live in bitesize.Service
 	if s[name] == nil {
 		s[name] = &bitesize.Service{
-			Name: name,
+			Name:     name,
+			Replicas: 1,
 		}
 	}
 	return s[name]
