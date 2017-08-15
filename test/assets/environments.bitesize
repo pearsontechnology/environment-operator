@@ -18,6 +18,10 @@ environments:
       size: 1G
       path: /tmp/asd
       modes: ReadWriteMany
+    hpa:
+      min_replicas: 2
+      max_replicas: 5
+      target_cpu_utilization_percentage: 75
   - name: service2_environment2
   - name: testdb
     type: "mysql"
