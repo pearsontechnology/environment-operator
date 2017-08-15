@@ -19,7 +19,7 @@ type Service struct {
 	Application  string                  `yaml:"application,omitempty"`
 	Replicas     int                     `yaml:"replicas,omitempty"`
 	Deployment   *DeploymentSettings     `yaml:"deployment,omitempty"`
-	HPA          HorizontalPodAutoscaler `yaml:"hpa"`
+	HPA          HorizontalPodAutoscaler `yaml:"hpa" validate:"hpa"`
 	Requests     ContainerRequests       `yaml:"requests"`
 	HealthCheck  *HealthCheck            `yaml:"health_check,omitempty"`
 	EnvVars      []EnvVar                `yaml:"env,omitempty"`
