@@ -4,11 +4,10 @@ import (
 	"sort"
 	"strings"
 
-	"k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
-
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
+	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 
 // ServiceMap holds a list of bitesize.Service objects, representing the
@@ -70,8 +69,7 @@ func (s ServiceMap) AddDeployment(deployment v1beta1.Deployment) {
 		AvailableReplicas: int(deployment.Status.AvailableReplicas),
 		DesiredReplicas:   int(deployment.Status.Replicas),
 		CurrentReplicas:   int(deployment.Status.UpdatedReplicas),
-
-		DeployedAt: deployment.CreationTimestamp.String(),
+		DeployedAt:        deployment.CreationTimestamp.String(),
 	}
 }
 
@@ -100,6 +98,18 @@ func (s ServiceMap) AddThirdPartyResource(tpr k8_extensions.PrsnExternalResource
 	if tpr.Spec.Replicas != 0 {
 		biteservice.Replicas = tpr.Spec.Replicas
 	}
+}
+
+func (s ServiceMap) AddPod(pod v1.Pod, logs string) {
+	biteservice := s.CreateOrGet("podservice")
+	podval := bitesize.Pod{
+		Name:      pod.ObjectMeta.Name,
+		Phase:     pod.Status.Phase,
+		StartTime: pod.Status.StartTime.String(),
+		Message:   pod.Status.Message,
+		Logs:      logs,
+	}
+	biteservice.DeployedPods = append(biteservice.DeployedPods, podval)
 }
 
 func (s ServiceMap) AddIngress(ingress v1beta1.Ingress) {

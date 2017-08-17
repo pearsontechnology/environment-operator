@@ -23,6 +23,7 @@ func Router() *mux.Router {
 	r.HandleFunc("/deploy", postDeploy).Methods("POST")
 	r.HandleFunc("/status", getStatus).Methods("GET")
 	r.HandleFunc("/status/{service}", getServiceStatus).Methods("GET")
+	r.HandleFunc("/status/{service}/pods", getPodStatus).Methods("GET")
 
 	return r
 }
@@ -116,6 +117,32 @@ func getStatus(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func getPodStatus(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	serviceName := vars["service"]
+
+	w.Header().Set("Content-Type", "application/json")
+
+	deploySVC, err := loadService(serviceName)
+
+	if err != nil {
+		log.Error(err.Error())
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	podSVC, err := loadService("podservice")
+	if err != nil {
+		log.Error(err.Error())
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	statusPods := statusForPods(deploySVC, podSVC)
+	json.NewEncoder(w).Encode(statusPods)
+}
+
 func getServiceStatus(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
@@ -172,5 +199,18 @@ func statusForService(svc bitesize.Service) StatusService {
 			UpToDate:  svc.Status.CurrentReplicas,
 			Desired:   svc.Status.DesiredReplicas,
 		},
+	}
+}
+func statusForPods(deploySVC bitesize.Service, podSVC bitesize.Service) StatusPods {
+	var deployedPods []bitesize.Pod
+	//Only return pods that are part of the deployment/service being requested
+	for _, pod := range podSVC.DeployedPods {
+		if strings.Contains(pod.Name, deploySVC.Name) {
+			deployedPods = append(deployedPods, pod)
+		}
+	}
+	return StatusPods{
+		Name: podSVC.Name,
+		Pods: deployedPods,
 	}
 }

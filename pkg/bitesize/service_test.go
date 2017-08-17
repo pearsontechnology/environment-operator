@@ -86,6 +86,17 @@ func testPortsEmpty(t *testing.T) {
 		t.Errorf("Unexpected ports: %v", svc.Ports)
 	}
 }
+func TestPod(t *testing.T) {
+	t.Run("test Pods exist in Service", testPodsEqual)
+}
+func testPodsEqual(t *testing.T) {
+	e1 := Pod{Name: "PodA", Phase: "Running", StartTime: "StartTime", Message: "Message", Logs: "Log Message"}
+	e2 := Pod{Name: "PodA", Phase: "Running", StartTime: "StartTime", Message: "Message", Logs: "Log Message"}
+
+	if e1 != e2 {
+		t.Errorf("Expected %+v to be equal to %+v, got false", e1, e2)
+	}
+}
 
 func TestEnvVars(t *testing.T) {
 	t.Run("test equal env vars", testEnvVarsEqual)

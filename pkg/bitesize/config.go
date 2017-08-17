@@ -2,10 +2,10 @@ package bitesize
 
 import (
 	"fmt"
-	"io/ioutil"
-
 	validator "gopkg.in/validator.v2"
 	yaml "gopkg.in/yaml.v2"
+	"io/ioutil"
+	"k8s.io/client-go/pkg/api/v1"
 )
 
 // EnvironmentsBitesize is a 1:1 mapping to environments.bitesize file
@@ -46,6 +46,15 @@ type EnvVar struct {
 	Name   string `yaml:"name"`
 	Value  string `yaml:"value"`
 	Secret string `yaml:"secret"`
+}
+
+// Pod represents Pod in Kubernetes
+type Pod struct {
+	Name      string      `yaml:"name"`
+	Phase     v1.PodPhase `yaml:"phase"`
+	StartTime string      `yaml:"start_time"`
+	Message   string      `yaml:"message"`
+	Logs      string      `yaml:"logs"`
 }
 
 // Volume represents volume & it's mount
