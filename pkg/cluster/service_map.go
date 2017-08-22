@@ -4,11 +4,11 @@ import (
 	"sort"
 	"strings"
 
-	"k8s.io/client-go/pkg/api/resource"
-	autoscale_v1 "k8s.io/client-go/pkg/apis/autoscaling/v1"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
+	"k8s.io/client-go/pkg/api/resource"
 	"k8s.io/client-go/pkg/api/v1"
+	autoscale_v1 "k8s.io/client-go/pkg/apis/autoscaling/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 

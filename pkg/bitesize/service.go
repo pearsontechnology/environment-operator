@@ -22,7 +22,7 @@ type Service struct {
 	Requests     ContainerRequests       `yaml:"requests" validate:"requests"`
 	HealthCheck  *HealthCheck            `yaml:"health_check,omitempty"`
 	EnvVars      []EnvVar                `yaml:"env,omitempty"`
-	DeployedPods []Pod               `yaml:"deployedpods,omitempty"`
+	DeployedPods []Pod                   `yaml:"-"` //Ignore field when parsing bitesize yaml
 	Volumes      []Volume                `yaml:"volumes,omitempty"`
 	Options      map[string]string       `yaml:"options,omitempty"`
 	HTTPSOnly    string                  `yaml:"httpsOnly,omitempty" validate:"regexp=^(true|false)*$"`
