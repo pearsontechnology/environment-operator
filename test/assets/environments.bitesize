@@ -22,3 +22,21 @@ environments:
   - name: testdb
     type: "mysql"
     version: "5.6"
+  - name: hpaservice
+    application: gummybears
+    version: 1
+    requests:
+      cpu: 500m
+    hpa:
+      min_replicas: 2
+      max_replicas: 5
+      target_cpu_utilization_percentage: 75
+- name: environment3
+  namespace: environment-dev
+  services:
+  - name: hpa-service
+    namespace: environment-dev
+    hpa:
+      min_replicas: 2
+      max_replicas: 5
+      target_cpu_utilization_percentage: 75

@@ -54,8 +54,6 @@ func (e *Environment) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return fmt.Errorf("environment.%s", err.Error())
 	}
 
-	validator.SetValidationFunc("volume_modes", validVolumeModes)
-
 	*e = *ee
 
 	if err = validator.Validate(e); err != nil {

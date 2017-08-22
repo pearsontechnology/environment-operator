@@ -10,23 +10,25 @@ import (
 // Service represents a single service and it's configuration,
 // running in environment
 type Service struct {
-	Name         string              `yaml:"name" validate:"nonzero"`
-	ExternalURL  string              `yaml:"external_url,omitempty" validate:"regexp=^([a-zA-Z\\.\\-]+$)*"`
-	Ports        []int               `yaml:"-"` // Ports have custom unmarshaler
-	Ssl          string              `yaml:"ssl,omitempty" validate:"regexp=^(true|false)*$"`
-	Version      string              `yaml:"version,omitempty"`
-	Application  string              `yaml:"application,omitempty"`
-	Replicas     int                 `yaml:"replicas,omitempty"`
-	Deployment   *DeploymentSettings `yaml:"deployment,omitempty"`
-	HealthCheck  *HealthCheck        `yaml:"health_check,omitempty"`
-	EnvVars      []EnvVar            `yaml:"env,omitempty"`
+	Name         string                  `yaml:"name" validate:"nonzero"`
+	ExternalURL  string                  `yaml:"external_url,omitempty" validate:"regexp=^([a-zA-Z\\.\\-]+$)*"`
+	Ports        []int                   `yaml:"-"` // Ports have custom unmarshaler
+	Ssl          string                  `yaml:"ssl,omitempty" validate:"regexp=^(true|false)*$"`
+	Version      string                  `yaml:"version,omitempty"`
+	Application  string                  `yaml:"application,omitempty"`
+	Replicas     int                     `yaml:"replicas,omitempty"`
+	Deployment   *DeploymentSettings     `yaml:"deployment,omitempty"`
+	HPA          HorizontalPodAutoscaler `yaml:"hpa" validate:"hpa"`
+	Requests     ContainerRequests       `yaml:"requests" validate:"requests"`
+	HealthCheck  *HealthCheck            `yaml:"health_check,omitempty"`
+	EnvVars      []EnvVar                `yaml:"env,omitempty"`
 	DeployedPods []Pod               `yaml:"deployedpods,omitempty"`
-	Volumes      []Volume            `yaml:"volumes,omitempty"`
-	Options      map[string]string   `yaml:"options,omitempty"`
-	HTTPSOnly    string              `yaml:"httpsOnly,omitempty" validate:"regexp=^(true|false)*$"`
-	HTTPSBackend string              `yaml:"httpsBackend,omitempty" validate:"regexp=^(true|false)*$"`
-	Type         string              `yaml:"type,omitempty"`
-	Status       ServiceStatus       `yaml:"status,omitempty"`
+	Volumes      []Volume                `yaml:"volumes,omitempty"`
+	Options      map[string]string       `yaml:"options,omitempty"`
+	HTTPSOnly    string                  `yaml:"httpsOnly,omitempty" validate:"regexp=^(true|false)*$"`
+	HTTPSBackend string                  `yaml:"httpsBackend,omitempty" validate:"regexp=^(true|false)*$"`
+	Type         string                  `yaml:"type,omitempty"`
+	Status       ServiceStatus           `yaml:"status,omitempty"`
 	// XXX          map[string]interface{} `yaml:",inline"`
 }
 
@@ -68,6 +70,10 @@ func (e *Service) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	if e.Type != "" {
 		e.Ports = nil
+	}
+
+	if e.HPA.MinReplicas != 0 {
+		e.Replicas = int(e.HPA.MinReplicas)
 	}
 
 	if err = validator.Validate(e); err != nil {

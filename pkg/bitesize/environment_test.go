@@ -14,14 +14,14 @@ func TestExistingEnvironment(t *testing.T) {
 		t.Errorf("Unexpected error loading environment: %s", err.Error())
 	}
 
-	if len(e.Services) != 3 {
-		t.Errorf("Unexpected count of services. Expected 2, got: %d", len(e.Services))
+	if len(e.Services) != 4 {
+		t.Errorf("Unexpected count of services. Expected 4, got: %d", len(e.Services))
 	}
 
 }
 
 func TestNoneExistingEnvironment(t *testing.T) {
-	e, err := LoadEnvironment("../../test/assets/environments.bitesize", "environment3")
+	e, err := LoadEnvironment("../../test/assets/environments.bitesize", "non-existant")
 	if e != nil {
 		t.Errorf("Expected environment to be nil, got %v", e)
 	}

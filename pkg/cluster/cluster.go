@@ -82,6 +82,11 @@ func (cluster *Cluster) ApplyEnvironment(e *bitesize.Environment) {
 				log.Error(err)
 			}
 
+			hpa, _ := mapper.HPA()
+			if err = client.HorizontalPodAutoscaler().Apply(&hpa); err != nil {
+				log.Error(err)
+			}
+
 			pvc, _ := mapper.PersistentVolumeClaims()
 			for _, claim := range pvc {
 				if err = client.PVC().Apply(&claim); err != nil {
@@ -145,6 +150,14 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 	}
 	for _, deployment := range deployments {
 		serviceMap.AddDeployment(deployment)
+	}
+
+	hpas, err := client.HorizontalPodAutoscaler().List()
+	if err != nil {
+		log.Errorf("Error loading kubernetes hpas: %s", err.Error())
+	}
+	for _, hpa := range hpas {
+		serviceMap.AddHPA(hpa)
 	}
 
 	ingresses, err := client.Ingress().List()
