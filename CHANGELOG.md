@@ -13,6 +13,7 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 
 #### Added
 
+*  Support for kubernetes service annotations. [[BITE-1511](https://agile-jira.pearson.com/browse/BITE-1511)]
 *  Support for configuring horizontal pod autoscaling. [[BITE-1433](https://agile-jira.pearson.com/browse/BITE-1433)]
 *  Support for configuring container CPU resource requests. [[BITE-1433](https://agile-jira.pearson.com/browse/BITE-1433)]
 *  Custom Docker registry support added for pod spec. [[BITE-1448](https://agile-jira.pearson.com/browse/BITE-1448)]
