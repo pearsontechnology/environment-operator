@@ -39,6 +39,7 @@ func Client() (*Cluster, error) {
 // the current client environment. If there are any changes, c is applied
 // to the current config
 func (cluster *Cluster) ApplyIfChanged(newConfig *bitesize.Environment) error {
+	var err error
 	if newConfig == nil {
 		return errors.New("Could not compare against config (nil)")
 	}
@@ -48,14 +49,14 @@ func (cluster *Cluster) ApplyIfChanged(newConfig *bitesize.Environment) error {
 	changes := diff.Compare(*newConfig, *currentConfig)
 	if changes != "" {
 		log.Infof("Changes: %s", changes)
-		cluster.ApplyEnvironment(newConfig)
+		err = cluster.ApplyEnvironment(newConfig)
 	}
-	return nil
+	return err
 }
 
 // ApplyEnvironment executes kubectl apply against ingresses, services, deployments
 // etc.
-func (cluster *Cluster) ApplyEnvironment(e *bitesize.Environment) {
+func (cluster *Cluster) ApplyEnvironment(e *bitesize.Environment) error {
 	var err error
 
 	for _, service := range e.Services {
@@ -77,7 +78,11 @@ func (cluster *Cluster) ApplyEnvironment(e *bitesize.Environment) {
 				log.Error(err)
 			}
 
-			deployment, _ := mapper.Deployment()
+			deployment, err := mapper.Deployment()
+			if err != nil {
+				return err
+			}
+
 			if err = client.Deployment().Apply(deployment); err != nil {
 				log.Error(err)
 			}
@@ -103,6 +108,7 @@ func (cluster *Cluster) ApplyEnvironment(e *bitesize.Environment) {
 			}
 		}
 	}
+	return err
 }
 
 // LoadEnvironment returns BitesizeEnvironment object loaded from Kubernetes API

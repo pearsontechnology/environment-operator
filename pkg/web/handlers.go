@@ -60,13 +60,13 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 	d, err := ParseDeployRequest(r.Body)
 	if err != nil {
 		log.Errorf("Could not parse request body: %s", err.Error())
-		http.Error(w, fmt.Sprintf("Bad request body: %s", err.Error()), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Bad Request: Unable to parse request body: %s", err.Error()), http.StatusBadRequest)
 	}
 
 	deployment, err := GetCurrentDeploymentByName(d.Name)
 	if err != nil {
 		log.Errorf("Error getting deployment %s: %s", d.Name, err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 	deployment.ObjectMeta.Labels["version"] = d.Version
@@ -76,7 +76,7 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 
 	if err = client.Deployment().Apply(deployment); err != nil {
 		log.Errorf("Error updating deployment %s: %s", d.Name, err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 

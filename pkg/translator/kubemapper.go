@@ -4,16 +4,14 @@ package translator
 
 import (
 	"fmt"
-	"strings"
-
 	log "github.com/Sirupsen/logrus"
-
+	"strings"
 	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
 	"k8s.io/client-go/pkg/api/unversioned"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
@@ -191,11 +189,14 @@ func (w *KubeMapper) container() (*v1.Container, error) {
 
 func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 	var retval []v1.EnvVar
+	var err error
+	//Create in cluster rest client to be utilized for secrets processing
+	client, _ := k8s.ClientForNamespace(w.Namespace)
 
 	for _, e := range w.BiteService.EnvVars {
 		var evar v1.EnvVar
 		if e.Secret != "" {
-			kv := strings.Split(e.Value, "/")
+			kv := strings.Split(e.Secret, "/")
 			secretName := ""
 			secretDataKey := ""
 
@@ -205,6 +206,11 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 			} else {
 				secretName = kv[0]
 				secretDataKey = secretName
+			}
+
+			if !client.Secret().Exists(secretName) {
+				log.Debugf("Unable to Find Secret %s", secretName)
+				err = fmt.Errorf("Unable to find secret [%s] when processing deployment [%s]", secretName, w.BiteService.Name)
 			}
 
 			evar = v1.EnvVar{
@@ -226,7 +232,7 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 		}
 		retval = append(retval, evar)
 	}
-	return retval, nil
+	return retval, err
 }
 
 func (w *KubeMapper) volumeMounts() ([]v1.VolumeMount, error) {
