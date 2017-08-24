@@ -23,6 +23,19 @@ type DeploymentSettings struct {
 	// XXX    map[string]interface{} `yaml:",inline"`
 }
 
+// HorizontalPodAutoscaler maps to HPA in kubernetes
+type HorizontalPodAutoscaler struct {
+	MinReplicas                    int32 `yaml:"min_replicas"`
+	MaxReplicas                    int32 `yaml:"max_replicas"`
+	TargetCPUUtilizationPercentage int32 `yaml:"target_cpu_utilization_percentage"`
+}
+
+// ContainerRequests maps to requests in kubernetes
+type ContainerRequests struct {
+	CPU string `yaml:"cpu"`
+	//	Memory string `yaml:"memory"`
+}
+
 // Test is obsolete and not used by environment-operator,
 // but it's here for configuration compatability
 type Test struct {
@@ -54,6 +67,10 @@ type Volume struct {
 	Path  string `yaml:"path"`
 	Modes string `yaml:"modes" validate:"volume_modes"`
 	Size  string `yaml:"size"`
+}
+
+func init() {
+	addCustomValidators()
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for HealthCHeck.

@@ -14,6 +14,7 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
 	"k8s.io/client-go/pkg/api/unversioned"
 	"k8s.io/client-go/pkg/api/v1"
+	autoscale_v1 "k8s.io/client-go/pkg/apis/autoscaling/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/client-go/pkg/util/intstr"
 )
@@ -167,7 +168,38 @@ func (w *KubeMapper) imagePullSecrets() ([]v1.LocalObjectReference, error) {
 	return retval, nil
 }
 
+// HPA extracts Kubernetes object from Bitesize definition
+func (w *KubeMapper) HPA() (autoscale_v1.HorizontalPodAutoscaler, error) {
+	retval := autoscale_v1.HorizontalPodAutoscaler{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      w.BiteService.Name,
+			Namespace: w.Namespace,
+			Labels: map[string]string{
+				"creator":     "pipeline",
+				"name":        w.BiteService.Name,
+				"application": w.BiteService.Application,
+				"version":     w.BiteService.Version,
+			},
+		},
+		Spec: autoscale_v1.HorizontalPodAutoscalerSpec{
+			ScaleTargetRef: autoscale_v1.CrossVersionObjectReference{
+				Kind:       "Deployment",
+				Name:       w.BiteService.Name,
+				APIVersion: "v1beta1",
+			},
+			MinReplicas:                    &w.BiteService.HPA.MinReplicas,
+			MaxReplicas:                    w.BiteService.HPA.MaxReplicas,
+			TargetCPUUtilizationPercentage: &w.BiteService.HPA.TargetCPUUtilizationPercentage,
+		},
+	}
+
+	return retval, nil
+}
+
 func (w *KubeMapper) container() (*v1.Container, error) {
+
+	var retval *v1.Container
+
 	mounts, err := w.volumeMounts()
 	if err != nil {
 		return nil, err
@@ -178,12 +210,27 @@ func (w *KubeMapper) container() (*v1.Container, error) {
 		return nil, err
 	}
 
-	retval := &v1.Container{
-		Name:         w.BiteService.Name,
-		Image:        "",
-		Env:          evars,
-		VolumeMounts: mounts,
+	if w.BiteService.Requests != (bitesize.ContainerRequests{}) {
+		resources, err := w.resources()
+		if err != nil {
+			return nil, err
+		}
+		retval = &v1.Container{
+			Name:         w.BiteService.Name,
+			Image:        "",
+			Env:          evars,
+			VolumeMounts: mounts,
+			Resources:    resources,
+		}
+	} else {
+		retval = &v1.Container{
+			Name:         w.BiteService.Name,
+			Image:        "",
+			Env:          evars,
+			VolumeMounts: mounts,
+		}
 	}
+
 	return retval, nil
 }
 
@@ -360,4 +407,22 @@ func getAccessModesFromString(modes string) []v1.PersistentVolumeAccessMode {
 		}
 	}
 	return accessModes
+}
+
+func (w *KubeMapper) resources() (v1.ResourceRequirements, error) {
+	cpuQuantity, err := resource.ParseQuantity(w.BiteService.Requests.CPU)
+	if err != nil {
+		return v1.ResourceRequirements{}, err
+	}
+	//	memoryQuantity, err := resource.ParseQuantity(w.BiteService.Requests.Memory)
+	//	if err != nil {
+	//		return v1.ResourceRequirements{}, err
+	//	}
+	retval := v1.ResourceRequirements{
+		Requests: v1.ResourceList{
+			"cpu": cpuQuantity,
+			//			"memory": memoryQuantity,
+		},
+	}
+	return retval, nil
 }

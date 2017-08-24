@@ -84,7 +84,12 @@ func (c *Client) Deployment() *Deployment {
 	return &Deployment{Interface: c.Interface, Namespace: c.Namespace}
 }
 
-// secret builds Secrets client
+// HorizontalPodAutoscaler builds HPA client
+func (c *Client) HorizontalPodAutoscaler() *HorizontalPodAutoscaler {
+	return &HorizontalPodAutoscaler{Interface: c.Interface, Namespace: c.Namespace}
+}
+
+// Secret builds Secrets client
 func (c *Client) Secret() *Secret {
 	return &Secret{Interface: c.Interface, Namespace: c.Namespace}
 }

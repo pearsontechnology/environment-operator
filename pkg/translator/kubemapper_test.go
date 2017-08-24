@@ -90,3 +90,20 @@ func BuildKubeMapper() *KubeMapper {
 	m.Config.DockerRegistry = "registry"
 	return m
 }
+
+func TestTranslatorHPA(t *testing.T) {
+	w := BuildKubeMapper()
+	w.BiteService.HPA.MinReplicas = 1
+	w.BiteService.HPA.MaxReplicas = 6
+	w.BiteService.HPA.TargetCPUUtilizationPercentage = 51
+
+	h, _ := w.HPA()
+
+	if *h.Spec.MinReplicas != w.BiteService.HPA.MinReplicas {
+		t.Errorf("Wrong HPA min replicas value: %+v, expected %+v", *h.Spec.MinReplicas, w.BiteService.HPA.MinReplicas)
+	} else if h.Spec.MaxReplicas != w.BiteService.HPA.MaxReplicas {
+		t.Errorf("Wrong HPA max replicas value: %+v, expected %+v", h.Spec.MaxReplicas, w.BiteService.HPA.MaxReplicas)
+	} else if *h.Spec.TargetCPUUtilizationPercentage != w.BiteService.HPA.TargetCPUUtilizationPercentage {
+		t.Errorf("Wrong HPA target CPU utilization percentage value: %+v, expected %+v", *h.Spec.TargetCPUUtilizationPercentage, w.BiteService.HPA.TargetCPUUtilizationPercentage)
+	}
+}

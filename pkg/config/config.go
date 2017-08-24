@@ -25,6 +25,9 @@ type Config struct {
 	OIDCAllowedGroups string `envconfig:"OIDC_ALLOWED_GROUPS"`
 	OIDCClientID      string `envconfig:"OIDC_CLIENT_ID" default:"bitesize"`
 
+	HPAMaxReplicas int `envconfig:"HPA_MAX_REPLICAS" default:"50"`
+	ReqMaxCPU      int `envconfig:"REQUESTS_MAX_CPU" default:"500"`
+
 	TokenFile string `envconfig:"AUTH_TOKEN_FILE"`
 
 	Debug string `envconfig:"DEBUG"`

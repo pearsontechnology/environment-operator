@@ -14,6 +14,7 @@ import (
 	"k8s.io/client-go/pkg/api/unversioned"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/apimachinery"
+	autoscale_v1 "k8s.io/client-go/pkg/apis/autoscaling/v1"
 	// "k8s.io/client-go/pkg/api/meta"
 
 	"k8s.io/client-go/pkg/apimachinery/registered"
@@ -369,4 +370,117 @@ func testFullBitesizeEnvironment(t *testing.T) {
 	if secretEnvVar.Secret != "test4" || secretEnvVar.Value != "ttt" {
 		t.Errorf("Unexpected envvar[3]: %+v", secretEnvVar)
 	}
+}
+
+func TestApplyNewHPA(t *testing.T) {
+
+	tprclient := loadEmptyTPRS()
+	client := fake.NewSimpleClientset(
+		&v1.Namespace{
+			ObjectMeta: v1.ObjectMeta{
+				Name: "environment-dev",
+				Labels: map[string]string{
+					"environment": "environment-dev",
+				},
+			},
+		},
+	)
+
+	cluster := Cluster{
+		Interface: client,
+		TPRClient: tprclient,
+	}
+
+	e1, err := bitesize.LoadEnvironment("../../test/assets/environments.bitesize", "environment3")
+	if err != nil {
+		t.Fatalf("Unexpected err: %s", err.Error())
+	}
+
+	cluster.ApplyEnvironment(e1)
+
+	e2, err := cluster.LoadEnvironment("environment-dev")
+
+	if err != nil {
+		t.Fatalf("Unexpected err: %s", err.Error())
+	}
+
+	if d := diff.Compare(*e1, *e2); d != "" {
+		t.Errorf("Expected loaded environments to be equal, yet diff is: %s", d)
+	}
+}
+
+func TestApplyExistingHPA(t *testing.T) {
+	var min, target int32 = 2, 75
+
+	tprclient := loadEmptyTPRS()
+	client := fake.NewSimpleClientset(
+		&v1.Namespace{
+			ObjectMeta: v1.ObjectMeta{
+				Name: "environment-dev",
+				Labels: map[string]string{
+					"environment": "environment-dev",
+				},
+			},
+		},
+		&autoscale_v1.HorizontalPodAutoscaler{
+			ObjectMeta: v1.ObjectMeta{
+				Name:      "hpa-service",
+				Namespace: "environment-dev",
+				Labels: map[string]string{
+					"creator":     "pipeline",
+					"name":        "hpa-service",
+					"application": "some-app",
+					"version":     "some-version",
+				},
+			},
+			Spec: autoscale_v1.HorizontalPodAutoscalerSpec{
+				ScaleTargetRef: autoscale_v1.CrossVersionObjectReference{
+					Kind:       "Deployment",
+					Name:       "hpa-service",
+					APIVersion: "v1beta1",
+				},
+				MinReplicas:                    &min,
+				MaxReplicas:                    5,
+				TargetCPUUtilizationPercentage: &target,
+			},
+		},
+		&v1.Service{
+			ObjectMeta: validMeta("environment-dev", "hpa-service"),
+			Spec: v1.ServiceSpec{
+				Ports: []v1.ServicePort{
+					{
+						Name:     "whatevs",
+						Protocol: "TCP",
+						Port:     80,
+					},
+				},
+			},
+		},
+	)
+
+	cluster := Cluster{
+		Interface: client,
+		TPRClient: tprclient,
+	}
+
+	e1, err := bitesize.LoadEnvironment("../../test/assets/environments.bitesize", "environment3")
+	if err != nil {
+		t.Fatalf("Unexpected err: %s", err.Error())
+	}
+
+	cluster.ApplyEnvironment(e1)
+
+	e2, err := cluster.LoadEnvironment("environment-dev")
+
+	if err != nil {
+		t.Fatalf("Unexpected err: %s", err.Error())
+	}
+
+	if d := diff.Compare(*e1, *e2); d != "" {
+		t.Errorf("Expected loaded environments to be equal, yet diff is: %s", d)
+	}
+}
+
+func loadEmptyTPRS() *fakerest.RESTClient {
+	return faketpr.TPRClient()
 }

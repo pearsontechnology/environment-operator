@@ -1,6 +1,8 @@
 package k8s
 
 import (
+	"fmt"
+
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
@@ -66,8 +68,9 @@ func (client *Deployment) Create(deployment *v1beta1.Deployment) error {
 			Extensions().
 			Deployments(client.Namespace).
 			Create(deployment)
+		return err
 	}
-	return err
+	return fmt.Errorf("Error creating deployment %s; image not set", deployment.Name)
 }
 
 // Destroy deletes deployment from the k8 cluster
