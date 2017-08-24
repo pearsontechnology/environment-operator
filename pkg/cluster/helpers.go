@@ -30,27 +30,6 @@ func envVars(deployment v1beta1.Deployment) []bitesize.EnvVar {
 	return retval
 }
 
-func annotations(deployment v1beta1.Deployment) []bitesize.Annotation {
-	var retval []bitesize.Annotation
-	for _, e := range deployment.Spec.Template.Spec.Containers[0].Annotation {
-		var v bitesize.Annotation
-
-		if e.ValueFrom != nil && e.ValueFrom.SecretKeyRef != nil {
-			v = bitesize.Annotation{
-				Value:  e.ValueFrom.SecretKeyRef.Key,
-				Secret: e.Name,
-			}
-		} else {
-			v = bitesize.Annotation{
-				Name:  e.Name,
-				Value: e.Value,
-			}
-		}
-		retval = append(retval, v)
-	}
-	return retval
-}
-
 func healthCheck(deployment v1beta1.Deployment) *bitesize.HealthCheck {
 	var retval *bitesize.HealthCheck
 
