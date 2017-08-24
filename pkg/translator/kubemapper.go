@@ -286,13 +286,13 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 
 func (w *KubeMapper) Annotations() ([]v1.Annotation, error) {
 	var retval []v1.Annotation
-
-	for _, e := range w.BiteService.Annotation {
+	for _, a := range w.BiteService.Annotations {
 		var annotation v1.Annotation
-		evar = v1.Annotation{
-			Name:  e.Name,
-			Value: e.Value,
-		retval = append(retval, evar)
+		annotation = v1.Annotation{
+			Name:  a.Name,
+			Value: a.Value,
+		}
+		retval = append(retval, annotation)
 	}
 	return retval, nil
 }
