@@ -61,7 +61,7 @@ type EnvVar struct {
 	Secret string `yaml:"secret"`
 }
 
-// EnvVar represents annotation variables in pod
+// Annotation represents annotation variables in pod
 type Annotation struct {
 	Name   string `yaml:"name"`
 	Value  string `yaml:"value"`
