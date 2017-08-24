@@ -75,6 +75,7 @@ func (s ServiceMap) AddDeployment(deployment v1beta1.Deployment) {
 	biteservice.HTTPSOnly = getLabel(deployment.ObjectMeta, "httpsOnly")
 	biteservice.HTTPSBackend = getLabel(deployment.ObjectMeta, "httpsBackend")
 	biteservice.EnvVars = envVars(deployment)
+	biteservice.Annotations = annotations(deployment)
 	biteservice.HealthCheck = healthCheck(deployment)
 	biteservice.Status = bitesize.ServiceStatus{
 

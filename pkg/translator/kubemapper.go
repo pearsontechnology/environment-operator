@@ -213,6 +213,11 @@ func (w *KubeMapper) container() (*v1.Container, error) {
 		return nil, err
 	}
 
+	annotations, err := w.Annotations()
+	if err != nil {
+		return nil, err
+	}
+
 	if w.BiteService.Requests != (bitesize.ContainerRequests{}) {
 		resources, err := w.resources()
 		if err != nil {
@@ -222,6 +227,7 @@ func (w *KubeMapper) container() (*v1.Container, error) {
 			Name:         w.BiteService.Name,
 			Image:        "",
 			Env:          evars,
+			Annotation:   annotations,
 			VolumeMounts: mounts,
 			Resources:    resources,
 		}
@@ -230,6 +236,7 @@ func (w *KubeMapper) container() (*v1.Container, error) {
 			Name:         w.BiteService.Name,
 			Image:        "",
 			Env:          evars,
+			Annotation:   annotations,
 			VolumeMounts: mounts,
 		}
 	}
@@ -272,6 +279,19 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 				Value: e.Value,
 			}
 		}
+		retval = append(retval, evar)
+	}
+	return retval, nil
+}
+
+func (w *KubeMapper) Annotations() ([]v1.Annotation, error) {
+	var retval []v1.Annotation
+
+	for _, e := range w.BiteService.Annotation {
+		var annotation v1.Annotation
+		evar = v1.Annotation{
+			Name:  e.Name,
+			Value: e.Value,
 		retval = append(retval, evar)
 	}
 	return retval, nil

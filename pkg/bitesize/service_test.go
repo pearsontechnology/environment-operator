@@ -130,6 +130,29 @@ func testEnvVarsDiff(t *testing.T) {
 	}
 }
 
+func TestAnnotations(t *testing.T) {
+	t.Run("test equal annotations", testAnnotationsEqual)
+	t.Run("test diff annotations", testAnnotationsDiff)
+}
+
+func testAnnotationsEqual(t *testing.T) {
+	a1 := Annotation{Name: "a", Value: "1"}
+	a2 := Annotation{Name: "a", Value: "1"}
+
+	if a1 != a2 {
+		t.Errorf("Expected %+v to be equal to %+v, got false", a1, a2)
+	}
+}
+
+func testAnnotationsDiff(t *testing.T) {
+	a1 := Annotation{Name: "a", Value: "1"}
+	a2 := Annotation{Name: "a", Value: "2"}
+	if a1 == a2 {
+		t.Errorf("Expected %+v to be not equal to %+v, got true", a1, a2)
+	}
+}
+
+
 func testFindByNameExist(t *testing.T) {
 	var svc = Services{
 		{Name: "ads"},

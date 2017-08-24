@@ -23,6 +23,7 @@ type Service struct {
 	Requests     ContainerRequests       `yaml:"requests" validate:"requests"`
 	HealthCheck  *HealthCheck            `yaml:"health_check,omitempty"`
 	EnvVars      []EnvVar                `yaml:"env,omitempty"`
+	Annotations  []Annotation            `yaml:"annotations,omitempty"`
 	Volumes      []Volume                `yaml:"volumes,omitempty"`
 	Options      map[string]string       `yaml:"options,omitempty"`
 	HTTPSOnly    string                  `yaml:"httpsOnly,omitempty" validate:"regexp=^(true|false)*$"`
