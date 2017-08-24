@@ -12,6 +12,7 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
+	"k8s.io/client-go/pkg/api/resource"
 	"k8s.io/client-go/pkg/api/unversioned"
 	"k8s.io/client-go/pkg/api/v1"
 	autoscale_v1 "k8s.io/client-go/pkg/apis/autoscaling/v1"
