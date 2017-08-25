@@ -38,6 +38,10 @@ environments:
         value: true
       - name: prometheus.io/path
         value: /metrics
+  - name: annotated_service2
+    annotations:
+      - name: random_annotation
+        value: ok_value
 - name: environment3
   namespace: environment-dev
   services:
