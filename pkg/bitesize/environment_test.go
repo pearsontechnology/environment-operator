@@ -14,8 +14,8 @@ func TestExistingEnvironment(t *testing.T) {
 		t.Errorf("Unexpected error loading environment: %s", err.Error())
 	}
 
-	if len(e.Services) != 5 {
-		t.Errorf("Unexpected count of services. Expected 5, got: %d", len(e.Services))
+	if len(e.Services) != 6 {
+		t.Errorf("Unexpected count of services. Expected 6, got: %d", len(e.Services))
 	}
 
 }
