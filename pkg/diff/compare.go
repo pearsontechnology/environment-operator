@@ -29,7 +29,7 @@ func Compare(config1, config2 bitesize.Environment) string {
 				s.Version = d.Version
 			}
 			s.Status = d.Status
-			s.Deployment = d.Deployment
+			//s.Deployment = d.Deployment
 		}
 		// Ignore diff for annotations if d.Deployment is nil
 		if d == nil || d.Deployment == nil {
