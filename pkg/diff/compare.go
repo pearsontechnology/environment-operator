@@ -30,7 +30,9 @@ func Compare(config1, config2 bitesize.Environment) string {
 			}
 			s.Status = d.Status
 			s.Deployment = d.Deployment
+			s.Annotations = d.Annotations
 		}
+
 		newServices = append(newServices, s)
 		// }
 	}

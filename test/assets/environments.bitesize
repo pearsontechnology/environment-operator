@@ -32,6 +32,7 @@ environments:
       max_replicas: 5
       target_cpu_utilization_percentage: 75
   - name: annotated_service
+    version: 1
     annotations:
       - name: prometheus.io/scrape
         value: true
