@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 *  Support for configuring container CPU resource requests. [[BITE-1433](https://agile-jira.pearson.com/browse/BITE-1433)]
 *  Custom Docker registry support added for pod spec. [[BITE-1448](https://agile-jira.pearson.com/browse/BITE-1448)]
 *  Environment Operator build/release pipeline now managed by TravisCI. [[BITE-1473](https://agile-jira.pearson.com/browse/BITE-1473)]
+*  Enable unit tests for all environment-operator packages. [[BITE-1472](https://agile-jira.pearson.com/browse/BITE-1472)]
 
 ### **[0.0.2] - 2017-01-17 [RELEASED]**
 
