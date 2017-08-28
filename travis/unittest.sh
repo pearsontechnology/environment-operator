@@ -17,7 +17,5 @@ docker run --rm -v "$(pwd)":/go/src/github.com/pearsontechnology/environment-ope
  	-w /go/src/github.com/pearsontechnology/environment-operator \
   	-e CGO_ENABLED=1 \
   	pearsontechnology/golang:1.8 \
-    go test -v  ./pkg/bitesize ./pkg/cluster ./pkg/diff ./pkg/translator ./pkg/web ./pkg/util ./pkg/util/k8s
-    #Need to fix failing tests in git and reaper packages before they get re-enable as below
-    #go test -v ./pkg/bitesize ./pkg/cluster ./pkg/diff ./pkg/git ./pkg/reaper ./pkg/translator ./pkg/web ./pkg/util ./pkg/util/k8s
+    go test -v ./pkg/bitesize ./pkg/cluster ./pkg/diff ./pkg/git ./pkg/reaper ./pkg/translator ./pkg/web ./pkg/util ./pkg/util/k8s
 

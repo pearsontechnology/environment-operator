@@ -4,20 +4,19 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"io"
 	"io/ioutil"
-	"net/http"
-	"strings"
-
 	"k8s.io/client-go/pkg/api"
+	"k8s.io/client-go/pkg/api/unversioned"
+	"k8s.io/client-go/pkg/apimachinery"
 	"k8s.io/client-go/pkg/apimachinery/registered"
 	"k8s.io/client-go/pkg/runtime"
 	"k8s.io/client-go/pkg/runtime/serializer"
 	"k8s.io/client-go/rest/fake"
 	"k8s.io/client-go/tools/cache"
-
-	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
-	// "k8s.io/apimachinery/pkg/api/meta"
+	"net/http"
+	"strings"
 )
 
 type fakeTPR struct {
@@ -93,12 +92,17 @@ var manager *registered.APIRegistrationManager
 // TPRClient returns fake REST client to be used in TPR unit tests.
 func TPRClient(objects ...runtime.Object) *fake.RESTClient {
 
-	// groupmeta := apimachinery.GroupMeta{
-	// 	GroupVersion: groupversion,
-	// }
-	//
-	// registered.DefaultAPIRegistrationManager.AddThirdPartyAPIGroupVersions(groupversion)
-	// registered.DefaultAPIRegistrationManager.RegisterGroup(groupmeta)
+	groupversion := unversioned.GroupVersion{
+		Group:   "prsn.io",
+		Version: "v1",
+	}
+
+	groupmeta := apimachinery.GroupMeta{
+		GroupVersion: groupversion,
+	}
+
+	registered.DefaultAPIRegistrationManager.AddThirdPartyAPIGroupVersions(groupversion)
+	registered.DefaultAPIRegistrationManager.RegisterGroup(groupmeta)
 
 	f := &fakeTPR{
 		Store: objectStore(objects),

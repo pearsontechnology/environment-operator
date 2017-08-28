@@ -165,8 +165,6 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 		serviceMap.AddVolumeClaim(claim)
 	}
 
-	// We need to exclude this part from unit tests as we cannot
-	// fake client.ThirdPartyResource()
 	for _, supported := range k8_extensions.SupportedThirdPartyResources {
 		tprs, _ := client.ThirdPartyResource(supported).List()
 		for _, tpr := range tprs {

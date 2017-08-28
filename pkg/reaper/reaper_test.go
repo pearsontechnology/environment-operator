@@ -6,6 +6,7 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/cluster"
 
+	faketpr "github.com/pearsontechnology/environment-operator/pkg/util/k8s/fake"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
@@ -47,8 +48,12 @@ func TestDeleteService(t *testing.T) {
 			},
 		},
 	)
+
+	tpr := faketpr.TPRClient()
+
 	wrapper := &cluster.Cluster{
 		Interface: c,
+		TPRClient: tpr,
 	}
 
 	reaper := Reaper{
