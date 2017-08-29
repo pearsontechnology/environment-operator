@@ -23,6 +23,7 @@ type Service struct {
 	HealthCheck  *HealthCheck            `yaml:"health_check,omitempty"`
 	EnvVars      []EnvVar                `yaml:"env,omitempty"`
 	DeployedPods []Pod                   `yaml:"-"` //Ignore field when parsing bitesize yaml
+	Annotations  []Annotation            `yaml:"annotations,omitempty"`
 	Volumes      []Volume                `yaml:"volumes,omitempty"`
 	Options      map[string]string       `yaml:"options,omitempty"`
 	HTTPSOnly    string                  `yaml:"httpsOnly,omitempty" validate:"regexp=^(true|false)*$"`

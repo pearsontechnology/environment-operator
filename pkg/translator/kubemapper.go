@@ -277,6 +277,20 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 	return retval, nil
 }
 
+func (w *KubeMapper) Annotations() ([]v1.ObjectMeta, error) {
+	var retval []v1.ObjectMeta
+
+	for _, a := range w.BiteService.Annotations {
+		annotation := v1.ObjectMeta {
+			Annotations: map[string]string{
+				a.Name: a.Value,
+			},
+		}
+		retval = append(retval, annotation)
+	}
+	return retval, nil
+}
+
 func (w *KubeMapper) volumeMounts() ([]v1.VolumeMount, error) {
 	var retval []v1.VolumeMount
 
