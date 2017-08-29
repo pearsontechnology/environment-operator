@@ -140,8 +140,14 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 	}
 
 	for _, pod := range pods {
-		logs, _ := client.Pod().GetLogs(pod.ObjectMeta.Name)
-		serviceMap.AddPod(pod, logs)
+		logs, err := client.Pod().GetLogs(pod.ObjectMeta.Name)
+		message := ""
+		if err != nil {
+			message = fmt.Sprintf("Error retrieving Pod Logs: %s", err.Error())
+			serviceMap.AddPod(pod, logs, message)
+		} else {
+			serviceMap.AddPod(pod, logs, message)
+		}
 	}
 
 	deployments, err := client.Deployment().List()

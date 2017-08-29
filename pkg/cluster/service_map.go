@@ -121,13 +121,13 @@ func (s ServiceMap) AddThirdPartyResource(tpr k8_extensions.PrsnExternalResource
 	}
 }
 
-func (s ServiceMap) AddPod(pod v1.Pod, logs string) {
+func (s ServiceMap) AddPod(pod v1.Pod, logs string, error string) {
 	biteservice := s.CreateOrGet("podservice")
 	podval := bitesize.Pod{
 		Name:      pod.ObjectMeta.Name,
 		Phase:     pod.Status.Phase,
 		StartTime: pod.Status.StartTime.String(),
-		Message:   pod.Status.Message,
+		Message:   error,
 		Logs:      logs,
 	}
 	biteservice.DeployedPods = append(biteservice.DeployedPods, podval)
