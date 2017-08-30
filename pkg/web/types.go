@@ -1,5 +1,7 @@
 package web
 
+import "github.com/pearsontechnology/environment-operator/pkg/bitesize"
+
 // DeployRequest represents POST request body to perform deployments.
 //  * Name of the service to update
 //  * Application image part (full construct from util.DockerImage )
@@ -23,16 +25,15 @@ type StatusService struct {
 	DeployedAt string         `json:"deployed_at,omitempty"`
 	Replicas   StatusReplicas `json:"replicas,omitempty"`
 	Status     string         `json:"status,omitempty"`
-	Pods       []StatusPod    `json:"pods,omitempty"`
+}
+
+type StatusPods struct {
+	Name string         `json:"name"`
+	Pods []bitesize.Pod `json:"pods,omitempty"`
 }
 
 type StatusReplicas struct {
 	Available int `json:"available"`
 	UpToDate  int `json:"up_to_date"`
 	Desired   int `json:"desired"`
-}
-
-type StatusPod struct {
-	Name   string `json:"name"`
-	Status string `json:"status"`
 }

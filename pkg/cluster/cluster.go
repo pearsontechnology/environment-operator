@@ -140,6 +140,22 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 		serviceMap.AddService(service)
 	}
 
+	pods, err := client.Pod().List()
+	if err != nil {
+		log.Errorf("Error loading kubernetes pods: %s", err.Error())
+	}
+
+	for _, pod := range pods {
+		logs, err := client.Pod().GetLogs(pod.ObjectMeta.Name)
+		message := ""
+		if err != nil {
+			message = fmt.Sprintf("Error retrieving Pod Logs: %s", err.Error())
+			serviceMap.AddPod(pod, logs, message)
+		} else {
+			serviceMap.AddPod(pod, logs, message)
+		}
+	}
+
 	deployments, err := client.Deployment().List()
 	if err != nil {
 		log.Errorf("Error loading kubernetes deployments: %s", err.Error())
