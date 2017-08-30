@@ -26,6 +26,7 @@ func TestSecretExists(t *testing.T) {
 	}
 }
 
+//Test that secrets can be pulled from a secrets client using the List function
 func TestSecretList(t *testing.T) {
 	client := createSecret()
 
@@ -39,19 +40,19 @@ func TestSecretList(t *testing.T) {
 }
 
 func createSecret() Secret {
-	f := fake.NewSimpleClientset(
+	return Secret{
+		Interface: createSimpleSecretClient(),
+		Namespace: "sample",
+	}
+}
+
+func createSimpleSecretClient() *fake.Clientset {
+	return fake.NewSimpleClientset(
 		&v1.Secret{
 			ObjectMeta: v1.ObjectMeta{
 				Name:      "test-secret",
 				Namespace: "sample",
-				Labels: map[string]string{
-					"creator": "pipeline",
-				},
 			},
 		},
 	)
-	return Secret{
-		Interface: f,
-		Namespace: "sample",
-	}
 }
