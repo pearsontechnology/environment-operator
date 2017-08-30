@@ -31,6 +31,17 @@ environments:
       min_replicas: 2
       max_replicas: 5
       target_cpu_utilization_percentage: 75
+  - name: annotated_service
+    version: 1
+    annotations:
+      - name: prometheus.io/scrape
+        value: true
+      - name: prometheus.io/path
+        value: /metrics
+  - name: annotated_service2
+    annotations:
+      - name: random_annotation
+        value: ok_value
 - name: environment3
   namespace: environment-dev
   services:

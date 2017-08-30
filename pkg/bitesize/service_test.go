@@ -86,6 +86,17 @@ func testPortsEmpty(t *testing.T) {
 		t.Errorf("Unexpected ports: %v", svc.Ports)
 	}
 }
+func TestPod(t *testing.T) {
+	t.Run("test Pods exist in Service", testPodsEqual)
+}
+func testPodsEqual(t *testing.T) {
+	e1 := Pod{Name: "PodA", Phase: "Running", StartTime: "StartTime", Message: "Message", Logs: "Log Message"}
+	e2 := Pod{Name: "PodA", Phase: "Running", StartTime: "StartTime", Message: "Message", Logs: "Log Message"}
+
+	if e1 != e2 {
+		t.Errorf("Expected %+v to be equal to %+v, got false", e1, e2)
+	}
+}
 
 func TestEnvVars(t *testing.T) {
 	t.Run("test equal env vars", testEnvVarsEqual)
@@ -129,6 +140,29 @@ func testEnvVarsDiff(t *testing.T) {
 		t.Errorf("Expected %+v to be no equal to %+v, got true", e1, e2)
 	}
 }
+
+func TestAnnotations(t *testing.T) {
+	t.Run("test equal annotations", testAnnotationsEqual)
+	t.Run("test diff annotations", testAnnotationsDiff)
+}
+
+func testAnnotationsEqual(t *testing.T) {
+	a1 := Annotation{Name: "a", Value: "1"}
+	a2 := Annotation{Name: "a", Value: "1"}
+
+	if a1 != a2 {
+		t.Errorf("Expected %+v to be equal to %+v, got false", a1, a2)
+	}
+}
+
+func testAnnotationsDiff(t *testing.T) {
+	a1 := Annotation{Name: "a", Value: "1"}
+	a2 := Annotation{Name: "a", Value: "2"}
+	if a1 == a2 {
+		t.Errorf("Expected %+v to be not equal to %+v, got true", a1, a2)
+	}
+}
+
 
 func testFindByNameExist(t *testing.T) {
 	var svc = Services{
