@@ -163,7 +163,6 @@ func testAnnotationsDiff(t *testing.T) {
 	}
 }
 
-
 func testFindByNameExist(t *testing.T) {
 	var svc = Services{
 		{Name: "ads"},

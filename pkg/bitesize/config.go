@@ -72,8 +72,8 @@ type Pod struct {
 
 // Annotation represents annotation variables in pod
 type Annotation struct {
-	Name   string `yaml:"name"`
-	Value  string `yaml:"value"`
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
 }
 
 // Volume represents volume & it's mount

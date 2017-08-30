@@ -8,6 +8,7 @@ import (
 	"strings"
 	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
+	"github.com/pearsontechnology/environment-operator/pkg/config"
 	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -239,12 +240,12 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 	var retval []v1.EnvVar
 	var err error
 	//Create in cluster rest client to be utilized for secrets processing
-	client, _ := k8s.ClientForNamespace(w.Namespace)
+	client, _ := k8s.ClientForNamespace(config.Env.Namespace)
 
 	for _, e := range w.BiteService.EnvVars {
 		var evar v1.EnvVar
 		if e.Secret != "" {
-			kv := strings.Split(e.Secret, "/")
+			kv := strings.Split(e.Value, "/")
 			secretName := ""
 			secretDataKey := ""
 
@@ -258,7 +259,7 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 
 			if !client.Secret().Exists(secretName) {
 				log.Debugf("Unable to Find Secret %s", secretName)
-				err = fmt.Errorf("Unable to find secret [%s] when processing deployment [%s]", secretName, w.BiteService.Name)
+				err = fmt.Errorf("Unable to find secret [%s] in namespace [%s] when processing envvars for deployment [%s]", secretName, config.Env.Namespace, w.BiteService.Name)
 			}
 
 			evar = v1.EnvVar{
@@ -287,7 +288,7 @@ func (w *KubeMapper) Annotations() ([]v1.ObjectMeta, error) {
 	var retval []v1.ObjectMeta
 
 	for _, a := range w.BiteService.Annotations {
-		annotation := v1.ObjectMeta {
+		annotation := v1.ObjectMeta{
 			Annotations: map[string]string{
 				a.Name: a.Value,
 			},

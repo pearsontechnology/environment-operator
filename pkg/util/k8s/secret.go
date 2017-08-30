@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 )
@@ -23,10 +24,13 @@ func (client *Secret) List() ([]v1.Secret, error) {
 // Check if the secret exists in the namespace
 func (client *Secret) Exists(secretname string) bool {
 
-	secrets, _ := client.List()
+	secrets, err := client.List()
+	if err != nil {
+		log.Error(err.Error())
+	}
 	found := false
 	for _, sec := range secrets {
-		if sec.Name == secretname {
+		if sec.ObjectMeta.Name == secretname {
 			found = true
 		}
 	}
