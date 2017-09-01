@@ -48,7 +48,7 @@ func ServiceWithDefaults() *Service {
 	return &Service{
 		Ports:    []int{80},
 		Replicas: 1,
-		Annotations: []Annotation{{}},
+		Annotations: []Annotation{},
 	}
 }
 
@@ -74,7 +74,8 @@ func (e *Service) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		e.Ports = nil
 	}
 
-	annotation := Annotation{ Name: "Name", Value: e.Name }
+
+	annotation := Annotation{Name: "Name", Value: e.Name }
 	e.Annotations = append(e.Annotations, annotation)
 
 	if e.HPA.MinReplicas != 0 {
