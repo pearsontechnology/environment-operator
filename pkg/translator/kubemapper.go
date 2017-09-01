@@ -298,6 +298,7 @@ func (w *KubeMapper) Annotations() ([]v1.ObjectMeta, error) {
 	return retval, nil
 }
 
+
 func (w *KubeMapper) volumeMounts() ([]v1.VolumeMount, error) {
 	var retval []v1.VolumeMount
 
