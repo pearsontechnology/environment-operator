@@ -21,8 +21,9 @@ func (s ServiceMap) CreateOrGet(name string) *bitesize.Service {
 	// Create with some defaults -- defaults should probably live in bitesize.Service
 	if s[name] == nil {
 		s[name] = &bitesize.Service{
-			Name:     name,
-			Replicas: 1,
+			Name:        name,
+			Replicas:    1,
+			Annotations: map[string]string{},
 		}
 	}
 	return s[name]
@@ -74,7 +75,7 @@ func (s ServiceMap) AddDeployment(deployment v1beta1.Deployment) {
 	biteservice.HTTPSOnly = getLabel(deployment.ObjectMeta, "httpsOnly")
 	biteservice.HTTPSBackend = getLabel(deployment.ObjectMeta, "httpsBackend")
 	biteservice.EnvVars = envVars(deployment)
-	biteservice.Annotations = annVars(deployment.ObjectMeta)
+	biteservice.Annotations = deployment.ObjectMeta.Annotations
 	biteservice.HealthCheck = healthCheck(deployment)
 	biteservice.Status = bitesize.ServiceStatus{
 

@@ -2,9 +2,10 @@ package bitesize
 
 import (
 	"fmt"
-	validator "gopkg.in/validator.v2"
 	"strconv"
 	"strings"
+
+	validator "gopkg.in/validator.v2"
 )
 
 // Service represents a single service and it's configuration,
@@ -23,7 +24,7 @@ type Service struct {
 	HealthCheck  *HealthCheck            `yaml:"health_check,omitempty"`
 	EnvVars      []EnvVar                `yaml:"env,omitempty"`
 	DeployedPods []Pod                   `yaml:"-"` //Ignore field when parsing bitesize yaml
-	Annotations  []Annotation            `yaml:"annotations,omitempty"`
+	Annotations  map[string]string       `yaml:"-"` // Annotations have custom unmarshaler
 	Volumes      []Volume                `yaml:"volumes,omitempty"`
 	Options      map[string]string       `yaml:"options,omitempty"`
 	HTTPSOnly    string                  `yaml:"httpsOnly,omitempty" validate:"regexp=^(true|false)*$"`
@@ -48,7 +49,6 @@ func ServiceWithDefaults() *Service {
 	return &Service{
 		Ports:    []int{80},
 		Replicas: 1,
-		Annotations: []Annotation{},
 	}
 }
 
@@ -62,6 +62,11 @@ func (e *Service) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return fmt.Errorf("service.ports.%s", err.Error())
 	}
 
+	annotations, err := unmarshalAnnotations(unmarshal)
+	if err != nil {
+		return fmt.Errorf("service.annotations.%s", err.Error())
+	}
+
 	type plain Service
 	if err = unmarshal((*plain)(ee)); err != nil {
 		return fmt.Errorf("service.%s", err.Error())
@@ -69,14 +74,14 @@ func (e *Service) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	*e = *ee
 	e.Ports = ports
+	e.Annotations = annotations
 
 	if e.Type != "" {
 		e.Ports = nil
 	}
 
-
-	annotation := Annotation{Name: "Name", Value: e.Name }
-	e.Annotations = append(e.Annotations, annotation)
+	// annotation := Annotation{Name: "Name", Value: e.Name}
+	// e.Annotations = append(e.Annotations, annotation)
 
 	if e.HPA.MinReplicas != 0 {
 		e.Replicas = int(e.HPA.MinReplicas)
@@ -109,6 +114,26 @@ func (slice Services) FindByName(name string) *Service {
 		}
 	}
 	return nil
+}
+
+func unmarshalAnnotations(unmarshal func(interface{}) error) (map[string]string, error) {
+	// annotations representation in environments.bitesize
+	var bz struct {
+		Annotations []struct {
+			Name  string
+			Value string
+		} `yaml:"annotations,omitempty"`
+	}
+	annotations := map[string]string{}
+
+	if err := unmarshal(&bz); err != nil {
+		return annotations, err
+	}
+
+	for _, ann := range bz.Annotations {
+		annotations[ann.Name] = ann.Value
+	}
+	return annotations, nil
 }
 
 func unmarshalPorts(unmarshal func(interface{}) error) ([]int, error) {

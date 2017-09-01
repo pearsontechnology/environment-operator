@@ -94,6 +94,9 @@ func newDeployment(namespace, name string) *v1beta1.Deployment {
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
+			Annotations: map[string]string{
+				"deployment.kubernetes.io/revision": "1",
+			},
 		},
 		Spec: v1beta1.DeploymentSpec{
 			Template: v1.PodTemplateSpec{},
@@ -199,7 +202,20 @@ func loadTestEnvironment() *fake.Clientset {
 			ObjectMeta: v1.ObjectMeta{
 				Name:      "test",
 				Namespace: "test",
-				Labels:    validLabels,
+				Labels: map[string]string{
+					"creator":     "pipeline",
+					"name":        "hpaservice",
+					"application": "some-app",
+					"version":     "some-version",
+				},
+				Annotations: map[string]string{
+					"deployment.kubernetes.io/revision": "1",
+				},
+			},
+			Status: v1beta1.DeploymentStatus{
+				AvailableReplicas: 1,
+				Replicas:          1,
+				UpdatedReplicas:   1,
 			},
 			Spec: v1beta1.DeploymentSpec{
 				Replicas: &replicaCount,
@@ -370,6 +386,32 @@ func testFullBitesizeEnvironment(t *testing.T) {
 	if secretEnvVar.Secret != "test4" || secretEnvVar.Value != "ttt" {
 		t.Errorf("Unexpected envvar[3]: %+v", secretEnvVar)
 	}
+}
+
+func TestEnvironmentAnnotations(t *testing.T) {
+	client := loadTestEnvironment()
+	tprclient := loadTestTPRS()
+	cluster := Cluster{
+		Interface: client,
+		TPRClient: tprclient,
+	}
+	environment, _ := cluster.LoadEnvironment("test")
+	testService := environment.Services.FindByName("test")
+
+	if testService.Annotations["deployment.kubernetes.io/revision"] != "1" {
+		t.Error("Revision annotation is not loaded from the cluster before apply")
+	}
+
+	e1, _ := bitesize.LoadEnvironment("../../test/assets/annotations.bitesize", "test")
+	cluster.ApplyEnvironment(e1)
+
+	e2, _ := cluster.LoadEnvironment("test")
+	testService = e2.Services.FindByName("test")
+
+	if testService.Annotations["deployment.kubernetes.io/revision"] != "1" {
+		t.Error("Revision annotation is not loaded from the cluster after apply")
+	}
+
 }
 
 func TestApplyNewHPA(t *testing.T) {

@@ -4,8 +4,9 @@ package translator
 
 import (
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"strings"
+
+	log "github.com/Sirupsen/logrus"
 	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/config"
@@ -123,6 +124,7 @@ func (w *KubeMapper) Deployment() (*v1beta1.Deployment, error) {
 				"application": w.BiteService.Application,
 				"version":     w.BiteService.Version,
 			},
+			Annotations: w.BiteService.Annotations,
 		},
 		Spec: v1beta1.DeploymentSpec{
 			Replicas: &replicas,
@@ -283,21 +285,6 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 	}
 	return retval, err
 }
-
-func (w *KubeMapper) Annotations() ([]v1.ObjectMeta, error) {
-	var retval []v1.ObjectMeta
-
-	for _, a := range w.BiteService.Annotations {
-		annotation := v1.ObjectMeta{
-			Annotations: map[string]string{
-				a.Name: a.Value,
-			},
-		}
-		retval = append(retval, annotation)
-	}
-	return retval, nil
-}
-
 
 func (w *KubeMapper) volumeMounts() ([]v1.VolumeMount, error) {
 	var retval []v1.VolumeMount
