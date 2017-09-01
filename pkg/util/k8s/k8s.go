@@ -89,9 +89,19 @@ func (c *Client) HorizontalPodAutoscaler() *HorizontalPodAutoscaler {
 	return &HorizontalPodAutoscaler{Interface: c.Interface, Namespace: c.Namespace}
 }
 
+// Secret builds Secrets client
+func (c *Client) Secret() *Secret {
+	return &Secret{Interface: c.Interface, Namespace: c.Namespace}
+}
+
 // PVC builds PersistentVolumeClaim client
 func (c *Client) PVC() *PersistentVolumeClaim {
 	return &PersistentVolumeClaim{Interface: c.Interface, Namespace: c.Namespace}
+}
+
+// Pod builds Pod client
+func (c *Client) Pod() *Pod {
+	return &Pod{Interface: c.Interface, Namespace: c.Namespace}
 }
 
 // Ingress builds Ingress client
@@ -116,5 +126,12 @@ func (c *Client) ThirdPartyResource(kind string) *ThirdPartyResource {
 func listOptions() v1.ListOptions {
 	return v1.ListOptions{
 		LabelSelector: "creator=pipeline",
+	}
+}
+func logOptions() *v1.PodLogOptions {
+	return &v1.PodLogOptions{
+		//SinceSeconds: &[]int64{300}[0], //Gets last 5 minutes of logs
+		TailLines:  &[]int64{500}[0], //Retrieve last 500 lines from pod log
+		Timestamps: true,             //Add timestamp to each line in the log
 	}
 }

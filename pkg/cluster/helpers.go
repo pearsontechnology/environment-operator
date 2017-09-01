@@ -36,7 +36,11 @@ func annVars(metadata v1.ObjectMeta) []bitesize.Annotation {
 	for k, v := range annotations {
 		var a bitesize.Annotation
 		a = bitesize.Annotation{
+<<<<<<< HEAD
 			Name: annotations[k],
+=======
+			Name:  annotations[k],
+>>>>>>> dev
 			Value: annotations[v],
 		}
 		retval = append(retval, a)
