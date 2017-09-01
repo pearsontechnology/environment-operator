@@ -144,6 +144,7 @@ func (w *KubeMapper) Deployment() (*v1beta1.Deployment, error) {
 						"name":        w.BiteService.Name,
 						"version":     w.BiteService.Version,
 					},
+					Annotations: w.BiteService.Annotations,
 				},
 				Spec: v1.PodSpec{
 					NodeSelector:     map[string]string{"role": "minion"},
