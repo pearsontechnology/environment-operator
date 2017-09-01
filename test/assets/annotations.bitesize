@@ -1,0 +1,9 @@
+---
+# environments.bitesize file that is used for annotation testing
+project: test
+environments:
+- name: test
+  namespace: environment-dev
+  services:
+  - name: test
+    version: "1.0.0"
