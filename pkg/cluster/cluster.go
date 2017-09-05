@@ -8,7 +8,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	log "github.com/Sirupsen/logrus"
-
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/diff"
 	"github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
@@ -116,6 +115,39 @@ func (cluster *Cluster) ApplyEnvironment(e *bitesize.Environment) error {
 	return err
 }
 
+// LoadPods returns Pod object loaded from Kubernetes API
+func (cluster *Cluster) LoadPods(namespace string) ([]bitesize.Pod, error) {
+	client := &k8s.Client{
+		Namespace: namespace,
+		Interface: cluster.Interface,
+		TPRClient: cluster.TPRClient,
+	}
+
+	var deployedPods []bitesize.Pod
+	pods, err := client.Pod().List()
+	if err != nil {
+		log.Errorf("Error loading kubernetes pods: %s", err.Error())
+	}
+
+	for _, pod := range pods {
+		logs, err := client.Pod().GetLogs(pod.ObjectMeta.Name)
+		message := ""
+		if err != nil {
+			message = fmt.Sprintf("Error retrieving Pod Logs: %s", err.Error())
+
+		}
+		podval := bitesize.Pod{
+			Name:      pod.ObjectMeta.Name,
+			Phase:     pod.Status.Phase,
+			StartTime: pod.Status.StartTime.String(),
+			Message:   message,
+			Logs:      logs,
+		}
+		deployedPods = append(deployedPods, podval)
+	}
+	return deployedPods, err
+}
+
 // LoadEnvironment returns BitesizeEnvironment object loaded from Kubernetes API
 func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment, error) {
 	serviceMap := make(ServiceMap)
@@ -138,22 +170,6 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 	}
 	for _, service := range services {
 		serviceMap.AddService(service)
-	}
-
-	pods, err := client.Pod().List()
-	if err != nil {
-		log.Errorf("Error loading kubernetes pods: %s", err.Error())
-	}
-
-	for _, pod := range pods {
-		logs, err := client.Pod().GetLogs(pod.ObjectMeta.Name)
-		message := ""
-		if err != nil {
-			message = fmt.Sprintf("Error retrieving Pod Logs: %s", err.Error())
-			serviceMap.AddPod(pod, logs, message)
-		} else {
-			serviceMap.AddPod(pod, logs, message)
-		}
 	}
 
 	deployments, err := client.Deployment().List()

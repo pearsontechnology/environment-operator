@@ -64,12 +64,6 @@ func alignServices(src, dest *bitesize.Service) {
 			}
 		}
 
-		// I don't like it. All of these should live somewhere else rather than in
-		// diff logic :(
-		if len(dest.DeployedPods) > 0 {
-			src.DeployedPods = dest.DeployedPods
-		}
-
 	}
 
 }

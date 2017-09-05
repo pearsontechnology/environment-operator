@@ -89,6 +89,45 @@ func TestApplyEnvironment(t *testing.T) {
 	}
 }
 
+/*
+
+//Currently disabled due to https://github.com/kubernetes/client-go/issues/196  .  Unable to mock out Request Stream() request
+that is made when Pod logs are retrieved by the LoadPods() function.
+
+func TestGetPods(t *testing.T) {
+	log.SetLevel(log.FatalLevel)
+	labels := map[string]string{"creator": "pipeline"}
+	client := fake.NewSimpleClientset(
+		&v1.Pod{
+			TypeMeta: unversioned.TypeMeta{
+				Kind:       "pod",
+				APIVersion: "v1",
+			},
+			ObjectMeta: v1.ObjectMeta{
+				Name:      "front",
+				Namespace: "dev",
+				Labels:    labels,
+			},
+		},
+	)
+	tprclient := loadTestTPRS()
+	cluster := Cluster{
+		Interface: client,
+		TPRClient: tprclient,
+	}
+	pods, err := cluster.LoadPods("dev")
+
+	if err != nil {
+		t.Fatalf("Unexpected err: %s", err.Error())
+	}
+
+	if !strings.Contains(pods[0].Name, "front") {
+		t.Errorf("Expected 'front' pod to be retrieved")
+	}
+
+}
+*/
+
 func newDeployment(namespace, name string) *v1beta1.Deployment {
 	d := v1beta1.Deployment{
 		ObjectMeta: v1.ObjectMeta{

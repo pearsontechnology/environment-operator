@@ -28,7 +28,6 @@ type StatusService struct {
 }
 
 type StatusPods struct {
-	Name string         `json:"name"`
 	Pods []bitesize.Pod `json:"pods,omitempty"`
 }
 

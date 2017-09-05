@@ -23,7 +23,6 @@ type Service struct {
 	Requests     ContainerRequests       `yaml:"requests" validate:"requests"`
 	HealthCheck  *HealthCheck            `yaml:"health_check,omitempty"`
 	EnvVars      []EnvVar                `yaml:"env,omitempty"`
-	DeployedPods []Pod                   `yaml:"-"` //Ignore field when parsing bitesize yaml
 	Annotations  map[string]string       `yaml:"-"` // Annotations have custom unmarshaler
 	Volumes      []Volume                `yaml:"volumes,omitempty"`
 	Options      map[string]string       `yaml:"options,omitempty"`
