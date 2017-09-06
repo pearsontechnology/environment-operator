@@ -3,7 +3,6 @@ package cluster
 import (
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/diff"
 	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
@@ -441,7 +440,6 @@ func TestEnvironmentAnnotations(t *testing.T) {
 	environment, _ := cluster.LoadEnvironment("test")
 	testService := environment.Services.FindByName("test")
 
-	spew.Dump(testService.Annotations)
 	if testService.Annotations["existing_annotation"] != "exist" {
 		t.Error("Existing annotation is not loaded from the cluster before apply")
 	}
