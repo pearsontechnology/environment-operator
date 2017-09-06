@@ -29,10 +29,12 @@ func Compare(config1, config2 bitesize.Environment) string {
 		d := c2.Services.FindByName(s.Name)
 
 		// compare configs only if deployment is found in cluster
-		if d != nil && d.Version != "" {
+		// and git service has no version set
+		if (s.Version != "") || (d != nil && d.Version != "") {
 			alignServices(&s, d)
 
 			serviceDiff := compareConfig.Compare(d, s)
+
 			diff = diff + serviceDiff
 		}
 	}
