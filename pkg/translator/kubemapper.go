@@ -124,7 +124,6 @@ func (w *KubeMapper) Deployment() (*v1beta1.Deployment, error) {
 				"application": w.BiteService.Application,
 				"version":     w.BiteService.Version,
 			},
-			Annotations: w.BiteService.Annotations,
 		},
 		Spec: v1beta1.DeploymentSpec{
 			Replicas: &replicas,
