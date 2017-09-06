@@ -49,6 +49,10 @@ func alignServices(src, dest *bitesize.Service) {
 		src.Version = dest.Version
 	}
 
+	if src.Application == "" && dest.Application != "" {
+		src.Application = dest.Application
+	}
+
 	// Copy status from dest (status is only stored in the cluster)
 	src.Status = dest.Status
 
