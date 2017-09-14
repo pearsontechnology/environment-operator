@@ -30,20 +30,6 @@ func envVars(deployment v1beta1.Deployment) []bitesize.EnvVar {
 	return retval
 }
 
-func annVars(metadata v1.ObjectMeta) []bitesize.Annotation {
-	var retval []bitesize.Annotation
-	annotations := metadata.GetAnnotations()
-	for k, v := range annotations {
-		var a bitesize.Annotation
-		a = bitesize.Annotation{
-			Name: annotations[k],
-			Value: annotations[v],
-		}
-		retval = append(retval, a)
-	}
-	return retval
-}
-
 func healthCheck(deployment v1beta1.Deployment) *bitesize.HealthCheck {
 	var retval *bitesize.HealthCheck
 

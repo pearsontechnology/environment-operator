@@ -72,28 +72,78 @@ func TestApplyEnvironment(t *testing.T) {
 	}
 
 	e1, err := bitesize.LoadEnvironment("../../test/assets/environments.bitesize", "environment2")
-	if err != nil {
-		t.Fatalf("Unexpected err: %s", err.Error())
-	}
 
-	cluster.ApplyEnvironment(e1)
-
-	e2, err := cluster.LoadEnvironment("environment-dev")
+	e2 := e1
 
 	if err != nil {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
 
-	if d := diff.Compare(*e1, *e2); d != "" {
+	//Make sure the old environment reflects that services were deployed
+	for i, _ := range e1.Services {
+		e1.Services[i].Status.DeployedAt = "Current Time"
+	}
+
+	cluster.ApplyEnvironment(e1, e2)
+
+	e3, err := cluster.LoadEnvironment("environment-dev")
+
+	if err != nil {
+		t.Fatalf("Unexpected err: %s", err.Error())
+	}
+
+	if d := diff.Compare(*e2, *e3); d != "" {
 		t.Errorf("Expected loaded environments to be equal, yet diff is: %s", d)
 	}
 }
+
+/*
+
+//Currently disabled due to https://github.com/kubernetes/client-go/issues/196  .  Unable to mock out Request Stream() request
+that is made when Pod logs are retrieved by the LoadPods() function.
+
+func TestGetPods(t *testing.T) {
+	log.SetLevel(log.FatalLevel)
+	labels := map[string]string{"creator": "pipeline"}
+	client := fake.NewSimpleClientset(
+		&v1.Pod{
+			TypeMeta: unversioned.TypeMeta{
+				Kind:       "pod",
+				APIVersion: "v1",
+			},
+			ObjectMeta: v1.ObjectMeta{
+				Name:      "front",
+				Namespace: "dev",
+				Labels:    labels,
+			},
+		},
+	)
+	tprclient := loadTestTPRS()
+	cluster := Cluster{
+		Interface: client,
+		TPRClient: tprclient,
+	}
+	pods, err := cluster.LoadPods("dev")
+
+	if err != nil {
+		t.Fatalf("Unexpected err: %s", err.Error())
+	}
+
+	if !strings.Contains(pods[0].Name, "front") {
+		t.Errorf("Expected 'front' pod to be retrieved")
+	}
+
+}
+*/
 
 func newDeployment(namespace, name string) *v1beta1.Deployment {
 	d := v1beta1.Deployment{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
+			Annotations: map[string]string{
+				"deployment.kubernetes.io/revision": "1",
+			},
 		},
 		Spec: v1beta1.DeploymentSpec{
 			Template: v1.PodTemplateSpec{},
@@ -199,7 +249,20 @@ func loadTestEnvironment() *fake.Clientset {
 			ObjectMeta: v1.ObjectMeta{
 				Name:      "test",
 				Namespace: "test",
-				Labels:    validLabels,
+				Labels: map[string]string{
+					"creator":     "pipeline",
+					"name":        "hpaservice",
+					"application": "some-app",
+					"version":     "some-version",
+				},
+				Annotations: map[string]string{
+					"deployment.kubernetes.io/revision": "1",
+				},
+			},
+			Status: v1beta1.DeploymentStatus{
+				AvailableReplicas: 1,
+				Replicas:          1,
+				UpdatedReplicas:   1,
 			},
 			Spec: v1beta1.DeploymentSpec{
 				Replicas: &replicaCount,
@@ -208,6 +271,9 @@ func loadTestEnvironment() *fake.Clientset {
 						Name:      "test",
 						Namespace: "test",
 						Labels:    validLabels,
+						Annotations: map[string]string{
+							"existing_annotation": "exist",
+						},
 					},
 					Spec: v1.PodSpec{
 						Containers: []v1.Container{
@@ -372,6 +438,32 @@ func testFullBitesizeEnvironment(t *testing.T) {
 	}
 }
 
+func TestEnvironmentAnnotations(t *testing.T) {
+	client := loadTestEnvironment()
+	tprclient := loadTestTPRS()
+	cluster := Cluster{
+		Interface: client,
+		TPRClient: tprclient,
+	}
+	environment, _ := cluster.LoadEnvironment("test")
+	testService := environment.Services.FindByName("test")
+
+	if testService.Annotations["existing_annotation"] != "exist" {
+		t.Error("Existing annotation is not loaded from the cluster before apply")
+	}
+
+	e1, _ := bitesize.LoadEnvironment("../../test/assets/annotations.bitesize", "test")
+	cluster.ApplyEnvironment(e1, e1)
+
+	e2, _ := cluster.LoadEnvironment("test")
+	testService = e2.Services.FindByName("test")
+
+	if testService.Annotations["existing_annotation"] != "exist" {
+		t.Error("Existing annotation is not loaded from the cluster after apply")
+	}
+
+}
+
 func TestApplyNewHPA(t *testing.T) {
 
 	tprclient := loadEmptyTPRS()
@@ -396,7 +488,7 @@ func TestApplyNewHPA(t *testing.T) {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
 
-	cluster.ApplyEnvironment(e1)
+	cluster.ApplyEnvironment(e1, e1)
 
 	e2, err := cluster.LoadEnvironment("environment-dev")
 
@@ -468,7 +560,7 @@ func TestApplyExistingHPA(t *testing.T) {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
 
-	cluster.ApplyEnvironment(e1)
+	cluster.ApplyEnvironment(e1, e1)
 
 	e2, err := cluster.LoadEnvironment("environment-dev")
 

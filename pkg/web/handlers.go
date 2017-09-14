@@ -61,13 +61,13 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 	d, err := ParseDeployRequest(r.Body)
 	if err != nil {
 		log.Errorf("Could not parse request body: %s", err.Error())
-		http.Error(w, fmt.Sprintf("Bad request body: %s", err.Error()), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Bad Request: Unable to parse request body: %s", err.Error()), http.StatusBadRequest)
 	}
 
 	deployment, err := GetCurrentDeploymentByName(d.Name)
 	if err != nil {
 		log.Errorf("Error getting deployment %s: %s", d.Name, err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 	deployment.ObjectMeta.Labels["version"] = d.Version
@@ -77,7 +77,7 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 
 	if err = client.Deployment().Apply(deployment); err != nil {
 		log.Errorf("Error updating deployment %s: %s", d.Name, err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 
@@ -121,8 +121,14 @@ func getPodStatus(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	serviceName := vars["service"]
-
 	w.Header().Set("Content-Type", "application/json")
+	client, err := cluster.Client()
+	if err != nil {
+		log.Errorf("Error getting cluster client: %s", err.Error())
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	}
+
+	pods, err := client.LoadPods(config.Env.Namespace)
 
 	deploySVC, err := loadService(serviceName)
 
@@ -132,14 +138,18 @@ func getPodStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	podSVC, err := loadService("podservice")
-	if err != nil {
-		log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
+	var deployedPods []bitesize.Pod
+	//Only return pods that are part of the deployment/service being requested
+	for _, pod := range pods {
+		if strings.Contains(pod.Name, deploySVC.Name) {
+			deployedPods = append(deployedPods, pod)
+		}
 	}
 
-	statusPods := statusForPods(deploySVC, podSVC)
+	statusPods := StatusPods{
+		Pods: deployedPods,
+	}
+
 	json.NewEncoder(w).Encode(statusPods)
 }
 
@@ -199,18 +209,5 @@ func statusForService(svc bitesize.Service) StatusService {
 			UpToDate:  svc.Status.CurrentReplicas,
 			Desired:   svc.Status.DesiredReplicas,
 		},
-	}
-}
-func statusForPods(deploySVC bitesize.Service, podSVC bitesize.Service) StatusPods {
-	var deployedPods []bitesize.Pod
-	//Only return pods that are part of the deployment/service being requested
-	for _, pod := range podSVC.DeployedPods {
-		if strings.Contains(pod.Name, deploySVC.Name) {
-			deployedPods = append(deployedPods, pod)
-		}
-	}
-	return StatusPods{
-		Name: podSVC.Name,
-		Pods: deployedPods,
 	}
 }

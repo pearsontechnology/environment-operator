@@ -21,8 +21,9 @@ func (s ServiceMap) CreateOrGet(name string) *bitesize.Service {
 	// Create with some defaults -- defaults should probably live in bitesize.Service
 	if s[name] == nil {
 		s[name] = &bitesize.Service{
-			Name:     name,
-			Replicas: 1,
+			Name:        name,
+			Replicas:    1,
+			Annotations: map[string]string{},
 		}
 	}
 	return s[name]
@@ -74,8 +75,13 @@ func (s ServiceMap) AddDeployment(deployment v1beta1.Deployment) {
 	biteservice.HTTPSOnly = getLabel(deployment.ObjectMeta, "httpsOnly")
 	biteservice.HTTPSBackend = getLabel(deployment.ObjectMeta, "httpsBackend")
 	biteservice.EnvVars = envVars(deployment)
-	biteservice.Annotations = annVars(deployment.ObjectMeta)
 	biteservice.HealthCheck = healthCheck(deployment)
+
+	if deployment.Spec.Template.ObjectMeta.Annotations != nil {
+		biteservice.Annotations = deployment.Spec.Template.ObjectMeta.Annotations
+	} else {
+		biteservice.Annotations = map[string]string{}
+	}
 	biteservice.Status = bitesize.ServiceStatus{
 
 		AvailableReplicas: int(deployment.Status.AvailableReplicas),
@@ -120,18 +126,6 @@ func (s ServiceMap) AddThirdPartyResource(tpr k8_extensions.PrsnExternalResource
 	if tpr.Spec.Replicas != 0 {
 		biteservice.Replicas = tpr.Spec.Replicas
 	}
-}
-
-func (s ServiceMap) AddPod(pod v1.Pod, logs string, error string) {
-	biteservice := s.CreateOrGet("podservice")
-	podval := bitesize.Pod{
-		Name:      pod.ObjectMeta.Name,
-		Phase:     pod.Status.Phase,
-		StartTime: pod.Status.StartTime.String(),
-		Message:   error,
-		Logs:      logs,
-	}
-	biteservice.DeployedPods = append(biteservice.DeployedPods, podval)
 }
 
 func (s ServiceMap) AddIngress(ingress v1beta1.Ingress) {

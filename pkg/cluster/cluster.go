@@ -8,7 +8,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	log "github.com/Sirupsen/logrus"
-
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/diff"
 	"github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
@@ -39,6 +38,7 @@ func Client() (*Cluster, error) {
 // the current client environment. If there are any changes, c is applied
 // to the current config
 func (cluster *Cluster) ApplyIfChanged(newConfig *bitesize.Environment) error {
+	var err error
 	if newConfig == nil {
 		return errors.New("Could not compare against config (nil)")
 	}
@@ -48,14 +48,14 @@ func (cluster *Cluster) ApplyIfChanged(newConfig *bitesize.Environment) error {
 	changes := diff.Compare(*newConfig, *currentConfig)
 	if changes != "" {
 		log.Infof("Changes: %s", changes)
-		cluster.ApplyEnvironment(newConfig)
+		err = cluster.ApplyEnvironment(currentConfig, newConfig)
 	}
-	return nil
+	return err
 }
 
 // ApplyEnvironment executes kubectl apply against ingresses, services, deployments
 // etc.
-func (cluster *Cluster) ApplyEnvironment(e *bitesize.Environment) {
+func (cluster *Cluster) ApplyEnvironment(current_e, e *bitesize.Environment) error {
 	var err error
 
 	for _, service := range e.Services {
@@ -72,13 +72,21 @@ func (cluster *Cluster) ApplyEnvironment(e *bitesize.Environment) {
 		}
 
 		if service.Type == "" {
-			svc, _ := mapper.Service()
-			if err = client.Service().Apply(svc); err != nil {
+
+			if !shouldDeploy(current_e, e, service.Name) {
+				continue
+			}
+
+			deployment, err := mapper.Deployment()
+			if err != nil {
+				return err
+			}
+			if err = client.Deployment().Apply(deployment); err != nil {
 				log.Error(err)
 			}
 
-			deployment, _ := mapper.Deployment()
-			if err = client.Deployment().Apply(deployment); err != nil {
+			svc, _ := mapper.Service()
+			if err = client.Service().Apply(svc); err != nil {
 				log.Error(err)
 			}
 
@@ -108,6 +116,40 @@ func (cluster *Cluster) ApplyEnvironment(e *bitesize.Environment) {
 			}
 		}
 	}
+	return err
+}
+
+// LoadPods returns Pod object loaded from Kubernetes API
+func (cluster *Cluster) LoadPods(namespace string) ([]bitesize.Pod, error) {
+	client := &k8s.Client{
+		Namespace: namespace,
+		Interface: cluster.Interface,
+		TPRClient: cluster.TPRClient,
+	}
+
+	var deployedPods []bitesize.Pod
+	pods, err := client.Pod().List()
+	if err != nil {
+		log.Errorf("Error loading kubernetes pods: %s", err.Error())
+	}
+
+	for _, pod := range pods {
+		logs, err := client.Pod().GetLogs(pod.ObjectMeta.Name)
+		message := ""
+		if err != nil {
+			message = fmt.Sprintf("Error retrieving Pod Logs: %s", err.Error())
+
+		}
+		podval := bitesize.Pod{
+			Name:      pod.ObjectMeta.Name,
+			Phase:     pod.Status.Phase,
+			StartTime: pod.Status.StartTime.String(),
+			Message:   message,
+			Logs:      logs,
+		}
+		deployedPods = append(deployedPods, podval)
+	}
+	return deployedPods, err
 }
 
 // LoadEnvironment returns BitesizeEnvironment object loaded from Kubernetes API
@@ -132,22 +174,6 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 	}
 	for _, service := range services {
 		serviceMap.AddService(service)
-	}
-
-	pods, err := client.Pod().List()
-	if err != nil {
-		log.Errorf("Error loading kubernetes pods: %s", err.Error())
-	}
-
-	for _, pod := range pods {
-		logs, err := client.Pod().GetLogs(pod.ObjectMeta.Name)
-		message := ""
-		if err != nil {
-			message = fmt.Sprintf("Error retrieving Pod Logs: %s", err.Error())
-			serviceMap.AddPod(pod, logs, message)
-		} else {
-			serviceMap.AddPod(pod, logs, message)
-		}
 	}
 
 	deployments, err := client.Deployment().List()
@@ -195,4 +221,15 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 	}
 
 	return &bitesizeConfig, nil
+}
+
+//Only deploy k8s resources when the environment was actually deployed or if the service has specified a version
+func shouldDeploy(currentE, e *bitesize.Environment, serviceName string) bool {
+	currentService := currentE.Services.FindByName(serviceName)
+	updatedService := e.Services.FindByName(serviceName)
+
+	if (currentService != nil && currentService.Status.DeployedAt != "") || (updatedService != nil && updatedService.Version != "") {
+		return true
+	}
+	return false
 }
