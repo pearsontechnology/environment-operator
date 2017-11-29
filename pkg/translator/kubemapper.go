@@ -108,6 +108,7 @@ func (w *KubeMapper) PersistentVolumeClaims() ([]v1.PersistentVolumeClaim, error
 	var retval []v1.PersistentVolumeClaim
 
 	for _, vol := range w.BiteService.Volumes {
+		size := resource.MustParse(vol.Size)
 		ret := v1.PersistentVolumeClaim{
 			ObjectMeta: v1.ObjectMeta{
 				Name:      vol.Name,
@@ -123,7 +124,7 @@ func (w *KubeMapper) PersistentVolumeClaims() ([]v1.PersistentVolumeClaim, error
 				AccessModes: getAccessModesFromString(vol.Modes),
 				Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
-						v1.ResourceName(v1.ResourceStorage): resource.MustParse(vol.Size),
+						v1.ResourceName(v1.ResourceStorage): *size.ToDec(),
 					},
 				},
 			},
