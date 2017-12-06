@@ -145,20 +145,18 @@ func (s ServiceMap) AddThirdPartyResource(tpr k8_extensions.PrsnExternalResource
 }
 
 func (s ServiceMap) AddIngress(ingress v1beta1_ext.Ingress) {
-	var externalURL string
-
 	name := ingress.Name
 	biteservice := s.CreateOrGet(name)
-
 	ssl := ingress.Labels["ssl"]
 	httpsOnly := ingress.Labels["httpsOnly"]
 	httpsBackend := ingress.Labels["httpsBackend"]
 
 	if len(ingress.Spec.Rules) > 0 {
-		externalURL = ingress.Spec.Rules[0].Host
+		for _, rule := range ingress.Spec.Rules {
+			biteservice.ExternalURL = append(biteservice.ExternalURL, rule.Host)
+		}
 	}
 
-	biteservice.ExternalURL = append(biteservice.ExternalURL, externalURL)
 	biteservice.HTTPSBackend = httpsBackend
 	biteservice.HTTPSOnly = httpsOnly
 	biteservice.Ssl = ssl

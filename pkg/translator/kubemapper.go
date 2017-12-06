@@ -519,7 +519,7 @@ func (w *KubeMapper) volumes() ([]v1.Volume, error) {
 }
 
 // Ingress extracts Kubernetes object from Bitesize definition
-func (w *KubeMapper) Ingress(index int) (*v1beta1_ext.Ingress, error) {
+func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 	labels := map[string]string{
 		"creator":     "pipeline",
 		"application": w.BiteService.Application,
@@ -546,27 +546,32 @@ func (w *KubeMapper) Ingress(index int) (*v1beta1_ext.Ingress, error) {
 			Labels:    labels,
 		},
 		Spec: v1beta1_ext.IngressSpec{
-			Rules: []v1beta1_ext.IngressRule{
-				{
-					Host: w.BiteService.ExternalURL[index],
+			Rules: []v1beta1_ext.IngressRule{},
+		},
+	}
 
-					IngressRuleValue: v1beta1_ext.IngressRuleValue{
-						HTTP: &v1beta1_ext.HTTPIngressRuleValue{
-							Paths: []v1beta1_ext.HTTPIngressPath{
-								{
-									Path: "/",
-									Backend: v1beta1_ext.IngressBackend{
-										ServiceName: w.BiteService.Name,
-										ServicePort: port,
-									},
-								},
+	for _, url := range w.BiteService.ExternalURL {
+		rule := v1beta1_ext.IngressRule{
+			Host: url,
+			IngressRuleValue: v1beta1_ext.IngressRuleValue{
+				HTTP: &v1beta1_ext.HTTPIngressRuleValue{
+					Paths: []v1beta1_ext.HTTPIngressPath{
+						{
+							Path: "/",
+							Backend: v1beta1_ext.IngressBackend{
+								ServiceName: w.BiteService.Name,
+								ServicePort: port,
 							},
 						},
 					},
 				},
 			},
-		},
+		}
+
+		retval.Spec.Rules = append(retval.Spec.Rules, rule)
+
 	}
+
 	return retval, nil
 }
 

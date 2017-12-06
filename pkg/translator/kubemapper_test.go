@@ -35,7 +35,7 @@ func testTranslatorIngressSSl(t *testing.T) {
 	w.BiteService.Ssl = "true"
 	w.BiteService.ExternalURL = []string{"www.test.com"}
 
-	ingress, _ := w.Ingress(0)
+	ingress, _ := w.Ingress()
 
 	if ingress.Labels["ssl"] != "true" {
 		t.Errorf("Unexpected ingress ssl value: %+v", ingress.Labels["ssl"])
@@ -63,7 +63,7 @@ func testTranslatorIngressHTTPSBackend(t *testing.T) {
 	w.BiteService.HTTPSBackend = "true"
 	w.BiteService.ExternalURL = []string{"www.test.com"}
 
-	ingress, _ := w.Ingress(0)
+	ingress, _ := w.Ingress()
 
 	if ingress.Labels["httpsBackend"] != "true" {
 		t.Errorf("Unexpected ingress httpsBackend value: %+v", ingress.Labels["httpsBackend"])
@@ -75,7 +75,7 @@ func testTranslatorIngressHTTPSOnly(t *testing.T) {
 	w.BiteService.HTTPSOnly = "true"
 	w.BiteService.ExternalURL = []string{"www.test.com"}
 
-	ingress, _ := w.Ingress(0)
+	ingress, _ := w.Ingress()
 
 	if ingress.Labels["httpsOnly"] != "true" {
 		t.Errorf("Unexpected ingress httpsOnly value: %+v", ingress.Labels["httpsOnly"])
