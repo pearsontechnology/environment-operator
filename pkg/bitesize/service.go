@@ -109,6 +109,11 @@ func (e *Service) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// HasExternalURL checks if the service has an external_url defined
+func (e Service) HasExternalURL() bool {
+	return len(e.ExternalURL) != 0
+}
+
 func (slice Services) Len() int {
 	return len(slice)
 }

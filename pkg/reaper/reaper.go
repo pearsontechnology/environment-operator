@@ -16,7 +16,7 @@ type Reaper struct {
 	Namespace string
 }
 
-// Cleanup collects all orphan services (not mentioned in cfg) and
+// Cleanup collects all orphan services or service components (not mentioned in cfg) and
 // deletes them from the cluster
 func (r *Reaper) Cleanup(cfg *bitesize.Environment) error {
 
@@ -34,6 +34,8 @@ func (r *Reaper) Cleanup(cfg *bitesize.Environment) error {
 			log.Infof("REAPER: Found orphan service %s, deleting.", service.Name)
 			r.deleteService(service)
 		}
+		// delete ingresses that were removed from the service config
+		r.CleanupIngress(cfg.Services.FindByName(service.Name), &service)
 	}
 	return nil
 }
@@ -89,4 +91,12 @@ func (r *Reaper) destroyPersistentVolume(name string) error {
 
 func (r *Reaper) destroyThirdPartyResource(name string) error {
 	return nil
+}
+
+// CleanupIngress deletes an ingress if the corresponding service external_url is removed from the config
+func (r *Reaper) CleanupIngress(configSvc, clusterSvc *bitesize.Service) {
+	if configSvc != nil && !configSvc.HasExternalURL() && clusterSvc.HasExternalURL() {
+		log.Infof("REAPER: deleting ingress %s because it was removed from the service config", clusterSvc.Name)
+		r.destroyIngress(clusterSvc.Name)
+	}
 }
