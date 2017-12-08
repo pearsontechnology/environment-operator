@@ -129,7 +129,7 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 				log.Error(err)
 			}
 
-			if len(service.ExternalURL) != 0 {
+			if service.HasExternalURL() {
 				ingress, _ := mapper.Ingress()
 				if err = client.Ingress().Apply(ingress); err != nil {
 					log.Error(err)
