@@ -12,8 +12,16 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 ### **[0.0.10]**
 
 #### Added
-#### Changed 
-#### Fixed 
+
+* Reaper will clean up kubernetes ingress objects that no longer have a corresponding service object external_url configured.
+
+#### Changed
+
+* Defining external_url as a list of values for a service object will now cause a single ingress object with multiple rules to be created instead of multiple ingress objects each with a single rule.
+
+#### Fixed
+
+* EO not taking any action when external_url is defined as a list of values.
 
 ### **[0.0.9] 2017-11-28 [RELEASED]**
 
@@ -24,7 +32,7 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 
 #### Changed
 
-*  Persistent volume claims now use dynamic provisioning. 
+*  Persistent volume claims now use dynamic provisioning.
 [[BITE-1828](https://agile-jira.pearson.com/browse/BITE-1828)]
 
 ### **[0.0.8] - 2017-11-01 [RELEASED]**
