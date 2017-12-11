@@ -446,6 +446,7 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 
 	for _, e := range w.BiteService.EnvVars {
 		var evar v1.EnvVar
+		log.Infof("service %v, has env vars %v", w.BiteService, w.BiteService.EnvVars)
 
 		switch {
 
