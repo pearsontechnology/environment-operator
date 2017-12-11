@@ -446,7 +446,17 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 
 	for _, e := range w.BiteService.EnvVars {
 		var evar v1.EnvVar
-		if e.Secret != "" {
+		log.Infof("service %v, has env vars %v", w.BiteService, w.BiteService.EnvVars)
+
+		switch {
+
+		case e.Value != "":
+			evar = v1.EnvVar{
+				Name:  e.Name,
+				Value: e.Value,
+			}
+
+		case e.Secret != "":
 			kv := strings.Split(e.Value, "/")
 			secretName := ""
 			secretDataKey := ""
@@ -475,10 +485,10 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 					},
 				},
 			}
-		} else {
+
+		case e.ValueFrom != v1.EnvVarSource{}:
 			evar = v1.EnvVar{
-				Name:  e.Name,
-				Value: e.Value,
+				ValueFrom: &e.ValueFrom,
 			}
 		}
 		retval = append(retval, evar)
