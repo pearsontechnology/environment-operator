@@ -12,7 +12,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 ### **[0.0.11]**
 
 #### Added
-#### Changed 
+
+ * Support for overriding the default backend for a service's kubernetes ingress.
+
+#### Changed
 #### Fixed
 
 ### **[0.0.10] 2017-12-11 [RELEASED]**
