@@ -14,6 +14,7 @@ environments:
   services:
   - name: external_service
     external_url: www.test.com
+    backend: testing
     limits:
       cpu: 1000m
       memory: 500Mi

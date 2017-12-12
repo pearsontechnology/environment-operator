@@ -82,6 +82,19 @@ func testTranslatorIngressHTTPSOnly(t *testing.T) {
 	}
 }
 
+func TestTranslatorIngressBackendOverride(t *testing.T) {
+	w := BuildKubeMapper()
+	w.BiteService.ExternalURL = []string{"www.test.com"}
+	w.BiteService.Backend = "www.example.com"
+
+	ingress, _ := w.Ingress()
+	result := ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend.ServiceName
+
+	if result != "www.example.com" {
+		t.Errorf("wrong ingress backend value: %s, expecting: %s", result, w.BiteService.Backend)
+	}
+}
+
 func BuildKubeMapper() *KubeMapper {
 	m := &KubeMapper{
 		BiteService: &bitesize.Service{

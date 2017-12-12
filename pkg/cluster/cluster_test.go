@@ -428,6 +428,18 @@ func loadTestEnvironment() *fake.Clientset {
 				Rules: []v1beta1_ext.IngressRule{
 					{
 						Host: "www.test.com",
+						IngressRuleValue: v1beta1_ext.IngressRuleValue{
+							HTTP: &v1beta1_ext.HTTPIngressRuleValue{
+								Paths: []v1beta1_ext.HTTPIngressPath{
+									{
+										Path: "/",
+										Backend: v1beta1_ext.IngressBackend{
+											ServiceName: "test",
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},

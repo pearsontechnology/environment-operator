@@ -568,6 +568,10 @@ func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 			},
 		}
 
+		if w.BiteService.Backend != "" {
+			rule.IngressRuleValue.HTTP.Paths[0].Backend.ServiceName = w.BiteService.Backend
+		}
+
 		retval.Spec.Rules = append(retval.Spec.Rules, rule)
 
 	}
