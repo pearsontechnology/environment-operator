@@ -166,7 +166,11 @@ func (s ServiceMap) AddIngress(ingress v1beta1_ext.Ingress) {
 	if backendService != biteservice.Name {
 		biteservice.Backend = backendService
 	}
-	biteservice.BackendPort = int(ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend.ServicePort.IntVal)
+	// backend port has been overriden
+	backendPort := int(ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend.ServicePort.IntVal)
+	if backendPort != biteservice.Ports[0] {
+		biteservice.BackendPort = backendPort
+	}
 }
 
 func (s ServiceMap) AddMongoStatefulSet(statefulset v1beta1_apps.StatefulSet) {
