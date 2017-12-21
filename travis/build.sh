@@ -28,6 +28,7 @@ echo "**************************************************************************
 docker run --rm -v "$(pwd)":/go/src/github.com/pearsontechnology/environment-operator \
 	-w /go/src/github.com/pearsontechnology/environment-operator \
 	-e CGO_ENABLED=1 \
+  -e GODEBUG=netdns=cgo+1 \
   	pearsontechnology/golang:1.8 \
     go build -v -o ${bin_dir}/environment-operator ./cmd/operator/main.go
 
