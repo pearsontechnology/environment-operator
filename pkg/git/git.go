@@ -1,9 +1,10 @@
 package git
 
 import (
+	"os"
+
 	"github.com/pearsontechnology/environment-operator/pkg/config"
 	git2go "gopkg.in/libgit2/git2go.v24"
-	"os"
 )
 
 // Git represents repository object and wraps git2go calls
@@ -26,10 +27,10 @@ func Client() *Git {
 // CloneOrPull checks if repo exists in local path. If it does, it
 // pulls changes from remotePath, if it doesn't, performs a full git clone
 func (g *Git) CloneOrPull() error {
-	if err := os.RemoveAll(g.LocalPath); err != nil {
-		return err
+	if _, err := os.Stat(g.LocalPath); os.IsNotExist(err) {
+		return g.Clone()
 	}
-	return g.Clone()
+	return g.Pull()
 }
 
 func (g *Git) credentialsCallback(url string, username string, allowedTypes git2go.CredType) (git2go.ErrorCode, *git2go.Cred) {
