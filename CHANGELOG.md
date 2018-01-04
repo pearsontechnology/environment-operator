@@ -19,6 +19,8 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 #### Changed
 #### Fixed
 
+ * EO intermittent panic issue. [[BITE-1941](https://agile-jira.pearson.com/browse/BITE-1941)]
+
 ### **[0.0.10] 2017-12-11 [RELEASED]**
 
 #### Added
