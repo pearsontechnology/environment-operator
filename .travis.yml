@@ -1,22 +1,31 @@
 sudo: false
 services:
-  - docker
+- docker
 language: bash
 before_install:
-  - eval "$(ssh-agent -s)"
-  - openssl aes-256-cbc -K $encrypted_e58dbf8351c6_key -iv $encrypted_e58dbf8351c6_iv -in ${TRAVIS_BUILD_DIR}/travis/environment-operator-deploykey.enc -out ~/.ssh/travis_rsa -d
-  - chmod 600 ~/.ssh/travis_rsa
-  - ssh-add ~/.ssh/travis_rsa
+- eval "$(ssh-agent -s)"
+- openssl aes-256-cbc -K $encrypted_e58dbf8351c6_key -iv $encrypted_e58dbf8351c6_iv
+  -in ${TRAVIS_BUILD_DIR}/travis/environment-operator-deploykey.enc -out ~/.ssh/travis_rsa
+  -d
+- chmod 600 ~/.ssh/travis_rsa
+- ssh-add ~/.ssh/travis_rsa
+- git clone git@github.com:hipchat/hipchat-cli.git ${TRAVIS_BUILD_DIR}/hipchat 
 install:
-  - ${TRAVIS_BUILD_DIR}/travis/releaseVersioning.sh
+- "${TRAVIS_BUILD_DIR}/travis/releaseVersioning.sh"
 before_script:
-  - ${TRAVIS_BUILD_DIR}/travis/unittest.sh
+- "${TRAVIS_BUILD_DIR}/travis/unittest.sh"
 script:
-  - ${TRAVIS_BUILD_DIR}/travis/build.sh
+- "${TRAVIS_BUILD_DIR}/travis/build.sh"
 after_success:
-  - ${TRAVIS_BUILD_DIR}/travis/releaseTagging.sh
-#safelist
+- "${TRAVIS_BUILD_DIR}/travis/releaseTagging.sh"
 branches:
   only:
-    - dev
-    - master
+  - dev
+  - master
+env:
+  global:
+    secure: kx4trtcFBt6Qz4tN8PApGqtvSgoHxwYCkOx/rnEHTQ1yh2B7rhuOVOvlZ0tb1Lqvfn/m53YWgXLci96c9sVYk27BN6p4A8LjATpEcJxnHPSoD3OblXNLObTpI7SqVbJuv1kI5bTW3Xj4O3JbeK2a5VBMMn9oeViMj3v2mJDRoxklSEsA1fwZJLIZ+0BypV5hzT+U+B4PecwXQJEX5Ph9qSHH60wCeVszX1dhDM9QhKrRf+XRIxVOuU/NaaWFBw6aFNR4/0yAEIutuYaQEI1fxVjf9doHzkgWy77lovoxvvH/oCex/svKfu4rtUPMADVcuzMYwg54dUgQrOxHx8wol2e2GhNSK/ssVQD8Owz7Dq1/EP5YXtxBOPxqvqmND+/0SbUmTKmKY+Bnk5xKTPITWzKdYgV+4njW3DzXK/r6SVFvqBPxRE6dnGDqitIHaDIa9Rl29hAUiStl11hWQD/5d9U1ft646D4JmVDZz7Wgx7XuMT0B9I8+bHZT2TTpLw8aRH6+wZjuG7gJDG2BDNYBWrtry04bW3Ht8/h2kVyAFgezfruwIhixw6VQqg5znl4vYOg5Iv/kq11PkPW/T3q3aXNxtVOOqFejklpLbtbm8BJjFTFp0Zlu2MgcJlU92vFssegjcUYho2Wp8iHSUDcYSqX4SCM3oaDWYTE8NthNXUo=
+  hipchat_token:
+    secure: LtzMthFTKAsgPOgbaDYnjeFXVGuaF9M+ddDUQPt9iRXP652i3Zu30iTs7oQtIJfZOndMM+afVxiIXEYjImwxvHS5WABu2qd7PohES8aJ0bZsfVxmlOzT4KVZH527YzXzmD2wX9MhnPogO67nu7Ru7Lt2xUYWP9CVoJaAbjGP4rwVnfMgBgvvOHQnqmdu2C0pmJddGJXkcMPPXXygTDfSn49zPMZvNDC12htLRUUCGVGkzpvzOf/c9NlM2KVbW2nurzXbaGAehoVJkXeHrFn+XFt8RWMQlaneZ2x8vSqpnLyx1KgtUiBgpM8WRaZXTtBrTNFvXrleucJCDiL6hX50goFJKoZnBTe4cJTQJ/s6RP8jEERLs4XU0YwjxM6iu9m0pb6tDtDEXrFHI7Rt2UcunB/Cpz2j2mChB/49mCgpj2f1zF7d4ScK1pwPW91soGkkvhcI74+Wx9+0jUzQjIGd+EZm9nn0ukBp4XMTP6tYZdJP5PsKE/3R2ccsOx/DwxjMenDEVDkk8T0wxegejy2heApErtNoWvFZT8gX8m6PchnkZ1nwdrRcT4AVozzeGgix/i7yNkKGSgcAaytow0LQrmKTFIdrQ12pmY/gpyR9QePO3qa/t73bQ5m+jGWuPIj2XUGgo584dICbjAJpcFoM93D0vJao8Z4eWa70JKXMYiI=
+  hipchat_room:
+    secure: KX7xvNcQnI2mN2Z4h35lxZGVmQx0KH+oXxtnnnUU3bRCy51+6BVrwHTh84qRr1Prdy3SELDY4Rp/aRmOTyVbuSe6wQiTNdmwvALrnfwZtI1cBE/Ph6wJEeTT9lKdn5mTjStYweV9jVdzUh16EEvw1yyoOJNxfkxxZtZAcJoVTt6PyG/B9t4toN5vjE0TUbB7yvAE/VzvlX0RtX7g0wg8eBriebT99Jnrd/YjeHYlwu7RpHO61NjRDpxXryTmoyqHJCzvgqFJ6ae05MeB3+CW7zCVUOBt0e8+IDKy6Pg4wP4R7nONLfj+jgR1lM5IjGR/DiofIiOSu2b0WeyPbqc7jWvxOwiraRPgL/r2OhXw6u0HZZKkMq4PG5rX37Jq06H2MVbFeQLzjEWHeVZPL+ODMhz79l6JmeJ2hmF3dxHV7VdqEEF5gtkw/Q9nzVt9SRa8G6kO7tKsAIZoEfymEIKeDjQm93OvX7lBggChYf53WzmwXhyntUK4M63bCcV+JlPrTDskYNI6Yg9KbmDiN0GtlzpyrSWQwDjQ37JJX1oAiOOuibPRJ5Z93qM7fGXfULNqlu6BFwXjxzdnhzyr4Nu+qLBqCgolS83xIOSsBsEyrL0isG+x/1f0KO8K0ot+eCL6eVtb+cG3DCzF5Cv2kdO4iqtC7J4tOKabHJ3W+dDb+yE=
