@@ -1,4 +1,4 @@
-FROM golang:1.8-alpine
+FROM golang:1.9.2-alpine
 RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
 RUN apk update && apk upgrade && apk add --no-cache bash git openssh alpine-sdk libcurl
 RUN apk update && apk add cmake pkgconfig && apk add build-base
