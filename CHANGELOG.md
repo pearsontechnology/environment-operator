@@ -15,6 +15,8 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 #### Changed 
 #### Fixed 
 
+ * EO crashes with index out of range when an ingress exists which has no corresponding service defined.
+
 ### **[0.0.12] 2018-01-22 [RELEASED]**
 
 #### Changed 
