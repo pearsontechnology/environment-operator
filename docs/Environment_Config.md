@@ -117,7 +117,7 @@ The environment section of the manifest may specify multiple environments to man
     ```
     - **database_type**: When a database_type is specified (only option supported currently is "mongo") environment-operator will deploy a statefulset into kubernetes for the database. More information on deploying a mongo cluster may be found [here](./Mongo.md)
 
-    - **type**: When a service type is specified, environment operator will create a kubernetes third party resource of the kind specified by this field(CRDs are not currently supported). Further TPR customization (beyond default values) can be specified using the options field for the service. As a working example, within Pearson we use Stackstorm sensors that watch for TPR creation/deletion and trigger Stackstorm workflows which take the options specified as their inputs. 
+    - **type**: When a service type is specified, environment operator will create a kubernetes third party resource of the kind specified by this field (CRDs are not currently supported). Further TPR customization (beyond default values) can be specified using the options field for the service. As a working example, within Pearson we use Stackstorm sensors that watch for TPR creation/deletion and trigger Stackstorm workflows which take the options specified as their inputs. 
     ```
         services:
       - name: cb-1
