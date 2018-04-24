@@ -116,6 +116,21 @@ The environment section of the manifest may specify multiple environments to man
                  size: 10G
     ```
     - **database_type**: When a database_type is specified (only option supported currently is "mongo") environment-operator will deploy a statefulset into kubernetes for the database. More information on deploying a mongo cluster may be found [here](./Mongo.md)
+
+    - **type**: When a service type is specified, environment operator will create a kubernetes thirdparty resource of the kind specified by this field(CRDs are not currently supported). Further TPR customization (beyond default values) can be specified using the options field for the service. As a working example, within Pearson we use Stackstorm sensors that watch for TPR creation/deletion and trigger Stackstorm workflows which take the options specified as their inputs. 
+    ```
+        services:
+      - name: cb-1
+        type: couchbase
+        options:
+          volume_type: "gp2"
+          volume_size: "200"
+          instance_type: "t2.large"
+          desired_capacity: "1"
+          full_backup_sch: "1W:Sun"
+          app_id: "100"
+          team_id: "dba"
+    ```
     - **annotations**: Specifying annotations for your service will add the annotations to the Object Metadata for each pod within your kubernetes deployment. Annotations are an unstructured key/value map that can allow external services to retrieve metadata from your deployment. Pearson is utilizing annotations for scraping of data to Prometheus. Below is an example of how to structure annotations for your service in the manifest:
 	```
          annotations:
