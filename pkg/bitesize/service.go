@@ -32,6 +32,7 @@ type Service struct {
 	Annotations  map[string]string       `yaml:"-"` // Annotations have custom unmarshaler
 	Volumes      []Volume                `yaml:"volumes,omitempty"`
 	Options      map[string]string       `yaml:"options,omitempty"`
+	HTTP2        string                  `yaml:"http2,omitempty" validate:"regexp=^(true|false)*$"`
 	HTTPSOnly    string                  `yaml:"httpsOnly,omitempty" validate:"regexp=^(true|false)*$"`
 	HTTPSBackend string                  `yaml:"httpsBackend,omitempty" validate:"regexp=^(true|false)*$"`
 	Type         string                  `yaml:"type,omitempty"`
@@ -220,10 +221,9 @@ func unmarshalExternalURL(unmarshal func(interface{}) error) ([]string, error) {
 	return urls, nil
 }
 
-
 func (v *Volume) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	vv := &Volume{
-		Modes: "ReadWriteOnce",
+		Modes:        "ReadWriteOnce",
 		provisioning: "dynamic",
 	}
 

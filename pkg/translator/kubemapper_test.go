@@ -29,6 +29,7 @@ func TestTranslatorIngressLabels(t *testing.T) {
 	t.Run("ssl label", testTranslatorIngressSSl)
 	t.Run("httpsBackend label", testTranslatorIngressHTTPSBackend)
 	t.Run("httpsOnly label", testTranslatorIngressHTTPSOnly)
+	t.Run("httpsOnly label", testTranslatorIngressHTTP2)
 }
 
 func testTranslatorIngressSSl(t *testing.T) {
@@ -40,6 +41,18 @@ func testTranslatorIngressSSl(t *testing.T) {
 
 	if ingress.Labels["ssl"] != "true" {
 		t.Errorf("Unexpected ingress ssl value: %+v", ingress.Labels["ssl"])
+	}
+}
+
+func testTranslatorIngressHTTP2(t *testing.T) {
+	w := BuildKubeMapper()
+	w.BiteService.HTTP2 = "true"
+	w.BiteService.ExternalURL = []string{"www.test.com"}
+
+	ingress, _ := w.Ingress()
+
+	if ingress.Labels["http2"] != "true" {
+		t.Errorf("Unexpected ingress http2 value: %+v", ingress.Labels["http2"])
 	}
 }
 

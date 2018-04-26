@@ -12,6 +12,9 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 ### **[0.0.13] **
 
 #### Added
+
+ * Support setting http2 label for ingress objects.  [[BITE-2633](https://agile-jira.pearson.com/browse/BITE-2633)]
+
 #### Changed 
 #### Fixed 
 

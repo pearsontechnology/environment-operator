@@ -159,6 +159,7 @@ func (s ServiceMap) AddIngress(ingress v1beta1_ext.Ingress) {
 
 	biteservice.HTTPSBackend = httpsBackend
 	biteservice.HTTPSOnly = httpsOnly
+	biteservice.HTTP2 = ingress.Labels["http2"]
 	biteservice.Ssl = ssl
 
 	// backend service has been overridden
