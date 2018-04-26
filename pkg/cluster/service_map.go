@@ -169,7 +169,7 @@ func (s ServiceMap) AddIngress(ingress v1beta1_ext.Ingress) {
 	}
 	// backend port has been overriden
 	backendPort := int(ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend.ServicePort.IntVal)
-	if backendPort != biteservice.Ports[0] {
+	if len(biteservice.Ports) > 0 && backendPort != biteservice.Ports[0] {
 		biteservice.BackendPort = backendPort
 	}
 }
