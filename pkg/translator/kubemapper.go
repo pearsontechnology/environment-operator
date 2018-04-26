@@ -548,6 +548,10 @@ func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 		labels["httpsOnly"] = w.BiteService.HTTPSOnly
 	}
 
+	if w.BiteService.HTTP2 != "" {
+		labels["http2"] = w.BiteService.HTTP2
+	}
+
 	port := intstr.FromInt(w.BiteService.Ports[0])
 	retval := &v1beta1_ext.Ingress{
 		ObjectMeta: v1.ObjectMeta{
