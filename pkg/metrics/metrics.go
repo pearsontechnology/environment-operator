@@ -6,8 +6,8 @@ import (
 
 var Deploys = prometheus.NewCounterVec(
 	prometheus.CounterOpts{
-		Name: "deploys_total",
-		Help: "Number of requests to deploy a service received by EO.",
+		Name: "eo_deploys_total",
+		Help: "Deploy requests received from clients.",
 	},
 	[]string{"status"},
 )
@@ -15,4 +15,5 @@ var Deploys = prometheus.NewCounterVec(
 func init() {
 	prometheus.MustRegister(Deploys)
 	Deploys.With(prometheus.Labels{"status": "failed"}).Inc()
+	Deploys.With(prometheus.Labels{"status": "succeeded"}).Inc()
 }
