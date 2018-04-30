@@ -7,7 +7,7 @@ import (
 var Deploys = prometheus.NewCounterVec(
 	prometheus.CounterOpts{
 		Name: "deploys_total",
-		Help: "Number of requests to deploy a service caried out by EO.",
+		Help: "Number of requests to deploy a service received by EO.",
 	},
 	[]string{"status"},
 )
