@@ -324,3 +324,41 @@ func TestMatchUnsupported(t *testing.T) {
 		t.Errorf("wrong error: %v", err)
 	}
 }
+
+func TestIndexInRange(t *testing.T) {
+	us := &UserSettings{
+		userConfigFinder: testConfigFinder("testdata/config4"),
+	}
+
+	user, err := us.GetStrict("wap", "User")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if user != "root" {
+		t.Errorf("expected User to be %q, got %q", "root", user)
+	}
+}
+
+func TestDosLinesEndingsDecode(t *testing.T) {
+	us := &UserSettings{
+		userConfigFinder: testConfigFinder("testdata/dos-lines"),
+	}
+
+	user, err := us.GetStrict("wap", "User")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if user != "root" {
+		t.Errorf("expected User to be %q, got %q", "root", user)
+	}
+
+	host, err := us.GetStrict("wap2", "HostName")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if host != "8.8.8.8" {
+		t.Errorf("expected HostName to be %q, got %q", "8.8.8.8", host)
+	}
+}
