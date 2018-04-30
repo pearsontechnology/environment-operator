@@ -14,6 +14,4 @@ var Deploys = prometheus.NewCounterVec(
 
 func init() {
 	prometheus.MustRegister(Deploys)
-	Deploys.With(prometheus.Labels{"status": "failed"}).Inc()
-	Deploys.With(prometheus.Labels{"status": "succeeded"}).Inc()
 }
