@@ -12,6 +12,9 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 ### **[0.0.14] **
 
 #### Added
+
+ * Added Prometheus metrics endpoint [[BITE-1491](https://agile-jira.pearson.com/browse/BITE-1491)]
+
 #### Changed 
 #### Fixed 
 

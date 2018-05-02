@@ -11,10 +11,13 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/cluster"
 	"github.com/pearsontechnology/environment-operator/pkg/config"
+	"github.com/pearsontechnology/environment-operator/pkg/metrics"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Router returns mux.Router with all paths served
@@ -24,6 +27,7 @@ func Router() *mux.Router {
 	r.HandleFunc("/status", getStatus).Methods("GET")
 	r.HandleFunc("/status/{service}", getServiceStatus).Methods("GET")
 	r.HandleFunc("/status/{service}/pods", getPodStatus).Methods("GET")
+	r.Handle("/metrics", promhttp.Handler())
 
 	return r
 }
@@ -78,14 +82,18 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 		if err = client.Deployment().Apply(deployment); err != nil {
 			log.Errorf("Error updating deployment %s: %s", d.Name, err.Error())
 			http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
+			metrics.Deploys.With(prometheus.Labels{"status": "failed"}).Inc()
 			return
 		}
+		metrics.Deploys.With(prometheus.Labels{"status": "succeeded"}).Inc()
 	} else if statefulset != nil {
 		if err = client.StatefulSet().Apply(statefulset); err != nil {
 			log.Errorf("Error updating statefulset %s: %s", d.Name, err.Error())
 			http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
+			metrics.Deploys.With(prometheus.Labels{"status": "failed"}).Inc()
 			return
 		}
+		metrics.Deploys.With(prometheus.Labels{"status": "succeeded"}).Inc()
 	}
 
 	status := map[string]string{
