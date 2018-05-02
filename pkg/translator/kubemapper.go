@@ -289,6 +289,7 @@ func (w *KubeMapper) MongoStatefulSet() (*v1beta1_apps.StatefulSet, error) {
 							"deployment": w.BiteService.Name,
 							"mount_path": w.BiteService.Volumes[0].Path,
 							"size":       w.BiteService.Volumes[0].Size,
+							"type":       w.BiteService.Volumes[0].Type,
 						},
 					},
 					Spec: v1.PersistentVolumeClaimSpec{

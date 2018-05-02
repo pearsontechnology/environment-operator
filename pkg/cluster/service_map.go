@@ -235,6 +235,7 @@ func (s ServiceMap) AddMongoStatefulSet(statefulset v1beta1_apps.StatefulSet) {
 			Modes: getAccessModesAsString(claim.Spec.AccessModes),
 			Name:  claim.ObjectMeta.Name,
 			Size:  claim.ObjectMeta.Labels["size"],
+			Type:  claim.ObjectMeta.Labels["type"],
 		}
 		biteservice.Volumes = append(biteservice.Volumes, vol)
 	}

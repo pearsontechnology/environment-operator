@@ -759,6 +759,7 @@ func TestApplyMongoStatefulSet(t *testing.T) {
 								"deployment": "mongo",
 								"mount_path": "/data/db",
 								"size":       "10G",
+								"type":       "ebs",
 							},
 						},
 						Spec: v1.PersistentVolumeClaimSpec{
