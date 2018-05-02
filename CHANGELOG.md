@@ -12,6 +12,9 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 ### **[0.0.14] **
 
 #### Added
+
+ * Support different types of dynamic volumes (EBS/EFS) [[BITE-2640](https://agile-jira.pearson.com/browse/BITE-2640)]
+
 #### Changed 
 #### Fixed 
 
