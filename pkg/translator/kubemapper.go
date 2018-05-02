@@ -117,7 +117,7 @@ func (w *KubeMapper) PersistentVolumeClaims() ([]v1.PersistentVolumeClaim, error
 					"deployment": w.BiteService.Name,
 					"mount_path": strings.Replace(vol.Path, "/", "2F", -1),
 					"size":       vol.Size,
-					"type":       vol.Type,
+					"type":       strings.ToLower(vol.Type),
 				},
 			},
 			Spec: v1.PersistentVolumeClaimSpec{
