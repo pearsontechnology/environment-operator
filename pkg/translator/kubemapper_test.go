@@ -205,6 +205,7 @@ func TestTranslatorPVCs(t *testing.T) {
 					"deployment": "test",
 					"mount_path": "2Ftmp2Fvol1",
 					"size":       "1Gi",
+					"type":       "efs",
 				},
 				Annotations: map[string]string{
 					"volume.beta.kubernetes.io/storage-class": "aws-efs",
@@ -228,6 +229,7 @@ func TestTranslatorPVCs(t *testing.T) {
 					"deployment": "test",
 					"mount_path": "2Ftmp2Fvol2",
 					"size":       "1Gi",
+					"type":       "ebs",
 				},
 				Annotations: map[string]string{
 					"volume.beta.kubernetes.io/storage-class": "aws-ebs",

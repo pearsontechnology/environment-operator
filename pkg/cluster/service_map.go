@@ -128,6 +128,7 @@ func (s ServiceMap) AddVolumeClaim(claim v1.PersistentVolumeClaim) {
 			Modes: getAccessModesAsString(claim.Spec.AccessModes),
 			Size:  claim.ObjectMeta.Labels["size"],
 			Name:  claim.ObjectMeta.Name,
+			Type:  claim.ObjectMeta.Labels["type"],
 		}
 		biteservice.Volumes = append(biteservice.Volumes, vol)
 	}
