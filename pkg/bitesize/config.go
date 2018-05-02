@@ -90,6 +90,7 @@ type Volume struct {
 	Path         string `yaml:"path"`
 	Modes        string `yaml:"modes" validate:"volume_modes"`
 	Size         string `yaml:"size"`
+	Type         string `yaml:"type"`
 	provisioning string `yaml:"provisioning" validate:"volume_provisioning"`
 }
 

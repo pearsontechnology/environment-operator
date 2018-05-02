@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
+	"k8s.io/client-go/pkg/api/resource"
 	"k8s.io/client-go/pkg/api/v1"
 )
 
@@ -182,4 +183,69 @@ func TestTranslatorEnvVars(t *testing.T) {
 	if !reflect.DeepEqual(generatedEnvVars, expectedEnvVars) {
 		t.Errorf("incorrect environment variables: %v generated; expecting: %v ", generatedEnvVars, expectedEnvVars)
 	}
+}
+
+func TestTranslatorPVCs(t *testing.T) {
+	w := BuildKubeMapper()
+	w.BiteService.Name = "test"
+	w.Namespace = "test"
+	w.BiteService.Volumes = []bitesize.Volume{
+		{Name: "vol1", Path: "/tmp/vol1", Modes: "ReadWriteOnce", Size: "1Gi", Type: "EFS"},
+		{Name: "vol2", Path: "/tmp/vol2", Modes: "ReadOnlyMany", Size: "1Gi", Type: "eBs"},
+	}
+
+	generatedPVCs, _ := w.PersistentVolumeClaims()
+	expectedPVCs := []v1.PersistentVolumeClaim{
+		{
+			ObjectMeta: v1.ObjectMeta{
+				Name:      "vol1",
+				Namespace: "test",
+				Labels: map[string]string{
+					"creator":    "pipeline",
+					"deployment": "test",
+					"mount_path": "2Ftmp2Fvol1",
+					"size":       "1Gi",
+				},
+				Annotations: map[string]string{
+					"volume.beta.kubernetes.io/storage-class": "aws-efs",
+				},
+			},
+			Spec: v1.PersistentVolumeClaimSpec{
+				AccessModes: getAccessModesFromString("ReadWriteOnce"),
+				Resources: v1.ResourceRequirements{
+					Requests: v1.ResourceList{
+						v1.ResourceName(v1.ResourceStorage): resource.MustParse("1Gi"),
+					},
+				},
+			},
+		},
+		{
+			ObjectMeta: v1.ObjectMeta{
+				Name:      "vol2",
+				Namespace: "test",
+				Labels: map[string]string{
+					"creator":    "pipeline",
+					"deployment": "test",
+					"mount_path": "2Ftmp2Fvol2",
+					"size":       "1Gi",
+				},
+				Annotations: map[string]string{
+					"volume.beta.kubernetes.io/storage-class": "aws-ebs",
+				},
+			},
+			Spec: v1.PersistentVolumeClaimSpec{
+				AccessModes: getAccessModesFromString("ReadOnlyMany"),
+				Resources: v1.ResourceRequirements{
+					Requests: v1.ResourceList{
+						v1.ResourceName(v1.ResourceStorage): resource.MustParse("1Gi"),
+					},
+				},
+			},
+		},
+	}
+
+	if !reflect.DeepEqual(generatedPVCs, expectedPVCs) {
+		t.Errorf("incorrect PVCs: %v generated; expecting: %v ", generatedPVCs, expectedPVCs)
+	}
+
 }

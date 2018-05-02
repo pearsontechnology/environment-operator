@@ -13,6 +13,7 @@ import (
 
 func addCustomValidators() {
 	validator.SetValidationFunc("volume_modes", validVolumeModes)
+	validator.SetValidationFunc("volume_types", validVolumeTypes)
 	validator.SetValidationFunc("volume_provisioning", validVolumeProvisioning)
 	validator.SetValidationFunc("hpa", validHPA)
 	validator.SetValidationFunc("requests", validRequests)
@@ -34,6 +35,28 @@ func validVolumeModes(v interface{}, param string) error {
 
 	if _, ok := validNames[str]; !ok {
 		return fmt.Errorf("Invalid volume mode: %s", str)
+	}
+	return nil
+}
+
+func validVolumeTypes(v interface{}, param string) error {
+	validTypes := map[string]bool{"efs": true, "EBS": true}
+	str, ok := v.(string)
+
+	if !ok { // not a string
+		return fmt.Errorf(
+			"Invalid volume type: %v. Valid types: %s",
+			v,
+			"EBS,EFS",
+		)
+	}
+
+	if _, ok := validTypes[str]; !ok { // invalid
+		return fmt.Errorf(
+			"Invalid volume type: %v. Valid types: %s",
+			v,
+			"EBS,EFS",
+		)
 	}
 	return nil
 }

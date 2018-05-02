@@ -135,6 +135,10 @@ func (w *KubeMapper) PersistentVolumeClaims() ([]v1.PersistentVolumeClaim, error
 					"name": vol.Name,
 				},
 			}
+		} else {
+			ret.ObjectMeta.Annotations = map[string]string{
+				"volume.beta.kubernetes.io/storage-class": "aws-" + strings.ToLower(vol.Type),
+			}
 		}
 
 		retval = append(retval, ret)
