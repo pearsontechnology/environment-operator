@@ -103,10 +103,10 @@ The environment section of the manifest may specify multiple environments to man
     - **application**: When an application is specified, this corresponds to the docker image name that will be pulled and added as a container within your kubernetes deployment.
     - **version**: This is the version of the docker file that will be pulled.  If a version is specified in your manifest file, the service will be deployed by environment operator immediately.  Services that do not specify a version must be deployed by using the /deploy endpoint of environment-operator.  This provides flexibility for users of environment-operator to decide how/when (automatically versus API request) their deployments are made.
     - **replicas**: This specifies the number of replica pods that will deploy in your kubernetes-deployment. If not specified, this will default to "1"
-    - **volumes**: Specifying a volume(s) will create PersistentVolumeClaims within kubernetes that will be mounted into your pod at the path specified. If you wish to manually provision volumes for the PersistentVolumeClaims to bind to, you must set provisioning to "manual" on the volume and create a  corresponding PersistentVolume withing kubernetes which has the same name. If you wish to provision volumes dynamically, you may set provisioning to "dynamic" or leave it out as this is the default behaviour. Within Pearson, we enabled [cloud provider](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#aws) support to dynamically provision EBS volumes.  In the example below, a 10G volume would be mounted to /data/mystorage within the "myservice" pod for each replica that is part of the kubernetes deployment.
+    - **volumes**: Specifying a volume(s) will create PersistentVolumeClaims within kubernetes that will be mounted into your pod at the path specified. If you wish to manually provision volumes for the PersistentVolumeClaims to bind to, you must set provisioning to "manual" on the volume and create a  corresponding PersistentVolume within kubernetes which has the same name. If you wish to provision volumes dynamically, you may set provisioning to "dynamic" or leave it out as this is the default behaviour. Within Pearson, we EBS volumes provisioned via the aws cloud provider and EFS volumes provisioned via the efs-provisioner. See examples below. Note that the volume would be mounted into each pod that is part of the deployment.
     ```
           services:
-          - name: myservice
+          - name: EBS-service
             application: mycontainer
             version: 1
             volumes:
@@ -114,6 +114,25 @@ The environment section of the manifest may specify multiple environments to man
                  path: /data/mystorage
                  modes: ReadWriteOnce
                  size: 10G
+                 type: EBS
+          - name: EFS-service
+            application: mycontainer
+            version: 1
+            volumes:
+               - name: my-persistent-storage
+                 path: /data/mystorage
+                 modes: ReadWriteOnce
+                 size: 10G
+                 type: EFS
+          - name: manual-service
+            application: mycontainer
+            version: 1
+            volumes:
+               - name: my-persistent-storage (a PV with the same name must exist)
+                 path: /data/mystorage
+                 modes: ReadWriteOnce
+                 size: 10G
+                 provisioning: manual
     ```
     - **database_type**: When a database_type is specified (only option supported currently is "mongo") environment-operator will deploy a statefulset into kubernetes for the database. More information on deploying a mongo cluster may be found [here](./Mongo.md)
 
