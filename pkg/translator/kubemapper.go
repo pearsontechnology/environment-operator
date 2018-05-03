@@ -117,6 +117,7 @@ func (w *KubeMapper) PersistentVolumeClaims() ([]v1.PersistentVolumeClaim, error
 					"deployment": w.BiteService.Name,
 					"mount_path": strings.Replace(vol.Path, "/", "2F", -1),
 					"size":       vol.Size,
+					"type":       strings.ToLower(vol.Type),
 				},
 			},
 			Spec: v1.PersistentVolumeClaimSpec{
@@ -134,6 +135,10 @@ func (w *KubeMapper) PersistentVolumeClaims() ([]v1.PersistentVolumeClaim, error
 				MatchLabels: map[string]string{
 					"name": vol.Name,
 				},
+			}
+		} else {
+			ret.ObjectMeta.Annotations = map[string]string{
+				"volume.beta.kubernetes.io/storage-class": "aws-" + strings.ToLower(vol.Type),
 			}
 		}
 
@@ -284,6 +289,7 @@ func (w *KubeMapper) MongoStatefulSet() (*v1beta1_apps.StatefulSet, error) {
 							"deployment": w.BiteService.Name,
 							"mount_path": w.BiteService.Volumes[0].Path,
 							"size":       w.BiteService.Volumes[0].Size,
+							"type":       w.BiteService.Volumes[0].Type,
 						},
 					},
 					Spec: v1.PersistentVolumeClaimSpec{

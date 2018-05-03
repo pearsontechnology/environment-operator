@@ -225,6 +225,7 @@ func (v *Volume) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	vv := &Volume{
 		Modes:        "ReadWriteOnce",
 		provisioning: "dynamic",
+		Type:         "ebs",
 	}
 
 	type plain Volume
