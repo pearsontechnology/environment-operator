@@ -180,7 +180,7 @@ func (w *KubeMapper) MongoInternalSecret() (*v1.Secret, error) {
 	return ret, nil
 }
 
-// Stateful set extracts Kubernetes object from Bitesize definition
+// MongoStatefulSet extracts Kubernetes object from Bitesize definition
 func (w *KubeMapper) MongoStatefulSet() (*v1beta1_apps.StatefulSet, error) {
 	replicas := int32(w.BiteService.Replicas)
 	imagePullSecrets, err := w.imagePullSecrets()
@@ -300,6 +300,51 @@ func (w *KubeMapper) MongoStatefulSet() (*v1beta1_apps.StatefulSet, error) {
 							},
 						},
 					},
+				},
+			},
+		},
+	}
+	return retval, nil
+}
+
+// StatefulSet creates a Kubernetes object from the Bitesize service definition and inputs
+func (w *KubeMapper) StatefulSet(
+	containers []v1.Container,
+	volumeClaimTemplates []v1.PersistentVolumeClaim,
+	annotations map[string]string) (*v1beta1_apps.StatefulSet, error) {
+
+	replicas := int32(w.BiteService.Replicas)
+	retval := &v1beta1_apps.StatefulSet{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      w.BiteService.Name,
+			Namespace: w.Namespace,
+			Labels: map[string]string{
+				"creator":     "pipeline",
+				"name":        w.BiteService.Name,
+				"application": w.BiteService.Application,
+				"version":     w.BiteService.Version,
+			},
+		},
+		Spec: v1beta1_apps.StatefulSetSpec{
+			ServiceName:          w.BiteService.Name,
+			Replicas:             &replicas,
+			VolumeClaimTemplates: volumeClaimTemplates,
+			Template: v1.PodTemplateSpec{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      w.BiteService.Name,
+					Namespace: w.Namespace,
+					Labels: map[string]string{
+						"creator":     "pipeline",
+						"application": w.BiteService.Application,
+						"name":        w.BiteService.Name,
+						"version":     w.BiteService.Version,
+						"role":        w.BiteService.DatabaseType,
+					},
+					Annotations: annotations,
+				},
+				Spec: v1.PodSpec{
+					NodeSelector: map[string]string{"role": "minion"},
+					Containers:   containers,
 				},
 			},
 		},

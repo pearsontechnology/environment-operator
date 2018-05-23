@@ -246,3 +246,56 @@ func (s ServiceMap) AddMongoStatefulSet(statefulset v1beta1_apps.StatefulSet) {
 		DeployedAt:      statefulset.CreationTimestamp.String(),
 	}
 }
+
+func (s ServiceMap) AddStatefulSet(statefulset v1beta1_apps.StatefulSet) {
+
+	biteservice := s.CreateOrGet(statefulset.Spec.Template.ObjectMeta.Labels["name"])
+	biteservice.Application = statefulset.Spec.Template.ObjectMeta.Labels["application"]
+	biteservice.Version = statefulset.Spec.Template.ObjectMeta.Labels["version"]
+	biteservice.DatabaseType = statefulset.Spec.Template.ObjectMeta.Labels["role"]
+	if statefulset.Spec.Replicas != nil {
+		biteservice.Replicas = int(*statefulset.Spec.Replicas)
+	}
+
+	if len(statefulset.Spec.Template.Spec.Containers[0].Resources.Requests) != 0 {
+		cpuQuantity := new(resource.Quantity)
+		*cpuQuantity = statefulset.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]
+		memoryQuantity := new(resource.Quantity)
+		*memoryQuantity = statefulset.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]
+		biteservice.Requests.CPU = cpuQuantity.String()
+		biteservice.Requests.Memory = memoryQuantity.String()
+	}
+
+	if len(statefulset.Spec.Template.Spec.Containers[0].Resources.Limits) != 0 {
+		cpuQuantity := new(resource.Quantity)
+		*cpuQuantity = statefulset.Spec.Template.Spec.Containers[0].Resources.Limits["cpu"]
+		memoryQuantity := new(resource.Quantity)
+		*memoryQuantity = statefulset.Spec.Template.Spec.Containers[0].Resources.Limits["memory"]
+		biteservice.Limits.CPU = cpuQuantity.String()
+		biteservice.Limits.Memory = memoryQuantity.String()
+
+	}
+
+	if statefulset.Spec.Template.ObjectMeta.Annotations != nil {
+		biteservice.Annotations = statefulset.Spec.Template.ObjectMeta.Annotations
+	} else {
+		biteservice.Annotations = map[string]string{}
+	}
+
+	for _, claim := range statefulset.Spec.VolumeClaimTemplates {
+		vol := bitesize.Volume{
+			Path:  strings.Replace(claim.ObjectMeta.Labels["mount_path"], "2F", "/", -1),
+			Modes: getAccessModesAsString(claim.Spec.AccessModes),
+			Name:  claim.ObjectMeta.Name,
+			Size:  claim.ObjectMeta.Labels["size"],
+		}
+		biteservice.Volumes = append(biteservice.Volumes, vol)
+	}
+
+	biteservice.Status = bitesize.ServiceStatus{
+
+		CurrentReplicas: int(statefulset.Status.Replicas),
+		DeployedAt:      statefulset.CreationTimestamp.String(),
+	}
+
+}

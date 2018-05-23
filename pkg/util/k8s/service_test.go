@@ -124,6 +124,13 @@ func TestServiceListWrongNs(t *testing.T) {
 	}
 }
 
+func TestCheckServiceDeleteProtected(t *testing.T) {
+	client := createProtectedService()
+	if !client.deleteProtected("protected") {
+		t.Errorf("Expecting the service to be delete protected")
+	}
+}
+
 func createService() Service {
 	f := fake.NewSimpleClientset(
 		&v1.Service{
@@ -132,6 +139,25 @@ func createService() Service {
 				Namespace: "sample",
 				Labels: map[string]string{
 					"creator": "pipeline",
+				},
+			},
+		},
+	)
+	return Service{
+		Interface: f,
+		Namespace: "sample",
+	}
+}
+
+func createProtectedService() Service {
+	f := fake.NewSimpleClientset(
+		&v1.Service{
+			ObjectMeta: v1.ObjectMeta{
+				Name:      "protected",
+				Namespace: "sample",
+				Labels: map[string]string{
+					"creator":          "pipeline",
+					"delete-protected": "yes",
 				},
 			},
 		},

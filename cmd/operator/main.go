@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand"
 	"net/http"
 	"os"
 	"time"
@@ -23,6 +24,8 @@ var reap reaper.Reaper
 
 func init() {
 	var err error
+
+	rand.Seed(time.Now().UnixNano())
 
 	gitClient = git.Client()
 
