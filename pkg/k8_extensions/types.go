@@ -3,10 +3,8 @@ package k8_extensions
 import (
 	"encoding/json"
 
-	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/api/meta"
-	"k8s.io/client-go/pkg/api/unversioned"
-	"k8s.io/client-go/pkg/api/v1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // SupportedThirdPartyResources contains all supported TPRs on bitesize
@@ -18,9 +16,9 @@ var SupportedThirdPartyResources = []string{
 // PrsnExternalResource represents ThirdpartyResources mapped from
 // kubernetes to externally running services (e.g. RDS, cassandra, mongo etc.)
 type PrsnExternalResource struct {
-	unversioned.TypeMeta `json:", inline"`
+	meta.TypeMeta `json:", inline"`
 
-	ObjectMeta v1.ObjectMeta `json:"metadata"`
+	ObjectMeta meta.ObjectMeta `json:"metadata"`
 
 	Spec PrsnExternalResourceSpec `json:"spec"`
 }
@@ -35,14 +33,14 @@ type PrsnExternalResourceSpec struct {
 
 // PrsnExternalResourceList is a list of PrsnExternalResource
 type PrsnExternalResourceList struct {
-	unversioned.TypeMeta `json:",inline"`
-	ObjectMeta           unversioned.ListMeta `json:"metadata"`
+	meta.TypeMeta `json:",inline"`
+	ObjectMeta    meta.ListMeta `json:"metadata"`
 
 	Items []PrsnExternalResource `json:"items"`
 }
 
 // GetObjectKind required to satisfy Object interface
-func (tpr PrsnExternalResource) GetObjectKind() unversioned.ObjectKind {
+func (tpr PrsnExternalResource) GetObjectKind() schema.ObjectKind {
 	return &tpr.TypeMeta
 }
 

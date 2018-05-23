@@ -3,9 +3,9 @@ package k8s
 import (
 	"fmt"
 
+	"k8s.io/api/apps/v1beta1"
+	"k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 
 // Deployment type actions on ingresses in k8s cluster

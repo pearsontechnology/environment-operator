@@ -3,7 +3,7 @@ package k8s
 import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/pkg/apis/apps/v1beta1"
+	appsv1 "k8s.io/api/apps/v1"
 )
 
 // StatefulSet type actions on statefulset in k8s cluster
@@ -13,7 +13,7 @@ type StatefulSet struct {
 }
 
 // Get returns statefulset object from the k8s by name
-func (client *StatefulSet) Get(name string) (*v1beta1.StatefulSet, error) {
+func (client *StatefulSet) Get(name string) (*appsv1.StatefulSet, error) {
 	return client.Apps().
 		StatefulSets(client.Namespace).
 		Get(name)

@@ -50,3 +50,6 @@ import:
   version: v0.9.0-pre1
   subpackages:
   - prometheus
+- package: k8s.io/api
+  subpackages:
+  - core/v1

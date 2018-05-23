@@ -1,9 +1,9 @@
 package k8s
 
 import (
+	autoscale_v1 "k8s.io/api/autoscaling/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
-	autoscale_v1 "k8s.io/client-go/pkg/apis/autoscaling/v1"
 )
 
 // HorizontalPodAutoscaler type actions in k8s cluster
