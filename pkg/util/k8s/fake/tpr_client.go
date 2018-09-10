@@ -143,6 +143,10 @@ func kindFromElem(e string) string {
 		return "Redis"
 	case "cassandras":
 		return "Cassandra"
+	case "zookeepers":
+		return "Zookeeper"
+	case "kafkas":
+		return "Kafka"
 	default:
 		return "None"
 	}
