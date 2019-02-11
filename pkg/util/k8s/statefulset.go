@@ -14,7 +14,7 @@ type StatefulSet struct {
 
 // Get returns statefulset object from the k8s by name
 func (client *StatefulSet) Get(name string) (*v1beta2.StatefulSet, error) {
-	return client.Apps().
+	return client.AppsV1beta2().
 		StatefulSets(client.Namespace).
 		Get(name, getOptions())
 }
@@ -42,9 +42,8 @@ func (client *StatefulSet) Update(resource *v1beta2.StatefulSet) error {
 	}
 
 	current.Spec.Replicas = resource.Spec.Replicas
-
 	_, err = client.
-		Apps().
+		AppsV1beta2().
 		StatefulSets(client.Namespace).
 		Update(current)
 
@@ -61,7 +60,7 @@ func (client *StatefulSet) Update(resource *v1beta2.StatefulSet) error {
 // Create creates new statefulset in k8s
 func (client *StatefulSet) Create(resource *v1beta2.StatefulSet) error {
 	_, err := client.
-		Apps().
+		AppsV1beta2().
 		StatefulSets(client.Namespace).
 		Create(resource)
 	return err
@@ -74,7 +73,7 @@ func (client *StatefulSet) Destroy(name string) error {
 
 // List returns the list of k8s services maintained by pipeline
 func (client *StatefulSet) List() ([]v1beta2.StatefulSet, error) {
-	list, err := client.Apps().StatefulSets(client.Namespace).List(listOptions())
+	list, err := client.AppsV1beta2().StatefulSets(client.Namespace).List(listOptions())
 	if err != nil {
 		return nil, err
 	}
