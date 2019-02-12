@@ -202,6 +202,6 @@ func TestServiceSortInterface(t *testing.T) {
 
 	sort.Sort(s)
 	if !reflect.DeepEqual(s, expected) {
-		t.Errorf("Service sort invalid, got %q", s)
+		t.Errorf("Service sort invalid, got %v", s)
 	}
 }
