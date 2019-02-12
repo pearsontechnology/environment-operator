@@ -1,6 +1,9 @@
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+const apiMetrics = require('prometheus-api-metrics');
+
+app.use(apiMetrics())
 
 app.use(bodyParser.json()); // for parsing application/json
 

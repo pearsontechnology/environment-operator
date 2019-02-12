@@ -7,7 +7,7 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	v1beta2_apps "k8s.io/api/apps/v1beta2"
-	autoscale_v1 "k8s.io/api/autoscaling/v1"
+	autoscale_v2beta1 "k8s.io/api/autoscaling/v2beta1"
 	"k8s.io/api/core/v1"
 	v1beta1_ext "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -111,14 +111,33 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 }
 
 // AddHPA adds Kubernetes HPA to biteservice
-func (s ServiceMap) AddHPA(hpa autoscale_v1.HorizontalPodAutoscaler) {
+func (s ServiceMap) AddHPA(hpa autoscale_v2beta1.HorizontalPodAutoscaler) {
 	name := hpa.Name
 
 	biteservice := s.CreateOrGet(name)
 
 	biteservice.HPA.MinReplicas = *hpa.Spec.MinReplicas
 	biteservice.HPA.MaxReplicas = hpa.Spec.MaxReplicas
-	biteservice.HPA.TargetCPUUtilizationPercentage = *hpa.Spec.TargetCPUUtilizationPercentage
+
+	if hpa.Spec.Metrics[0].Type == "Resource" {
+		if hpa.Spec.Metrics[0].Resource.Name == "cpu" {
+			biteservice.HPA.Metric.Name = "cpu"
+		}
+
+		if hpa.Spec.Metrics[0].Resource.Name == "memory" {
+			biteservice.HPA.Metric.Name = "memory"
+		}
+
+		biteservice.HPA.Metric.TargetAverageUtilization = *hpa.Spec.Metrics[0].Resource.TargetAverageUtilization
+	}
+
+	if hpa.Spec.Metrics[0].Type == "Pods" {
+		targetAverageValueQuantity := new(resource.Quantity)
+		*targetAverageValueQuantity = hpa.Spec.Metrics[0].Pods.TargetAverageValue
+		biteservice.HPA.Metric.Name = hpa.Spec.Metrics[0].Pods.MetricName
+		biteservice.HPA.Metric.TargetAverageValue = targetAverageValueQuantity.String()
+	}
+
 }
 
 // AddVolumeClaim adds Kubernetes PVC to biteservice

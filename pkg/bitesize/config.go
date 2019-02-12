@@ -26,9 +26,9 @@ type DeploymentSettings struct {
 
 // HorizontalPodAutoscaler maps to HPA in kubernetes
 type HorizontalPodAutoscaler struct {
-	MinReplicas                    int32 `yaml:"min_replicas"`
-	MaxReplicas                    int32 `yaml:"max_replicas"`
-	TargetCPUUtilizationPercentage int32 `yaml:"target_cpu_utilization_percentage"`
+	MinReplicas int32  `yaml:"min_replicas"`
+	MaxReplicas int32  `yaml:"max_replicas"`
+	Metric      Metric `yaml:"metric"`
 }
 
 // ContainerRequests maps to requests in kubernetes
@@ -41,6 +41,13 @@ type ContainerRequests struct {
 type ContainerLimits struct {
 	CPU    string `yaml:"cpu"`
 	Memory string `yaml:"memory"`
+}
+
+// Metrics maps to HPA targets in kubernetes
+type Metric struct {
+	Name                     string `yaml:"name"`
+	TargetAverageValue       string `yaml:"target_average_value,omitempty"`
+	TargetAverageUtilization int32  `yaml:"target_average_utilization,omitempty"`
 }
 
 // Test is obsolete and not used by environment-operator,

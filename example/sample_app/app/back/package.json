@@ -6,7 +6,9 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "body-parser": "latest",
     "express": "latest",
-    "body-parser": "latest"
+    "prom-client": "latest",
+    "prometheus-api-metrics": "latest"
   }
 }

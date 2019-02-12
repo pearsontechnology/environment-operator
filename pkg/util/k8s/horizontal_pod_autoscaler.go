@@ -1,7 +1,7 @@
 package k8s
 
 import (
-	autoscale_v1 "k8s.io/api/autoscaling/v1"
+	autoscale_v2beta1 "k8s.io/api/autoscaling/v2beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -13,18 +13,18 @@ type HorizontalPodAutoscaler struct {
 }
 
 // Get returns hpa object from k8s by name
-func (client *HorizontalPodAutoscaler) Get(name string) (*autoscale_v1.HorizontalPodAutoscaler, error) {
-	return client.AutoscalingV1().HorizontalPodAutoscalers(client.Namespace).Get(name, metav1.GetOptions{})
+func (client *HorizontalPodAutoscaler) Get(name string) (*autoscale_v2beta1.HorizontalPodAutoscaler, error) {
+	return client.AutoscalingV2beta1().HorizontalPodAutoscalers(client.Namespace).Get(name, metav1.GetOptions{})
 }
 
 // Exist returns boolean value if hpa exists in k8s
 func (client *HorizontalPodAutoscaler) Exist(name string) bool {
-	_, err := client.AutoscalingV1().HorizontalPodAutoscalers(client.Namespace).Get(name, metav1.GetOptions{})
+	_, err := client.AutoscalingV2beta1().HorizontalPodAutoscalers(client.Namespace).Get(name, metav1.GetOptions{})
 	return err == nil
 }
 
 // Apply updates or creates hpa in k8s
-func (client *HorizontalPodAutoscaler) Apply(resource *autoscale_v1.HorizontalPodAutoscaler) error {
+func (client *HorizontalPodAutoscaler) Apply(resource *autoscale_v2beta1.HorizontalPodAutoscaler) error {
 	if client.Exist(resource.Name) {
 		return client.Update(resource)
 	}
@@ -32,29 +32,29 @@ func (client *HorizontalPodAutoscaler) Apply(resource *autoscale_v1.HorizontalPo
 }
 
 // Create creates new hpa in k8s
-func (client *HorizontalPodAutoscaler) Create(resource *autoscale_v1.HorizontalPodAutoscaler) error {
+func (client *HorizontalPodAutoscaler) Create(resource *autoscale_v2beta1.HorizontalPodAutoscaler) error {
 	var err error
 	if *resource.Spec.MinReplicas != 0 {
-		_, err = client.AutoscalingV1().HorizontalPodAutoscalers(client.Namespace).Create(resource)
+		_, err = client.AutoscalingV2beta1().HorizontalPodAutoscalers(client.Namespace).Create(resource)
 		return err
 	}
 	return err
 }
 
 // Update updates existing hpa in k8s
-func (client *HorizontalPodAutoscaler) Update(resource *autoscale_v1.HorizontalPodAutoscaler) error {
-	_, err := client.AutoscalingV1().HorizontalPodAutoscalers(client.Namespace).Update(resource)
+func (client *HorizontalPodAutoscaler) Update(resource *autoscale_v2beta1.HorizontalPodAutoscaler) error {
+	_, err := client.AutoscalingV2beta1().HorizontalPodAutoscalers(client.Namespace).Update(resource)
 	return err
 }
 
 // Destroy deletes service from the k8 cluster
 func (client *HorizontalPodAutoscaler) Destroy(name string) error {
-	return client.AutoscalingV1().HorizontalPodAutoscalers(client.Namespace).Delete(name, &metav1.DeleteOptions{})
+	return client.AutoscalingV2beta1().HorizontalPodAutoscalers(client.Namespace).Delete(name, &metav1.DeleteOptions{})
 }
 
 // List returns the list of k8s hpa
-func (client *HorizontalPodAutoscaler) List() ([]autoscale_v1.HorizontalPodAutoscaler, error) {
-	list, err := client.AutoscalingV1().HorizontalPodAutoscalers(client.Namespace).List(listOptions())
+func (client *HorizontalPodAutoscaler) List() ([]autoscale_v2beta1.HorizontalPodAutoscaler, error) {
+	list, err := client.AutoscalingV2beta1().HorizontalPodAutoscalers(client.Namespace).List(listOptions())
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,6 @@ import (
 )
 
 // Tests to see that YAML documents unmarshal correctly
-
 func TestUnmarshalPorts(t *testing.T) {
 	t.Run("ports string parsed correctly", testPortsString)
 	t.Run("ports preferred over port", testPortsOverPort)
