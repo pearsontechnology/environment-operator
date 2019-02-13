@@ -27,8 +27,8 @@ environments:
           min_replicas: 1
           max_replicas: 5
 	  target_average_utilization:
-	  - cpu: 80
-	  - memory: 80
+          - cpu: 80
+          - memory: 80
         env:
           - name: APP_PORT
             value: 80
