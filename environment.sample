@@ -26,7 +26,7 @@ environments:
         hpa:
           min_replicas: 1
           max_replicas: 5
-          target_cpu_utilization_percentage:
+	  target_average_utilization:
 	  - cpu: 80
 	  - memory: 80
         env:
