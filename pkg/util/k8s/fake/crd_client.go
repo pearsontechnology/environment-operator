@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
-	"k8s.io/apimachinery/pkg/apimachinery"
 	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -93,32 +92,15 @@ var manager *registered.APIRegistrationManager
 // CRDClient returns fake REST client to be used in TPR unit tests.
 func CRDClient(objects ...runtime.Object) *fake.RESTClient {
 	var schemeGroupVersion = schema.GroupVersion{Group: "prsn.io", Version: "v1"}
-	var groupmeta = apimachinery.GroupMeta{
-		GroupVersion: schemeGroupVersion,
-	}
-
-	var legacyGroupVersion = schema.GroupVersion{Group: "", Version: "v1"}
-	var legacyGroupMeta = apimachinery.GroupMeta{
-		GroupVersion: legacyGroupVersion,
-	}
-
-	m, _ := registered.NewAPIRegistrationManager("")
-
-	m.RegisterGroup(groupmeta)
-
-	// very ugly but works
-	m.RegisterGroup(legacyGroupMeta)
-	m.RegisterVersions([]schema.GroupVersion{legacyGroupVersion})
 
 	f := &fakeCRD{
 		Store: objectStore(objects),
 	}
 
 	return &fake.RESTClient{
-		GroupName:            "prsn.io",
+		GroupVersion:         schemeGroupVersion,
 		NegotiatedSerializer: serializer.DirectCodecFactory{CodecFactory: scheme.Codecs},
 		Client:               fake.CreateHTTPClient(f.HandleRequest),
-		APIRegistry:          m,
 	}
 }
 

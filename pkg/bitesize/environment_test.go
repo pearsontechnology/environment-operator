@@ -55,6 +55,6 @@ func TestEnvironmentSortInterface(t *testing.T) {
 
 	sort.Sort(e)
 	if !reflect.DeepEqual(e, expected) {
-		t.Errorf("Environment sort invalid, got %q", e)
+		t.Errorf("Environment sort invalid, got %v", e)
 	}
 }

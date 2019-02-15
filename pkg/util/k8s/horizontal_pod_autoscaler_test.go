@@ -29,7 +29,7 @@ func TestHPACreate(t *testing.T) {
 			ScaleTargetRef: autoscale_v1.CrossVersionObjectReference{
 				Kind:       "Deployment",
 				Name:       "newdeployment",
-				APIVersion: "v1beta1",
+				APIVersion: "extensions/v1beta1",
 			},
 			MinReplicas:                    min,
 			MaxReplicas:                    int32(3),
@@ -65,7 +65,7 @@ func TestHPAUpdate(t *testing.T) {
 			ScaleTargetRef: autoscale_v1.CrossVersionObjectReference{
 				Kind:       "Deployment",
 				Name:       "newdeployment",
-				APIVersion: "v1beta1",
+				APIVersion: "extensions/v1beta1",
 			},
 			MinReplicas:                    &min,
 			MaxReplicas:                    int32(3),
@@ -104,7 +104,7 @@ func TestHPAApplyNew(t *testing.T) {
 			ScaleTargetRef: autoscale_v1.CrossVersionObjectReference{
 				Kind:       "Deployment",
 				Name:       "newdeployment",
-				APIVersion: "v1beta1",
+				APIVersion: "extensions/v1beta1",
 			},
 			MinReplicas:                    &min,
 			MaxReplicas:                    int32(3),
@@ -139,7 +139,7 @@ func TestHPAApplyExisting(t *testing.T) {
 			ScaleTargetRef: autoscale_v1.CrossVersionObjectReference{
 				Kind:       "Deployment",
 				Name:       "newdeployment",
-				APIVersion: "v1beta1",
+				APIVersion: "extensions/v1beta1",
 			},
 			MinReplicas:                    &min,
 			MaxReplicas:                    int32(3),
@@ -226,7 +226,7 @@ func createFakeHPAClientset() *fake.Clientset {
 				ScaleTargetRef: autoscale_v1.CrossVersionObjectReference{
 					Kind:       "Deployment",
 					Name:       "fakedeployment",
-					APIVersion: "v1beta1",
+					APIVersion: "extensions/v1beta1",
 				},
 				MinReplicas:                    &min,
 				MaxReplicas:                    int32(3),
