@@ -9,9 +9,19 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
-### **[0.0.22] 2019-02-07 [RELEASED]**
+### **[0.0.24] 2019-02-22 [RELEASED]**
  #### Added
   * Added Sns Support [ODY-140](https://agile-jira.pearson.com/browse/ODY-140)
+
+### **[0.0.23] 2019-02-12 [RELEASED]**
+ #### Changed
+  * bumped k8s.io/client-go to release-8.0 and k8s.io/api to release-1.11 [BITE-4702](https://agile-jira.pearson.com/browse/BITE-4702)
+  * bumped k8s.io/apimanchinery to release-1.10
+
+### **[0.0.22] 2019-02-08 [RELEASED]**
+ #### Fixed
+  * Fix HPA scaleTargetRef API version  [BITE-4676](https://agile-jira.pearson.com/browse/BITE-4676)
+
 
 ### **[0.0.21] 2019-02-06 [RELEASED]**
  #### Added

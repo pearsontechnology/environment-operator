@@ -183,4 +183,4 @@ environments:
     name: sns
     options:
       protocol: email
-      endpoint: hasindu.malalaachichige@pearson.com   
+      endpoint: email@example.com   
