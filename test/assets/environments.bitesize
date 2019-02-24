@@ -176,3 +176,11 @@ environments:
       index_instance_type: "r4.xlarge"
       index_node_count: "1"
       index_data_size: 512
+- name: environment11
+  namespace: environment-sns
+  services:
+  - type: sns
+    name: sns
+    options:
+      protocol: email
+      endpoint: email@example.com   
