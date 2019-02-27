@@ -74,9 +74,11 @@ The environment section of the manifest may specify multiple environments to man
 
 <a id="environmentname"></a>
 
- - **name** <br> Every environment starts with a `name`.<br> Along with the name of each environment, we must specify the namespace in which the
-   environment deploys to. <br> ```
-   - name: production   namespace: docs-dev ```
+ - **name** <br> Every environment starts with a `name`.<br> Along with the name of each environment, we must specify the namespace in which the environment deploys to<br>
+```
+   - name: production
+     namespace: docs-dev
+```
 
 <a id="deploymentmethod"></a>
 
