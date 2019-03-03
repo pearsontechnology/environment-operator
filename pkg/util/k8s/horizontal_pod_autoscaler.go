@@ -25,6 +25,9 @@ func (client *HorizontalPodAutoscaler) Exist(name string) bool {
 
 // Apply updates or creates hpa in k8s
 func (client *HorizontalPodAutoscaler) Apply(resource *autoscale_v2beta1.HorizontalPodAutoscaler) error {
+	if resource == nil {
+		return nil
+	}
 	if client.Exist(resource.Name) {
 		return client.Update(resource)
 	}
@@ -34,6 +37,10 @@ func (client *HorizontalPodAutoscaler) Apply(resource *autoscale_v2beta1.Horizon
 // Create creates new hpa in k8s
 func (client *HorizontalPodAutoscaler) Create(resource *autoscale_v2beta1.HorizontalPodAutoscaler) error {
 	var err error
+	if resource == nil {
+		return nil
+	}
+
 	if *resource.Spec.MinReplicas != 0 {
 		_, err = client.AutoscalingV2beta1().HorizontalPodAutoscalers(client.Namespace).Create(resource)
 		return err
@@ -43,7 +50,10 @@ func (client *HorizontalPodAutoscaler) Create(resource *autoscale_v2beta1.Horizo
 
 // Update updates existing hpa in k8s
 func (client *HorizontalPodAutoscaler) Update(resource *autoscale_v2beta1.HorizontalPodAutoscaler) error {
-	_, err := client.AutoscalingV2beta1().HorizontalPodAutoscalers(client.Namespace).Update(resource)
+	if resource == nil {
+		return nil
+	}
+	_, err := client.AutoscalingV1().HorizontalPodAutoscalers(client.Namespace).Update(resource)
 	return err
 }
 

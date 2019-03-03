@@ -30,6 +30,9 @@ func (client *Deployment) Exist(name string) bool {
 
 // Apply updates or creates deployment in k8s
 func (client *Deployment) Apply(deployment *v1beta1.Deployment) error {
+	if deployment == nil {
+		return nil
+	}
 	if client.Exist(deployment.Name) {
 		return client.Update(deployment)
 	}
@@ -38,6 +41,9 @@ func (client *Deployment) Apply(deployment *v1beta1.Deployment) error {
 
 // Update updates existing deployment in k8s
 func (client *Deployment) Update(deployment *v1beta1.Deployment) error {
+	if deployment == nil {
+		return nil
+	}
 	current, err := client.Get(deployment.Name)
 	if err != nil {
 		return err
@@ -62,6 +68,9 @@ func (client *Deployment) Update(deployment *v1beta1.Deployment) error {
 // Create creates new deployment in k8s
 func (client *Deployment) Create(deployment *v1beta1.Deployment) error {
 	var err error
+	if deployment == nil {
+		return nil
+	}
 	if len(deployment.Spec.Template.Spec.Containers) > 0 &&
 		deployment.Spec.Template.Spec.Containers[0].Image != "" {
 		_, err = client.
