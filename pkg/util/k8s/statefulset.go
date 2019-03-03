@@ -27,6 +27,9 @@ func (client *StatefulSet) Exist(name string) bool {
 
 // Apply updates or creates statefulset in k8s
 func (client *StatefulSet) Apply(resource *v1beta2.StatefulSet) error {
+	if resource == nil {
+		return nil
+	}
 	if client.Exist(resource.Name) {
 		return client.Update(resource)
 	}
@@ -36,6 +39,9 @@ func (client *StatefulSet) Apply(resource *v1beta2.StatefulSet) error {
 
 // Update stateful set
 func (client *StatefulSet) Update(resource *v1beta2.StatefulSet) error {
+	if resource == nil {
+		return nil
+	}
 	current, err := client.Get(resource.Name)
 	if err != nil {
 		return err
@@ -59,6 +65,9 @@ func (client *StatefulSet) Update(resource *v1beta2.StatefulSet) error {
 
 // Create creates new statefulset in k8s
 func (client *StatefulSet) Create(resource *v1beta2.StatefulSet) error {
+	if resource == nil {
+		return nil
+	}
 	_, err := client.
 		AppsV1beta2().
 		StatefulSets(client.Namespace).

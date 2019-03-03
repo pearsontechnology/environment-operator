@@ -39,6 +39,9 @@ func (client *CustomResourceDefinition) Exist(name string) bool {
 
 // Apply creates or updates PrsnExternalResource in k8s
 func (client *CustomResourceDefinition) Apply(resource *extensions.PrsnExternalResource) error {
+	if resource == nil {
+		return nil
+	}
 	if client.Exist(resource.ObjectMeta.Name) {
 		rsc, _ := client.Get(resource.ObjectMeta.Name)
 		resource.ResourceVersion = rsc.GetResourceVersion()
@@ -59,6 +62,9 @@ func (client *CustomResourceDefinition) Apply(resource *extensions.PrsnExternalR
 
 // Create creates given tpr in
 func (client *CustomResourceDefinition) Create(resource *extensions.PrsnExternalResource) error {
+	if resource == nil {
+		return nil
+	}
 	var result extensions.PrsnExternalResource
 	return client.Interface.Post().
 		Resource(plural(client.Type)).
@@ -69,6 +75,9 @@ func (client *CustomResourceDefinition) Create(resource *extensions.PrsnExternal
 
 // Update updates existing resource in k8s
 func (client *CustomResourceDefinition) Update(resource *extensions.PrsnExternalResource) error {
+	if resource == nil {
+		return nil
+	}
 	var result extensions.PrsnExternalResource
 	return client.Interface.Put().
 		Resource(plural(client.Type)).

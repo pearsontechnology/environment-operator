@@ -72,7 +72,7 @@ func main() {
 			log.Errorf("Error while loading environment config: %s", err.Error())
 		} else {
 			client.ApplyIfChanged(gitConfiguration)
-			go reap.Cleanup(gitConfiguration)
+			reap.Cleanup(gitConfiguration)
 		}
 
 		time.Sleep(30000 * time.Millisecond)

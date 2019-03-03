@@ -6,7 +6,7 @@ import (
 
 	validator "gopkg.in/validator.v2"
 	yaml "gopkg.in/yaml.v2"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 // EnvironmentsBitesize is a 1:1 mapping to environments.bitesize file
@@ -18,10 +18,19 @@ type EnvironmentsBitesize struct {
 
 // DeploymentSettings represent "deployment" block in environments.bitesize
 type DeploymentSettings struct {
-	Method string `yaml:"method,omitempty" validate:"regexp=^(bluegreen|rolling-upgrade)*$"`
-	Mode   string `yaml:"mode,omitempty" validate:"regexp=^(manual|auto)*$"`
-	Active string `yaml:"active,omitempty" validate:"regexp=^(blue|green)*$"`
+	Method     string              `yaml:"method,omitempty" validate:"regexp=^(bluegreen|rolling-upgrade)*$"`
+	Mode       string              `yaml:"mode,omitempty" validate:"regexp=^(manual|auto)*$"`
+	BlueGreen  *BlueGreenSettings  `yaml:"-"`
+	CustomURLs map[string][]string `yaml:"custom_urls,omitempty"`
 	// XXX    map[string]interface{} `yaml:",inline"`
+}
+
+// BlueGreenSettings is a collection of internal bluegreen settings
+// used as a various helpers in deployment
+type BlueGreenSettings struct {
+	Active           *BlueGreenServiceSet // used in "parent" service to determine which environment is active
+	DeploymentColour *BlueGreenServiceSet // used in "child" blue/green service to indicate it's colour
+	ActiveFlag       bool                 // used in "child" blue/green service to indicate whethen this environment is currently active
 }
 
 // HorizontalPodAutoscaler maps to HPA in kubernetes
@@ -43,7 +52,7 @@ type ContainerLimits struct {
 	Memory string `yaml:"memory"`
 }
 
-// Metrics maps to HPA targets in kubernetes
+// Metric maps to HPA targets in kubernetes
 type Metric struct {
 	Name                     string `yaml:"name"`
 	TargetAverageValue       string `yaml:"target_average_value,omitempty"`
@@ -125,13 +134,26 @@ func (e *HealthCheck) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // UnmarshalYAML implements the yaml.Unmarshaler interface for DeploymentSettings.
 func (e *DeploymentSettings) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var err error
-	ee := &DeploymentSettings{}
+	var a struct {
+		Active *BlueGreenServiceSet `yaml:"active,omitempty"`
+	}
+
+	ee := &DeploymentSettings{Method: "rolling-upgrade"}
 	type plain DeploymentSettings
 	if err = unmarshal((*plain)(ee)); err != nil {
 		return fmt.Errorf("deployment.%s", err.Error())
 	}
 
+	if err := unmarshal(&a); err != nil {
+		return fmt.Errorf("deployment.%s", err.Error())
+	}
+
 	*e = *ee
+
+	if a.Active != nil {
+		e.BlueGreen = &BlueGreenSettings{Active: a.Active}
+	}
+
 	if err = validator.Validate(e); err != nil {
 		return fmt.Errorf("deployment.%s", err.Error())
 	}

@@ -2,7 +2,7 @@ package k8s
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -26,6 +26,9 @@ func (client *PersistentVolumeClaim) Exist(name string) bool {
 
 // Apply updates or creates pvc in k8s
 func (client *PersistentVolumeClaim) Apply(resource *v1.PersistentVolumeClaim) error {
+	if resource == nil {
+		return nil
+	}
 	if client.Exist(resource.Name) {
 		return client.Update(resource)
 	}
@@ -34,6 +37,9 @@ func (client *PersistentVolumeClaim) Apply(resource *v1.PersistentVolumeClaim) e
 
 // Create creates new ingress in k8s
 func (client *PersistentVolumeClaim) Create(resource *v1.PersistentVolumeClaim) error {
+	if resource == nil {
+		return nil
+	}
 	_, err := client.
 		Core().
 		PersistentVolumeClaims(client.Namespace).
@@ -43,6 +49,9 @@ func (client *PersistentVolumeClaim) Create(resource *v1.PersistentVolumeClaim) 
 
 // Update updates existing ingress in k8s
 func (client *PersistentVolumeClaim) Update(resource *v1.PersistentVolumeClaim) error {
+	if resource == nil {
+		return nil
+	}
 	current, err := client.Get(resource.Name)
 	if err != nil {
 		return err

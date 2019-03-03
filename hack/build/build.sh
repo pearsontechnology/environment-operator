@@ -33,7 +33,7 @@ echo "**************************************************************"
     -w /go/src/github.com/pearsontechnology/environment-operator \
     -e CGO_ENABLED=1 \
     ${BUILD_IMAGE} \
-    /bin/sh -c "apk update && apk add git && go test -v ./pkg/bitesize ./pkg/cluster ./pkg/diff ./pkg/git ./pkg/reaper ./pkg/translator ./pkg/web ./pkg/util ./pkg/util/k8s"
+    /bin/sh -c "apk update && apk add git && go test -v ./..."
 
 echo "**************************************************************"
 echo "***************** Building Source ****************************"

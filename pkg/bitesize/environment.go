@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/pearsontechnology/environment-operator/pkg/config"
-
 	validator "gopkg.in/validator.v2"
+
+	"github.com/pearsontechnology/environment-operator/pkg/config"
 )
 
 // Environment represents full managed environment,
@@ -38,7 +38,7 @@ func (slice Environments) Swap(i, j int) {
 	slice[i], slice[j] = slice[j], slice[i]
 }
 
-// LoadEnvironment returns bitesize.Environment object
+// LoadEnvironmentFromConfig returns bitesize.Environment object
 // constructed from environment variables
 func LoadEnvironmentFromConfig(c config.Config) (*Environment, error) {
 	fp := filepath.Join(c.GitLocalPath, c.EnvFile)
@@ -71,8 +71,21 @@ func LoadEnvironment(path, envName string) (*Environment, error) {
 	}
 	for _, env := range e.Environments {
 		if env.Name == envName {
+			env.Services = loadServices(env)
 			return &env, nil
 		}
 	}
 	return nil, fmt.Errorf("Environment %s not found in %s", envName, path)
+}
+
+func loadServices(env Environment) Services {
+	var blueGreenServices Services
+	for _, svc := range env.Services {
+		if svc.IsBlueGreenParentDeployment() {
+			blueGreenServices = append(blueGreenServices, copyBlueGreenService(svc, BlueService))
+			blueGreenServices = append(blueGreenServices, copyBlueGreenService(svc, GreenService))
+		}
+	}
+
+	return append(env.Services, blueGreenServices...)
 }

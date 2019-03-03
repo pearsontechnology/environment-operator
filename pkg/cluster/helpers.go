@@ -5,7 +5,7 @@ import (
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	v1beta2_apps "k8s.io/api/apps/v1beta2"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	v1beta1_ext "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -14,6 +14,10 @@ func envVars(deployment v1beta1_ext.Deployment) []bitesize.EnvVar {
 	var retval []bitesize.EnvVar
 	for _, e := range deployment.Spec.Template.Spec.Containers[0].Env {
 		var v bitesize.EnvVar
+		// Reserved vars
+		if isReservedEnvVar(e) {
+			continue
+		}
 
 		if e.ValueFrom != nil && e.ValueFrom.SecretKeyRef != nil {
 			v = bitesize.EnvVar{
@@ -30,10 +34,25 @@ func envVars(deployment v1beta1_ext.Deployment) []bitesize.EnvVar {
 	}
 	return retval
 }
+
+func isReservedEnvVar(e v1.EnvVar) bool {
+	reserved := []string{"POD_DEPLOYMENT_COLOUR"}
+	for _, i := range reserved {
+		if e.Name == i {
+			return true
+		}
+	}
+	return false
+}
+
 func envVarsStatefulset(statefulset v1beta2_apps.StatefulSet) []bitesize.EnvVar {
 	var retval []bitesize.EnvVar
 	for _, e := range statefulset.Spec.Template.Spec.Containers[0].Env {
 		var v bitesize.EnvVar
+
+		if isReservedEnvVar(e) {
+			continue
+		}
 
 		if e.ValueFrom != nil && e.ValueFrom.SecretKeyRef != nil {
 			v = bitesize.EnvVar{
@@ -79,13 +98,13 @@ func healthCheckStatefulset(statefulset v1beta2_apps.StatefulSet) *bitesize.Heal
 	return retval
 }
 func getLabel(metadata metav1.ObjectMeta, label string) string {
-	//if (len(resource.ObjectMeta.Labels) > 0) &&
-	//		(resource.ObjectMeta.Labels[label] != "") {
-	//		return resource.ObjectMeta.Labels[label]
-	//	}
-	//	return ""
 	labels := metadata.GetLabels()
 	return labels[label]
+}
+
+func getAnnotation(metadata metav1.ObjectMeta, annotation string) string {
+	annotations := metadata.GetAnnotations()
+	return annotations[annotation]
 }
 
 func getAccessModesAsString(modes []v1.PersistentVolumeAccessMode) string {

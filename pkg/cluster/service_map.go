@@ -8,9 +8,10 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	v1beta2_apps "k8s.io/api/apps/v1beta2"
 	autoscale_v2beta1 "k8s.io/api/autoscaling/v2beta1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	v1beta1_ext "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // ServiceMap holds a list of bitesize.Service objects, representing the
@@ -26,6 +27,9 @@ func (s ServiceMap) CreateOrGet(name string) *bitesize.Service {
 			Name:        name,
 			Replicas:    1,
 			Annotations: map[string]string{},
+			ExternalURL: []string{},
+			Deployment:  &bitesize.DeploymentSettings{},
+			Requests:    bitesize.ContainerRequests{CPU: "100m"},
 		}
 	}
 	return s[name]
@@ -49,10 +53,27 @@ func (s ServiceMap) AddService(svc v1.Service) {
 	name := svc.Name
 	biteservice := s.CreateOrGet(name)
 	biteservice.Application = getLabel(svc.ObjectMeta, "application")
+	biteservice.Deployment = s.addDeploymentSettings(svc.ObjectMeta)
 
+	if len(svc.Spec.Ports) > 0 {
+		biteservice.Ports = []int{}
+	}
 	for _, port := range svc.Spec.Ports {
 		biteservice.Ports = append(biteservice.Ports, int(port.Port))
 	}
+}
+
+func (s ServiceMap) addDeploymentSettings(metadata metav1.ObjectMeta) *bitesize.DeploymentSettings {
+	retval := &bitesize.DeploymentSettings{}
+	retval.Method = getAnnotation(metadata, "deployment_method")
+	active := getAnnotation(metadata, "deployment_active")
+	if active != "" {
+		id := bitesize.BlueGreenDeploymentID(active)
+		if id != 0 {
+			retval.BlueGreen = &bitesize.BlueGreenSettings{Active: &id}
+		}
+	}
+	return retval
 }
 
 // AddDeployment adds kubernetes deployment object to biteservice
@@ -64,22 +85,20 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 		biteservice.Replicas = int(*deployment.Spec.Replicas)
 	}
 
-	if len(deployment.Spec.Template.Spec.Containers[0].Resources.Requests) != 0 {
-		cpuQuantity := new(resource.Quantity)
-		*cpuQuantity = deployment.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]
-		memoryQuantity := new(resource.Quantity)
-		*memoryQuantity = deployment.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]
+	resources := deployment.Spec.Template.Spec.Containers[0].Resources
+
+	if len(resources.Requests) != 0 {
+		cpuQuantity := resources.Requests["cpu"]
+		memQuantity := resources.Requests["memory"]
 		biteservice.Requests.CPU = cpuQuantity.String()
-		biteservice.Requests.Memory = memoryQuantity.String()
+		biteservice.Requests.Memory = memQuantity.String()
 	}
 
-	if len(deployment.Spec.Template.Spec.Containers[0].Resources.Limits) != 0 {
-		cpuQuantity := new(resource.Quantity)
-		*cpuQuantity = deployment.Spec.Template.Spec.Containers[0].Resources.Limits["cpu"]
-		memoryQuantity := new(resource.Quantity)
-		*memoryQuantity = deployment.Spec.Template.Spec.Containers[0].Resources.Limits["memory"]
+	if len(resources.Limits) != 0 {
+		cpuQuantity := resources.Limits["cpu"]
+		memQuantity := resources.Limits["memory"]
 		biteservice.Limits.CPU = cpuQuantity.String()
-		biteservice.Limits.Memory = memoryQuantity.String()
+		biteservice.Limits.Memory = memQuantity.String()
 	}
 
 	if getLabel(deployment.ObjectMeta, "ssl") != "" {
@@ -132,8 +151,7 @@ func (s ServiceMap) AddHPA(hpa autoscale_v2beta1.HorizontalPodAutoscaler) {
 	}
 
 	if hpa.Spec.Metrics[0].Type == "Pods" {
-		targetAverageValueQuantity := new(resource.Quantity)
-		*targetAverageValueQuantity = hpa.Spec.Metrics[0].Pods.TargetAverageValue
+		targetAverageValueQuantity := hpa.Spec.Metrics[0].Pods.TargetAverageValue
 		biteservice.HPA.Metric.Name = hpa.Spec.Metrics[0].Pods.MetricName
 		biteservice.HPA.Metric.TargetAverageValue = targetAverageValueQuantity.String()
 	}
@@ -180,6 +198,7 @@ func (s ServiceMap) AddIngress(ingress v1beta1_ext.Ingress) {
 	httpsOnly := ingress.Labels["httpsOnly"]
 	httpsBackend := ingress.Labels["httpsBackend"]
 
+	biteservice.ExternalURL = []string{}
 	if len(ingress.Spec.Rules) > 0 {
 		for _, rule := range ingress.Spec.Rules {
 			biteservice.ExternalURL = append(biteservice.ExternalURL, rule.Host)

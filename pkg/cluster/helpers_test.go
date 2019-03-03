@@ -47,3 +47,20 @@ func TestGetAccessModesAsString(t *testing.T) {
 		t.Errorf("Wrong mode: %s", str)
 	}
 }
+
+func TestReservedEnvVar(t *testing.T) {
+	var tests = []struct{
+		name string
+		expected bool
+	} {
+		{"POD_DEPLOYMENT_COLOUR", true},
+		{"SOMEVAR", false},
+	}
+
+	for _,satest := range tests {
+		e := v1.EnvVar{Name: satest.name, Value: ""}
+		if isReservedEnvVar(e) != satest.expected {
+			t.Errorf("unexpected result. expected %v got %v", satest.expected, isReservedEnvVar(e))
+		}
+	}
+}
