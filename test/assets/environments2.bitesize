@@ -20,7 +20,9 @@ environments:
     hpa:
       min_replicas: 2
       max_replicas: 5
-      target_cpu_utilization_percentage: 75
+      metric:
+        name: cpu
+        target_average_utilization: 75
   - name: annotated_service
     version: 1
     annotations:

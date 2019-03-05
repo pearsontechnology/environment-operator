@@ -83,19 +83,24 @@ func validHPA(hpa interface{}, param string) error {
 	val := reflect.ValueOf(hpa)
 
 	for i := 0; i < val.NumField(); i++ {
-		fieldValue := val.Field(i).Int()
 		fieldName := val.Type().Field(i).Name
 
 		switch fieldName {
 
 		case "MinReplicas", "MaxReplicas":
+			fieldValue := val.Field(i).Int()
 			if fieldValue != 0 && fieldValue > int64(config.Env.HPAMaxReplicas) {
 				return fmt.Errorf("hpa %+v number of replicas invalid; values greater than %v not allowed", hpa, config.Env.HPAMaxReplicas)
 			}
 
-		case "TargetCPUUtilizationPercentage":
-			if fieldValue != 0 && fieldValue < 75 {
-				return fmt.Errorf("hpa %+v CPU Utilization invalid; thresholds lower than 75%% not allowed", hpa)
+		case "Metric":
+			fieldValue := val.Field(i).Interface()
+
+			metric, ok := fieldValue.(Metric)
+			if ok {
+				if metric.TargetAverageUtilization != 0 && metric.TargetAverageUtilization < 75 {
+					return fmt.Errorf("hpa %+v CPU Utilization invalid; thresholds lower than 75%% not allowed", hpa)
+				}
 			}
 		}
 	}

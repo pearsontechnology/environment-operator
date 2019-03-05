@@ -73,15 +73,15 @@ func TestValidHPA(t *testing.T) {
 		Error error
 	}{
 		{
-			HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 51, TargetCPUUtilizationPercentage: 75},
-			fmt.Errorf("hpa %+v number of replicas invalid; values greater than %v not allowed", HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 51, TargetCPUUtilizationPercentage: 75}, config.Env.HPAMaxReplicas),
+			HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 51, Metric: Metric{Name: "cpu", TargetAverageUtilization: 75}},
+			fmt.Errorf("hpa %+v number of replicas invalid; values greater than %v not allowed", HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 51, Metric: Metric{Name: "cpu", TargetAverageUtilization: 75}}, config.Env.HPAMaxReplicas),
 		},
 		{
-			HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 2, TargetCPUUtilizationPercentage: 74},
-			fmt.Errorf("hpa %+v CPU Utilization invalid; thresholds lower than 75%% not allowed", HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 2, TargetCPUUtilizationPercentage: 74}),
+			HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 2, Metric: Metric{Name: "cpu", TargetAverageUtilization: 74}},
+			fmt.Errorf("hpa %+v CPU Utilization invalid; thresholds lower than 75%% not allowed", HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 2, Metric: Metric{Name: "cpu", TargetAverageUtilization: 74}}),
 		},
 		{
-			HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 2, TargetCPUUtilizationPercentage: 75},
+			HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 2, Metric: Metric{Name: "cpu", TargetAverageUtilization: 75}},
 			nil,
 		},
 	}
