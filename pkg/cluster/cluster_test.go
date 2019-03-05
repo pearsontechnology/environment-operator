@@ -11,7 +11,7 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	fakecrd "github.com/pearsontechnology/environment-operator/pkg/util/k8s/fake"
 	v1beta2_apps "k8s.io/api/apps/v1beta2"
-	autoscale_v1 "k8s.io/api/autoscaling/v1"
+	autoscale_v2beta1 "k8s.io/api/autoscaling/v2beta1"
 	v1 "k8s.io/api/core/v1"
 	v1beta1_ext "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -589,6 +589,7 @@ func TestApplyNewHPA(t *testing.T) {
 
 func TestApplyExistingHPA(t *testing.T) {
 	var min, target int32 = 2, 75
+	customMetricValue, _ := resource.ParseQuantity("200")
 	crdcli := loadEmptyCRDs()
 	client := fake.NewSimpleClientset(
 		&v1.Namespace{
@@ -599,7 +600,7 @@ func TestApplyExistingHPA(t *testing.T) {
 				},
 			},
 		},
-		&autoscale_v1.HorizontalPodAutoscaler{
+		&autoscale_v2beta1.HorizontalPodAutoscaler{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "hpa-service",
 				Namespace: "environment-dev",
@@ -610,15 +611,30 @@ func TestApplyExistingHPA(t *testing.T) {
 					"version":     "some-version",
 				},
 			},
-			Spec: autoscale_v1.HorizontalPodAutoscalerSpec{
-				ScaleTargetRef: autoscale_v1.CrossVersionObjectReference{
+			Spec: autoscale_v2beta1.HorizontalPodAutoscalerSpec{
+				ScaleTargetRef: autoscale_v2beta1.CrossVersionObjectReference{
 					Kind:       "Deployment",
 					Name:       "hpa-service",
 					APIVersion: "extensions/v1beta1",
 				},
-				MinReplicas:                    &min,
-				MaxReplicas:                    5,
-				TargetCPUUtilizationPercentage: &target,
+				MinReplicas: &min,
+				MaxReplicas: 5,
+				Metrics: []autoscale_v2beta1.MetricSpec{
+					{
+						Type: autoscale_v2beta1.ObjectMetricSourceType,
+						Object: &autoscale_v2beta1.ObjectMetricSource{
+							TargetValue: customMetricValue,
+							MetricName:  "custom_metric",
+						},
+					},
+					{
+						Type: autoscale_v2beta1.ResourceMetricSourceType,
+						Resource: &autoscale_v2beta1.ResourceMetricSource{
+							TargetAverageUtilization: &target,
+							Name:                     "memory",
+						},
+					},
+				},
 			},
 		},
 		&v1.Service{

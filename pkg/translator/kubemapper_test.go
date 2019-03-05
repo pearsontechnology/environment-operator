@@ -169,7 +169,8 @@ func TestTranslatorHPA(t *testing.T) {
 	w := BuildKubeMapper()
 	w.BiteService.HPA.MinReplicas = 1
 	w.BiteService.HPA.MaxReplicas = 6
-	w.BiteService.HPA.TargetCPUUtilizationPercentage = 51
+	w.BiteService.HPA.Metric.TargetAverageUtilization = 51
+	w.BiteService.HPA.Metric.Name = "cpu"
 
 	h, _ := w.HPA()
 
@@ -177,8 +178,8 @@ func TestTranslatorHPA(t *testing.T) {
 		t.Errorf("Wrong HPA min replicas value: %+v, expected %+v", *h.Spec.MinReplicas, w.BiteService.HPA.MinReplicas)
 	} else if h.Spec.MaxReplicas != w.BiteService.HPA.MaxReplicas {
 		t.Errorf("Wrong HPA max replicas value: %+v, expected %+v", h.Spec.MaxReplicas, w.BiteService.HPA.MaxReplicas)
-	} else if *h.Spec.TargetCPUUtilizationPercentage != w.BiteService.HPA.TargetCPUUtilizationPercentage {
-		t.Errorf("Wrong HPA target CPU utilization percentage value: %+v, expected %+v", *h.Spec.TargetCPUUtilizationPercentage, w.BiteService.HPA.TargetCPUUtilizationPercentage)
+	} else if *h.Spec.Metrics[0].Resource.TargetAverageUtilization != w.BiteService.HPA.Metric.TargetAverageUtilization {
+		t.Errorf("Wrong HPA CPU target Average value: %+v, expected %+v", *h.Spec.Metrics[0].Resource.TargetAverageUtilization, w.BiteService.HPA.Metric.TargetAverageUtilization)
 	}
 }
 

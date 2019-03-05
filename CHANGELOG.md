@@ -9,6 +9,11 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[0.0.25] 2019-03-05 [RELEASED]**
+ #### Added
+  * Added HPA based on custom-metrics (BITE-4601)
+  * **NOTE** This release breaks backward compatibility for users currently using HPA functionality. If HPA config is not in use and environment-operator fails, please raise an issue.
+
 ### **[0.0.24] 2019-02-22 [RELEASED]**
  #### Added
   * Added Sns Support [ODY-140](https://agile-jira.pearson.com/browse/ODY-140)
