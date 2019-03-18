@@ -11,6 +11,8 @@ import (
 	gogit "gopkg.in/src-d/go-git.v4"
 	gitconfig "gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	gogithttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+
 	gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
@@ -21,13 +23,17 @@ type Git struct {
 	RemotePath string
 	BranchName string
 	Repository *gogit.Repository
+	GitToken   string
+	GitUser    string
 }
 
+// Client initializes a git repo under a temp directory
+// and attaches a remote
 func Client() *Git {
 	var repository *gogit.Repository
 	var err error
 
-	if _, err := os.Stat(config.Env.GitLocalPath); os.IsNotExist(err) {
+	if _, err = os.Stat(config.Env.GitLocalPath); os.IsNotExist(err) {
 		repository, err = gogit.PlainInit(config.Env.GitLocalPath, false)
 		if err != nil {
 			log.Errorf("could not init local repository %s: %s", config.Env.GitLocalPath, err.Error())
@@ -51,12 +57,25 @@ func Client() *Git {
 		RemotePath: config.Env.GitRepo,
 		BranchName: config.Env.GitBranch,
 		SSHKey:     config.Env.GitKey,
+		GitToken:   config.Env.GitToken,
+		GitUser:    config.Env.GitUser,
 		Repository: repository,
 	}
 }
 
 func (g *Git) pullOptions() *gogit.PullOptions {
 	branch := fmt.Sprintf("refs/heads/%s", g.BranchName)
+	// Return options with token auth if enabled
+	if g.GitToken != "" {
+		return &gogit.PullOptions{
+			ReferenceName: plumbing.ReferenceName(branch),
+			Auth: &gogithttp.BasicAuth{
+				Username: g.GitUser,
+				Password: g.GitToken,
+			},
+		}
+	}
+
 	return &gogit.PullOptions{
 		ReferenceName: plumbing.ReferenceName(branch),
 		Auth:          g.sshKeys(),
@@ -64,6 +83,15 @@ func (g *Git) pullOptions() *gogit.PullOptions {
 }
 
 func (g *Git) fetchOptions() *gogit.FetchOptions {
+	// Return options with token auth if enabled
+	if g.GitToken != "" {
+		return &gogit.FetchOptions{
+			Auth: &gogithttp.BasicAuth{
+				Username: g.GitUser,
+				Password: g.GitToken,
+			},
+		}
+	}
 	return &gogit.FetchOptions{
 		Auth: g.sshKeys(),
 	}
