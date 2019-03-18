@@ -13,6 +13,8 @@ type Config struct {
 	GitBranch         string `envconfig:"GIT_BRANCH" default:"master"`
 	GitKey            string `envconfig:"GIT_PRIVATE_KEY"`
 	GitKeyPath        string `envconfig:"GIT_PRIVATE_KEY_PATH" default:"/etc/git/key"`
+	GitUser           string `envconfig:"GIT_USER"`
+	GitToken          string `envconfig:"GIT_TOKEN"`
 	GitLocalPath      string `envconfig:"GIT_LOCAL_PATH" default:"/tmp/repository"`
 	EnvName           string `envconfig:"ENVIRONMENT_NAME"`
 	EnvFile           string `envconfig:"BITESIZE_FILE"`
@@ -36,12 +38,19 @@ type Config struct {
 	Debug string `envconfig:"DEBUG"`
 }
 
+// Env parses and exports configuration for
+// operator
 var Env Config
 
 func init() {
 	err := envconfig.Process("operator", &Env)
 	if err != nil {
 		log.Fatal(err.Error())
+	}
+
+	// Ensure only a single type of auth is used.
+	if Env.GitKey != "" && Env.GitToken != "" {
+		log.Fatal("Please choose either Gitkey or GitToken but not both")
 	}
 
 	if Env.LogLevel == "debug" {
