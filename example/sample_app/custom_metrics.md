@@ -177,6 +177,9 @@ kubectl get pod -n sample-app
 Add load to the deployed app:
 ```
 kubectl  exec -it  environment-operator-dd5dc4464-p25sn sh  -n sample-app
+ kubectl get svc  api -n sample-app
+ NAME      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+ api       ClusterIP   172.31.232.169   <none>        9898/TCP   47m
  $ curl http://api.sample-app.svc.cluster.local:9898
 ```
 
