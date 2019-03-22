@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[0.0.26] 2019-03-15 [RELEASED]**
+ #### Added
+  * Added Sqs Support [ODY-158](https://agile-jira.pearson.com/browse/ODY-158)
+
 ### **[0.0.25] 2019-03-05 [RELEASED]**
  #### Added
   * Added HPA based on custom-metrics (BITE-4601)

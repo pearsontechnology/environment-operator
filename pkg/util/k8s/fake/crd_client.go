@@ -140,6 +140,8 @@ func kindFromElem(e string) string {
 		return "Docdb"
 	case "cbs":
 		return "Cb"
+	case "sqses":
+		return "Sqs"
 	default:
 		return "None"
 	}
