@@ -43,6 +43,7 @@ type Service struct {
 	// XXX          map[string]interface{} `yaml:",inline"`
 }
 
+// ServiceStatus stores service deployment information
 type ServiceStatus struct {
 	DeployedAt        string
 	AvailableReplicas int
@@ -279,6 +280,7 @@ func unmarshalExternalURL(unmarshal func(interface{}) error) ([]string, error) {
 	return urls, nil
 }
 
+// UnmarshalYAML will unmarshal yaml volume definitions to Volume struct
 func (v *Volume) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	vv := &Volume{
 		Modes:        "ReadWriteOnce",
@@ -295,6 +297,8 @@ func (v *Volume) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// HasManualProvisioning check weather the provisioning manual
+// if manual returns true
 func (v *Volume) HasManualProvisioning() bool {
 	if v.provisioning == "manual" {
 		return true
@@ -302,6 +306,8 @@ func (v *Volume) HasManualProvisioning() bool {
 	return false
 }
 
+// IsSecretVolume is check for volume type defined and
+// if the type is secret it will return true.
 func (v *Volume) IsSecretVolume() bool {
 	if strings.ToLower(v.Type) == "secret" {
 		return true

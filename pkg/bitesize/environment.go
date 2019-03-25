@@ -38,7 +38,7 @@ func (slice Environments) Swap(i, j int) {
 	slice[i], slice[j] = slice[j], slice[i]
 }
 
-// LoadEnvironment returns bitesize.Environment object
+// LoadEnvironmentFromConfig returns bitesize.Environment object
 // constructed from environment variables
 func LoadEnvironmentFromConfig(c config.Config) (*Environment, error) {
 	fp := filepath.Join(c.GitLocalPath, c.EnvFile)

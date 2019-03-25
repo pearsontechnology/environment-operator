@@ -6,7 +6,7 @@ import (
 
 	validator "gopkg.in/validator.v2"
 	yaml "gopkg.in/yaml.v2"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 // EnvironmentsBitesize is a 1:1 mapping to environments.bitesize file
@@ -43,7 +43,7 @@ type ContainerLimits struct {
 	Memory string `yaml:"memory"`
 }
 
-// Metrics maps to HPA targets in kubernetes
+// Metric maps to HPA targets in kubernetes
 type Metric struct {
 	Name                     string `yaml:"name"`
 	TargetAverageValue       string `yaml:"target_average_value,omitempty"`
