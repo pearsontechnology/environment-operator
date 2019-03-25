@@ -308,3 +308,12 @@ func (v *Volume) IsSecretVolume() bool {
 	}
 	return false
 }
+
+// IsConfigMapVolume is check for volume type defined and
+// if the type is configmap it will return true.
+func (v *Volume) IsConfigMapVolume() bool {
+	if strings.ToLower(v.Type) == "configmap" {
+		return true
+	}
+	return false
+}

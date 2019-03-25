@@ -36,20 +36,10 @@ func GetCurrentDeploymentByName(name string) (*v1beta1_ext.Deployment, *v1beta2_
 		BiteService: service,
 	}
 
-	if service.DatabaseType == "mongo" {
-		statefulset, _ := mapper.MongoStatefulSet()
-		if err != nil {
-			log.Errorf("Could not process statefulset: %s", err.Error())
-			return nil, nil, err
-		}
-		return nil, statefulset, nil
-
-	} else {
-		deployment, err := mapper.Deployment()
-		if err != nil {
-			log.Errorf("Could not process deployment : %s", err.Error())
-			return nil, nil, err
-		}
-		return deployment, nil, nil
+	deployment, err := mapper.Deployment()
+	if err != nil {
+		log.Errorf("Could not process deployment : %s", err.Error())
+		return nil, nil, err
 	}
+	return deployment, nil, nil
 }
