@@ -180,3 +180,8 @@ environments:
       index_instance_type: "r4.xlarge"
       index_node_count: "1"
       index_data_size: 512
+- name: environment12
+  namespace: environment-sqs
+  services:
+  - type: sqs
+    name: sqs_queue_name

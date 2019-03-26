@@ -9,11 +9,15 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
-### **[0.0.26 ] 2019-03-22 [RELEASED]**
+### **[0.0.27 ] 2019-03-22 [RELEASED]**
  #### Added
   * Option to use github/bitbucket token in place of sshkeys for authentication
   * **NOTE** Default authentication is still based on sshkeys
-  
+
+### **[0.0.26] 2019-03-15 [RELEASED]**
+ #### Added
+  * Added Sqs Support [ODY-158](https://agile-jira.pearson.com/browse/ODY-158)
+
 ### **[0.0.25] 2019-03-05 [RELEASED]**
  #### Added
   * Added HPA based on custom-metrics (BITE-4601)
