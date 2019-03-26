@@ -221,10 +221,19 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 		}
 	}
 
+	// Handle imported resources
+	resourceMap := new(ResourceMap)
+
+	configmaps, _ := client.ConfigMap().List()
+	for _, config := range configmaps {
+		resourceMap.AddConfigMap(config)
+	}
+
 	bitesizeConfig := bitesize.Environment{
 		Name:      environmentName,
 		Namespace: namespace,
 		Services:  serviceMap.Services(),
+		Imports:   resourceMap.Resources(),
 	}
 
 	return &bitesizeConfig, nil

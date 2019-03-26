@@ -1,0 +1,183 @@
+project: test
+environments:
+- name: environment3
+  namespace: environment-dev
+  imports:
+     - path: "k8s/configmap.bitesize"
+       type: configmap
+     - path: "k8s/configmap2.bitesize"
+       type: configmap
+  services:
+  - name: external_service
+    external_url: www.test.com
+    backend: testing
+    limits:
+      cpu: 1000m
+      memory: 500Mi
+    requests:
+      cpu: 1000m
+      memory: 500Mi
+  - name: service1_environment2
+    external_url:
+      - www.test1.com
+      - www.test2.com
+    volumes:
+    - name: vol1
+      size: 1G
+      path: /tmp/asd
+      modes: ReadWriteMany
+    limits:
+      cpu: 1000m
+      memory: 500Mi
+    requests:
+      cpu: 1000m
+      memory: 500Mi
+  - name: service2_environment2
+  - name: testdb
+    type: "neptune"
+    version: "1.0.1.0.200264.0"
+    options:
+      ApplyImmediately: True
+      db_instances:
+        - db_name: "db01"
+          db_instance_class: "db.r4.2xlarge"
+        - db_name: "db02"
+          db_instance_class: "db.r4.xlarge"
+  - name: hpaservice
+    application: gummybears
+    version: 1
+    requests:
+      cpu: 500m
+      memory: 100Mi
+    hpa:
+      min_replicas: 2
+      max_replicas: 5
+      metric:
+        name: http_requests
+        target_average_value: 10
+  - name: annotated_service
+    version: 1
+    annotations:
+      - name: prometheus.io/scrape
+        value: true
+      - name: prometheus.io/path
+        value: /metrics
+    limits:
+      cpu: 1000m
+      memory: 500Mi
+  - name: annotated_service2
+    annotations:
+      - name: random_annotation
+        value: ok_value
+    requests:
+      cpu: 500m
+      memory: 100Mi
+- name: environment3
+  namespace: environment-dev
+  services:
+  - name: hpa-service
+    namespace: environment-dev
+    hpa:
+      min_replicas: 2
+      max_replicas: 5
+      metric:
+        name: http_requests
+        target_average_value: 10
+- name: environment4
+  namespace: environment-mongo
+  services:
+  - name: mongo
+    namespace: environment-mongo
+    database_type: mongo
+    version: 3.4
+    replicas: 3
+    port: 27017
+    volumes:
+      - name: mongo-persistent-storage
+        path: /data/db
+        modes: ReadWriteOnce
+        size: 10G
+- name: environment5
+  namespace: environment-kafka
+  services:
+  - name: zookeeper
+    type: zookeeper
+    options:
+      replicas: 3
+      resources_limits_cpu: 500m
+      resources_limits_memory: 512Mi
+      resources_requests_cpu: 500m
+      resources_requests_memory: 512Mi
+  - type: kafka
+    name: kafka
+    options:
+      replicas: 3
+      zookeeperConnect: "zookeeper"
+      resources_limits_cpu: 500m
+      resources_limits_memory: 512Mi
+      resources_requests_cpu: 500m
+      resources_requests_memory: 512Mi
+- name: environment6
+  namespace: environment-postgres
+  services:
+  - type: postgres
+    name: postgres
+    version : 1.0
+    options:
+      version: 9.6.6
+      replicas: 2
+      multiaz: false
+      dbinstanceclass: db.m4.large
+      allocatedstorage: 200
+- name: environment7
+  namespace: environment-neptune
+  services:
+  - type: neptune
+    name: neptune
+    version : 1.0
+    options:
+      ApplyImmediately: True
+      db_instances:
+        - db_name: "db01"
+          db_instance_class: "db.r4.2xlarge"
+        - db_name: "db02"
+          db_instance_class: "db.r4.xlarge"
+        - db_name: "db03"
+          db_instance_class: "db.r4.large"
+        - db_name: "db04"
+          db_instance_class: "db.r4.large"
+- name: environment8
+  namespace: environment-mks
+  services:
+  - type: mks
+    name: mks
+    version : 1.0
+- name: environment9
+  namespace: environment-docdb
+  services:
+  - type: docdb
+    name: docdb
+    version : 1.0
+- name: environment10
+  namespace: environment-cb
+  services:
+  - type: cb
+    name: cb
+    version : 1.0
+    options:
+      use_mds: 1
+      high_perf: 1
+      instance_type: "r4.2xlarge"
+      node_count: "2"
+      data_size: 512
+      query_instance_type: "c4.large"
+      query_node_count: "1"
+      query_data_size: 200
+      index_instance_type: "r4.xlarge"
+      index_node_count: "1"
+      index_data_size: 512
+- name: environment12
+  namespace: environment-sqs
+  services:
+  - type: sqs
+    name: sqs_queue_name

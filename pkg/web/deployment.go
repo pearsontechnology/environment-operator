@@ -12,20 +12,25 @@ import (
 	v1beta1_ext "k8s.io/api/extensions/v1beta1"
 )
 
-// GetCurrentDeploymentByName retrieves kubernetes deployment object for
-// currently active environment from bitesize file in git.
-func GetCurrentDeploymentByName(name string) (*v1beta1_ext.Deployment, *v1beta2_apps.StatefulSet, error) {
+// GetCurrentEnvironment returns the current environment configured
+func GetCurrentEnvironment() (*bitesize.Environment, error) {
 	gitClient := git.Client()
 	gitClient.Refresh()
 
 	environment, err := bitesize.LoadEnvironmentFromConfig(config.Env)
 	if err != nil {
 		log.Errorf("Could not load env: %s", err.Error())
-		return nil, nil, err
+		return nil, err
 	}
 
 	log.Debugf("ENV: %+v", *environment)
 
+	return environment, nil
+}
+
+// GetCurrentDeploymentByName retrieves kubernetes deployment object for
+// currently active environment from bitesize file in git.
+func GetCurrentDeploymentByName(environment *bitesize.Environment, name string) (*v1beta1_ext.Deployment, *v1beta2_apps.StatefulSet, error) {
 	service := environment.Services.FindByName(name)
 	if service == nil {
 		log.Infof("Services: %v", environment.Services)

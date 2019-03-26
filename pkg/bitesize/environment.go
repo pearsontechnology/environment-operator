@@ -20,7 +20,7 @@ type Environment struct {
 	Deployment *DeploymentSettings `yaml:"deployment,omitempty"`
 	Services   Services            `yaml:"services"`
 	Tests      []Test              `yaml:"tests,omitempty"`
-	// XXX        map[string]interface{} `yaml:",inline"`
+	Imports    Imports             `yaml:"imports,omitempty"`
 }
 
 // Environments is a custom type to implement sort.Interface
@@ -71,6 +71,14 @@ func LoadEnvironment(path, envName string) (*Environment, error) {
 	}
 	for _, env := range e.Environments {
 		if env.Name == envName {
+			// load imported resources
+			for k, im := range env.Imports {
+				res, err := LoadResource(im.Path, im.Type)
+				if err != nil {
+					return nil, fmt.Errorf("Unable to load resource %s,%s for env %s", im.Path, im.Type, envName)
+				}
+				env.Imports[k] = *res
+			}
 			return &env, nil
 		}
 	}

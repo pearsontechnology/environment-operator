@@ -68,33 +68,49 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Bad Request: Unable to parse request body: %s", err.Error()), http.StatusBadRequest)
 	}
 
-	deployment, statefulset, err := GetCurrentDeploymentByName(d.Name)
+	environment, err := GetCurrentEnvironment()
+	if err != nil {
+		log.Errorf("Error reading environment configuration %s: %s", d.Name, err.Error())
+		http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	deployment, _, err := GetCurrentDeploymentByName(environment, d.Name)
 	if err != nil {
 		log.Errorf("Error getting deployment %s: %s", d.Name, err.Error())
 		http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 
-	if deployment != nil {
-		deployment.ObjectMeta.Labels["version"] = d.Version
-		deployment.ObjectMeta.Labels["application"] = d.Application
-		deployment.Spec.Template.Spec.Containers[0].Image = util.Image(d.Application, d.Version)
-		if err = client.Deployment().Apply(deployment); err != nil {
-			log.Errorf("Error updating deployment %s: %s", d.Name, err.Error())
-			http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
-			metrics.Deploys.With(prometheus.Labels{"status": "failed"}).Inc()
-			return
+	for _, vol := range deployment.Spec.Template.Spec.Volumes {
+		if vol.ConfigMap != nil {
+			res := environment.Imports.FindConfigMapByName(vol.ConfigMap.Name)
+			if res != nil {
+				config, err := bitesize.LoadResource(res.Path, "configmap")
+				if err != nil {
+					log.Errorf("Error getting import %s: %s", d.Name, err.Error())
+					http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
+					return
+				}
+				if err = client.ConfigMap().Apply(&config.ConfigMap); err != nil {
+					log.Errorf("Error updating imported configmap %s: %s", d.Name, err.Error())
+					http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
+					metrics.Deploys.With(prometheus.Labels{"status": "failed"}).Inc()
+				}
+			}
 		}
-		metrics.Deploys.With(prometheus.Labels{"status": "succeeded"}).Inc()
-	} else if statefulset != nil {
-		if err = client.StatefulSet().Apply(statefulset); err != nil {
-			log.Errorf("Error updating statefulset %s: %s", d.Name, err.Error())
-			http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
-			metrics.Deploys.With(prometheus.Labels{"status": "failed"}).Inc()
-			return
-		}
-		metrics.Deploys.With(prometheus.Labels{"status": "succeeded"}).Inc()
 	}
+
+	deployment.ObjectMeta.Labels["version"] = d.Version
+	deployment.ObjectMeta.Labels["application"] = d.Application
+	deployment.Spec.Template.Spec.Containers[0].Image = util.Image(d.Application, d.Version)
+	if err = client.Deployment().Apply(deployment); err != nil {
+		log.Errorf("Error updating deployment %s: %s", d.Name, err.Error())
+		http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
+		metrics.Deploys.With(prometheus.Labels{"status": "failed"}).Inc()
+		return
+	}
+	metrics.Deploys.With(prometheus.Labels{"status": "succeeded"}).Inc()
 
 	status := map[string]string{
 		"status": "deploying",
