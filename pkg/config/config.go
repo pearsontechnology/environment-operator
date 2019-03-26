@@ -36,6 +36,8 @@ type Config struct {
 	Debug string `envconfig:"DEBUG"`
 }
 
+// Env contains all the environment operator configurations
+// config will be load from environment variables on startup
 var Env Config
 
 func init() {

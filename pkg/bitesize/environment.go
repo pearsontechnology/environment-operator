@@ -73,9 +73,9 @@ func LoadEnvironment(path, envName string) (*Environment, error) {
 		if env.Name == envName {
 			// load imported resources
 			for k, im := range env.Imports {
-				res, err := LoadResource(im.Path, im.Type)
+				res, err := LoadResource(im)
 				if err != nil {
-					return nil, fmt.Errorf("Unable to load resource %s,%s for env %s", im.Path, im.Type, envName)
+					return nil, fmt.Errorf("Unable to load resource %s,%s for env %s", im.File, im.Type, envName)
 				}
 				env.Imports[k] = *res
 			}

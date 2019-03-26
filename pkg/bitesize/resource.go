@@ -3,6 +3,7 @@ package bitesize
 import (
 	"io/ioutil"
 
+	"github.com/pearsontechnology/environment-operator/pkg/util"
 	yaml "gopkg.in/yaml.v2"
 	v1batch "k8s.io/api/batch/v1"
 	v1beta1 "k8s.io/api/batch/v1beta1"
@@ -11,11 +12,14 @@ import (
 
 // Resource represent a resource
 type Resource struct {
-	Path      string          `yaml:"path"`
-	Type      string          `yaml:"configamp"`
-	ConfigMap v1.ConfigMap    `yaml:"-"`
-	Job       v1batch.Job     `yaml:"-"`
-	CronJob   v1beta1.CronJob `yaml:"-"`
+	Name       string          `yaml:"name,omitempty"`
+	File       string          `yaml:"file,omitempty"`
+	Files      []string        `yaml:"files,omitempty"`
+	AppendHash bool            `yaml:"append_hash"`
+	Type       string          `yaml:"type"`
+	ConfigMap  v1.ConfigMap    `yaml:"-"`
+	Job        v1batch.Job     `yaml:"-"`
+	CronJob    v1beta1.CronJob `yaml:"-"`
 }
 
 // Imports is the struct to hold all imported resources per env
@@ -26,7 +30,7 @@ func (slice Imports) Len() int {
 }
 
 func (slice Imports) Less(i, j int) bool {
-	return slice[i].Path < slice[j].Path
+	return slice[i].Name < slice[j].Name
 }
 
 func (slice Imports) Swap(i, j int) {
@@ -34,27 +38,35 @@ func (slice Imports) Swap(i, j int) {
 }
 
 // LoadResource loads named resource from a filename with a given path
-func LoadResource(path string, rstype string) (*Resource, error) {
-	contents, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
+func LoadResource(res Resource) (*Resource, error) {
 	t := &Resource{}
 
-	switch rstype {
+	switch res.Type {
 	case "configmap":
 		{
-			if err := yaml.Unmarshal(contents, t.ConfigMap); err != nil {
-				return nil, err
+			generator := util.ConfigMapGenerator{
+				Name:        res.Name,
+				FileSources: res.Files,
+				AppendHash:  res.AppendHash,
 			}
 
-			labels := t.ConfigMap.GetLabels()
+			cfmap, err := generator.Generate()
+			if err != nil {
+				return nil, err
+			}
+			labels := cfmap.GetLabels()
 			labels["creator"] = "pipeline"
-			t.ConfigMap.SetLabels(labels)
+			cfmap.SetLabels(labels)
+
+			t.ConfigMap = *cfmap
 		}
 	case "job":
 		{
+			contents, err := ioutil.ReadFile(res.File)
+			if err != nil {
+				return nil, err
+			}
+
 			if err := yaml.Unmarshal(contents, t.Job); err != nil {
 				return nil, err
 			}
@@ -65,6 +77,11 @@ func LoadResource(path string, rstype string) (*Resource, error) {
 		}
 	case "cronjob":
 		{
+			contents, err := ioutil.ReadFile(res.File)
+			if err != nil {
+				return nil, err
+			}
+
 			if err := yaml.Unmarshal(contents, t.CronJob); err != nil {
 				return nil, err
 			}
@@ -79,9 +96,9 @@ func LoadResource(path string, rstype string) (*Resource, error) {
 }
 
 // Find returns service with a name match
-func (slice Imports) Find(path string, rstype string) *Resource {
+func (slice Imports) Find(file string, rstype string) *Resource {
 	for _, s := range slice {
-		if s.Path == path && s.Type == rstype {
+		if s.File == file && s.Type == rstype {
 			return &s
 		}
 	}

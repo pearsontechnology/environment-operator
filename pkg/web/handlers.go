@@ -86,7 +86,7 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 		if vol.ConfigMap != nil {
 			res := environment.Imports.FindConfigMapByName(vol.ConfigMap.Name)
 			if res != nil {
-				config, err := bitesize.LoadResource(res.Path, "configmap")
+				config, err := bitesize.LoadResource(res)
 				if err != nil {
 					log.Errorf("Error getting import %s: %s", d.Name, err.Error())
 					http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
