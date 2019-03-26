@@ -42,7 +42,7 @@ environments:
           max_replicas: 10
           metric:
             name: http_requests
-            target_average_value: 2
+            target_average_value: 1000m
         env:
           - name: APP_PORT
             value: 9898
