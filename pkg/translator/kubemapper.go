@@ -415,11 +415,23 @@ func (w *KubeMapper) volumeSource(vol bitesize.Volume) v1.VolumeSource {
 	}
 
 	if vol.IsConfigMapVolume() {
+
+		items := []v1.KeyToPath{}
+
+		for _, v := range vol.Items {
+			items = append(items, v1.KeyToPath{
+				Key:  v.Key,
+				Path: v.Path,
+				Mode: v.Mode,
+			})
+		}
+
 		return v1.VolumeSource{
 			ConfigMap: &v1.ConfigMapVolumeSource{
 				LocalObjectReference: v1.LocalObjectReference{
 					Name: vol.Name,
 				},
+				Items: items,
 			},
 		}
 	}

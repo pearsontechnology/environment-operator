@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/pearsontechnology/environment-operator/pkg/config"
@@ -23,6 +24,7 @@ type Git struct {
 	Repository *gogit.Repository
 }
 
+// Client is the git client
 func Client() *Git {
 	var repository *gogit.Repository
 	var err error
@@ -53,6 +55,42 @@ func Client() *Git {
 		SSHKey:     config.Env.GitKey,
 		Repository: repository,
 	}
+}
+
+// EnvGitClient is git client for environment
+func EnvGitClient(repo string, branch string, namespace string, env string) (*Git, error) {
+
+	localPath := path.Join(config.Env.GitRootPath, namespace, env)
+
+	var repository *gogit.Repository
+	var err error
+
+	repository, err = gogit.PlainOpen(localPath)
+
+	if err != nil {
+		// repository doesn't exist re-initialize the repository
+		repository, err = gogit.PlainInit(localPath, false)
+		if err != nil {
+			return nil, fmt.Errorf("could not init local repository %s: %s", localPath, err.Error())
+		}
+	} else {
+		remote, err := repository.Remote("origin")
+		if err == gogit.ErrRemoteNotFound || remote.Config().URLs[0] == repo {
+			os.RemoveAll(localPath)
+			repository, err = gogit.PlainInit(localPath, false)
+			if err != nil {
+				return nil, fmt.Errorf("could not init local repository %s: %s", localPath, err.Error())
+			}
+		}
+	}
+
+	return &Git{
+		LocalPath:  localPath,
+		RemotePath: repo,
+		BranchName: branch,
+		SSHKey:     config.Env.GitKey,
+		Repository: repository,
+	}, nil
 }
 
 func (g *Git) pullOptions() *gogit.PullOptions {

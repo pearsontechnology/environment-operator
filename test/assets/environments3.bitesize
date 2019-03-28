@@ -2,7 +2,9 @@ project: test
 environments:
 - name: environment1
   namespace: environment-dev
-  imports_repository: "git@bitbucket.pearson.com/configmap.git"
+  imports_repository:
+    remote: "git@bitbucket.pearson.com/configmap.git"
+    branch: master
   imports:
      - name: "application"
        files:

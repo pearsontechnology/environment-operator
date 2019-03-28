@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/pearsontechnology/environment-operator/pkg/config"
+	"github.com/pearsontechnology/environment-operator/pkg/git"
 
 	validator "gopkg.in/validator.v2"
 )
@@ -21,7 +22,10 @@ type Environment struct {
 	Services   Services            `yaml:"services"`
 	Tests      []Test              `yaml:"tests,omitempty"`
 	Imports    Imports             `yaml:"imports,omitempty"`
+	Repo       ImportsRepository   `yaml:"imports_repository,omitempty"`
 }
+
+var gitClient *git.Git
 
 // Environments is a custom type to implement sort.Interface
 type Environments []Environment
@@ -71,11 +75,23 @@ func LoadEnvironment(path, envName string) (*Environment, error) {
 	}
 	for _, env := range e.Environments {
 		if env.Name == envName {
+			// Environment name found check for git configs
+			if len(env.Repo.Remote) > 0 {
+				gitClient, err := git.EnvGitClient(env.Repo.Remote, env.Repo.Branch, env.Namespace, env.Name)
+				if err != nil {
+					return nil, err
+				}
+				err = gitClient.Pull()
+				if err != nil {
+					return nil, fmt.Errorf("Git Client Information: \n RemotePath=%s \n LocalPath=%s \n Branch=%s \n SSHkey= \n %s", gitClient.RemotePath, gitClient.LocalPath, gitClient.BranchName, gitClient.SSHKey)
+				}
+				gitClient.Refresh()
+			}
 			// load imported resources
 			for k, im := range env.Imports {
-				res, err := LoadResource(im)
+				res, err := LoadResource(im, gitClient.LocalPath)
 				if err != nil {
-					return nil, fmt.Errorf("Unable to load resource %s,%s for env %s", im.File, im.Type, envName)
+					return nil, fmt.Errorf("Unable to load resource %s", err.Error())
 				}
 				env.Imports[k] = *res
 			}
