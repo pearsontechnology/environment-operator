@@ -27,8 +27,8 @@ spec:
       {{ $k }}: {{ $v }}
       {{- end }}
     image:
-      repository: {{ .Environment.Registry }}/{{ .Service.Name }}
-      tag: Engagement_07eaabcec9_bNo12
+      repository: {{ .Registry }}/{{ .Service.Name }}
+      tag: latest
     probePath: "/account/v1/account"
     env:
     {{- range .Service.EnvVars }}
@@ -64,9 +64,12 @@ spec:
     - name: {{ .Name }}
       path: {{ .Path }}
       type: {{ .Type }}
+      {{- if .Size }}
       size: {{ .Size }}
+      {{- end }}
       modes: {{ .Modes }}
     {{- end }}
+    {{- if .Service.HPA.MaxReplicas }}
     {{- with .Service.HPA }}
     hpa:
       enabled: true
@@ -76,6 +79,7 @@ spec:
       {{- else if eq .Name "memory"}}
       memory: {{ .TargetAverageUtilization }}
       {{- end }}
+    {{- end }}
     {{- end }}
   valueFileSecrets:
   - name: "{{ .Service.Name }}-values"
