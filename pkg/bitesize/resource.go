@@ -1,14 +1,14 @@
 package bitesize
 
 import (
-	"io/ioutil"
+	"os"
 	"path"
 
 	"github.com/pearsontechnology/environment-operator/pkg/util"
-	yaml "gopkg.in/yaml.v2"
 	v1batch "k8s.io/api/batch/v1"
 	v1beta1 "k8s.io/api/batch/v1beta1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Resource represent a resource
@@ -51,37 +51,57 @@ func LoadResource(res Resource, localPath string) (*Resource, error) {
 	if len(res.Path) > 0 {
 		resPath := path.Join(localPath, res.Path)
 
-		contents, err := ioutil.ReadFile(resPath)
+		file, err := os.Open(resPath)
 		if err != nil {
 			return nil, err
 		}
+		decoder := yaml.NewYAMLToJSONDecoder(file)
 
 		switch res.Type {
 		case "configmap":
 			{
-				if err := yaml.Unmarshal(contents, t.ConfigMap); err != nil {
+
+				if err := decoder.Decode(&t.ConfigMap); err != nil {
 					return nil, err
 				}
 				labels := t.ConfigMap.GetLabels()
-				labels["creator"] = "pipeline"
+				if labels == nil {
+					labels = map[string]string{
+						"creator": "pipeline",
+					}
+				} else {
+					labels["creator"] = "pipeline"
+				}
 				t.ConfigMap.SetLabels(labels)
 			}
 		case "job":
 			{
-				if err := yaml.Unmarshal(contents, t.Job); err != nil {
+				if err := decoder.Decode(&t.Job); err != nil {
 					return nil, err
 				}
 				labels := t.Job.GetLabels()
-				labels["creator"] = "pipeline"
+				if labels == nil {
+					labels = map[string]string{
+						"creator": "pipeline",
+					}
+				} else {
+					labels["creator"] = "pipeline"
+				}
 				t.Job.SetLabels(labels)
 			}
 		case "cronjob":
 			{
-				if err := yaml.Unmarshal(contents, t.CronJob); err != nil {
+				if err := decoder.Decode(&t.CronJob); err != nil {
 					return nil, err
 				}
 				labels := t.CronJob.GetLabels()
-				labels["creator"] = "pipeline"
+				if labels == nil {
+					labels = map[string]string{
+						"creator": "pipeline",
+					}
+				} else {
+					labels["creator"] = "pipeline"
+				}
 				t.CronJob.SetLabels(labels)
 			}
 		}
