@@ -54,29 +54,21 @@ func Client() *Git {
 		}
 	}
 
-	if config.Env.GitToken != "" {
-		log.Debug("Using gittoken")
-		return &Git{
-			LocalPath:  config.Env.GitLocalPath,
-			RemotePath: config.Env.GitRepo,
-			BranchName: config.Env.GitBranch,
-			GitToken:   config.Env.GitToken,
-			GitUser:    config.Env.GitUser,
-			Repository: repository,
-			SSHKey:     "",
-		}
-	}
-
-	log.Debug("Using sshauth")
-	return &Git{
+	git := Git{
 		LocalPath:  config.Env.GitLocalPath,
 		RemotePath: config.Env.GitRepo,
 		BranchName: config.Env.GitBranch,
-		SSHKey:     config.Env.GitKey,
 		Repository: repository,
-		GitToken:   "",
-		GitUser:    "",
+		SSHKey:     config.Env.GitKey,
 	}
+
+	if len(config.Env.GitToken) > 0 {
+		log.Debug("Using gittoken")
+		git.GitToken = config.Env.GitToken
+		git.GitUser = config.Env.GitUser
+		git.SSHKey = "" // just to make sure we set it empty, config.Env.GitKey default is ""
+	}
+	return &git
 }
 
 // Setup options for git pull
