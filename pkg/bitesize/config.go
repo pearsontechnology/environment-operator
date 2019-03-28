@@ -105,8 +105,9 @@ type Volume struct {
 	// the volume setup will error unless it is marked optional. Paths must be
 	// relative and may not contain the '..' path or start with '..'.
 	// +optional
-	Items        []KeyToPath `yaml:"item"`
-	provisioning string      `yaml:"provisioning" validate:"volume_provisioning"`
+	Items []KeyToPath `yaml:"item"`
+	// volume provisioning types accepted 'dynamic' and 'manual'
+	provisioning string `yaml:"provisioning" validate:"volume_provisioning"`
 }
 
 // KeyToPath Maps a string key to a path within a volume.
