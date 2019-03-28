@@ -1,0 +1,27 @@
+---
+apiVersion: flux.weave.works/v1beta1
+kind: HelmRelease
+metadata:
+  name: {{ .Environment.Namespace }}-{{ .Service.Name }}
+  namespace: {{ .Environment.Namespace }}
+ annotations:
+   flux.weave.works/automated: "false"
+spec:
+  chart:
+    repository: github.com/pearsontechnology/onestack
+    path: charts/couchbase
+    ref: master
+  {{- with .Service.Options }}
+  values:
+    data_size: {{ .data_size }}
+    high_perf: {{ .high_perf }}
+    index_data_size: {{ .index_data_size }}
+    index_instance_type: {{ .index_instance_type }}
+    index_node_count: {{ .index_node_count }}
+    instance_type: {{ .instance_type }}
+    node_count: {{ .node_count }}
+    query_data_size: {{ .query_data_size }}
+    query_instance_type: {{ .query_instance_type }}
+    query_node_count: {{ .query_node_count }}
+    use_mds: {{ .use_mds }}
+  {{- end }}

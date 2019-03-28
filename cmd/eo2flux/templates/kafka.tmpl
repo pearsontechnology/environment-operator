@@ -1,0 +1,26 @@
+---
+apiVersion: flux.weave.works/v1beta1
+kind: HelmRelease
+metadata:
+  name: {{ .Environment.Namespace }}-{{ .Service.Name }}
+  namespace: {{ .Environment.Namespace }}
+ annotations:
+   flux.weave.works/automated: "false"
+spec:
+  chart:
+    repository: http://storage.googleapis.com/kubernetes-charts-incubator
+    name: kafka
+    release: 0.13.11
+  {{- with .Service.Options }}
+  values:
+    replicas: {{ .replicas }}
+    zookeeper:
+      url: {{ .zookeeperConnect }}
+    resources:
+      limits:
+        cpu: {{ .resources_limits_cpu }}
+        memory: {{ .resources_limits_memory }}
+      requests:
+        cpu: {{ .resources_requests_cpu }}
+        memory: {{ .resources_requests_memory }}
+  {{- end }}

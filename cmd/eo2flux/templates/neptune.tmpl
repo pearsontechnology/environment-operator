@@ -1,0 +1,15 @@
+---
+apiVersion: flux.weave.works/v1beta1
+kind: HelmRelease
+metadata:
+  name: {{ .Environment.Namespace }}-{{ .Service.Name }}
+  namespace: {{ .Environment.Namespace }}
+ annotations:
+   flux.weave.works/automated: "false"
+spec:
+  chart:
+    repository: github.com/pearsontechnology/onestack
+    path: charts/neptune
+    ref: master
+  values:
+    instance_type: {{ .Service.Options.instance_type }}

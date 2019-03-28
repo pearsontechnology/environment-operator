@@ -1,0 +1,24 @@
+---
+apiVersion: flux.weave.works/v1beta1
+kind: HelmRelease
+metadata:
+  name: {{ .Environment.Namespace }}-{{ .Service.Name }}
+  namespace: {{ .Environment.Namespace }}
+ annotations:
+   flux.weave.works/automated: "false"
+spec:
+  chart:
+    repository: http://storage.googleapis.com/kubernetes-charts-incubator
+    name: zookeeper
+    release: 1.2.2
+  {{- with .Service.Options }}
+  values:
+    replicas: {{ .replicas }}
+    resources:
+      limits:
+        cpu: {{ .resources_limits_cpu }}
+        memory: {{ .resources_limits_memory }}
+      requests:
+        cpu: {{ .resources_requests_cpu }}
+        memory: {{ .resources_requests_memory }}
+  {{- end }}

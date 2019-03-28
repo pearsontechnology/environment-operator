@@ -1,0 +1,81 @@
+---
+apiVersion: flux.weave.works/v1beta1
+kind: HelmRelease
+metadata:
+  name: {{ .Environment.Namespace }}-{{ .Service.Name }}
+  namespace: {{ .Environment.Namespace }}
+ annotations:
+   flux.weave.works/automated: "true"
+   flux.weave.works/tag.chart-image: glob:{{ .Environment.Namespace }}-*
+spec:
+  chart:
+    repository: github.com/pearsontechnology/onestack
+    path: charts/webservice
+    ref: master
+  values:
+    fullnameOverride: {{ .Service.Name }}
+    replicaCount: {{ .Service.Replicas }}
+    resources:
+      limits:
+        cpu: {{ .Service.Limits.CPU }}
+        memory: {{ .Service.Limits.Memory }}
+      requests:
+        cpu: {{ .Service.Requests.CPU }}
+        memory: {{ .Service.Requests.Memory }}
+    annotations:
+      {{- range $k, $v := .Service.Annotations }}
+      {{ $k }}: {{ $v }}
+      {{- end }}
+    image:
+      repository: {{ .Environment.Registry }}/{{ .Service.Name }}
+      tag: Engagement_07eaabcec9_bNo12
+    probePath: "/account/v1/account"
+    env:
+    {{- range .Service.EnvVars }}
+    {{- if .PodField }}
+    - name: {{ .Name }}
+      valueFrom:
+      fieldRef:
+        apiVersion: v1
+        fieldPath: {{ .PodField }}
+    {{- else if .Secret }}
+    - name: {{ .Secret }}
+      valueFrom:
+        secretKeyRef:
+          key: {{ .Value }}
+          name: {{ .Value }}
+    {{- else }}
+    - name: {{ .Name }}
+      value: {{ .Value}}
+    {{- end }}
+    {{- end }}
+    {{- if .Service.ExternalURL }}
+    ingress:
+      enabled: true
+      hosts:
+      {{- range .Service.ExternalURL }}
+      - host: {{ . }}
+        paths:
+        - path: /
+      {{- end }}
+    {{- end }}
+    volumes:
+    {{- range .Service.Volumes }}
+    - name: {{ .Name }}
+      path: {{ .Path }}
+      type: {{ .Type }}
+      size: {{ .Size }}
+      modes: {{ .Modes }}
+    {{- end }}
+    {{- with .Service.HPA }}
+    hpa:
+      enabled: true
+      maxReplicas: {{ .MaxReplicas }}
+      {{- if eq .Name "cpu"}}
+      cpu: {{ .TargetAverageUtilization }}
+      {{- else if eq .Name "memory"}}
+      memory: {{ .TargetAverageUtilization }}
+      {{- end }}
+    {{- end }}
+  valueFileSecrets:
+  - name: "{{ .Service.Name }}-values"

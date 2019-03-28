@@ -1,0 +1,21 @@
+---
+apiVersion: flux.weave.works/v1beta1
+kind: HelmRelease
+metadata:
+  name: {{ .Environment.Namespace }}-{{ .Service.Name }}
+  namespace: {{ .Environment.Namespace }}
+ annotations:
+   flux.weave.works/automated: "false"
+spec:
+  chart:
+    repository: github.com/pearsontechnology/onestack
+    path: charts/postgresql
+    ref: master
+  {{- with .Service.Options }}
+  values:
+    version: {{ .version }}
+    replicas: {{ .replicas }}
+    multiaz: {{ .multiaz }}
+    dbinstanceclass: {{ .dbinstanceclass }}
+    allocatedstorage: {{ .allocatedstorage }}
+  {{- end }}
