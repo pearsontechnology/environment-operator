@@ -83,6 +83,74 @@ func healthCheck(deployment v1beta1_ext.Deployment) *bitesize.HealthCheck {
 	}
 	return retval
 }
+
+func convertProbeType(probe *v1.Probe) *bitesize.Probe {
+	var retval *bitesize.Probe
+
+	if probe != nil {
+		retval = &bitesize.Probe{
+			FailureThreshold:    probe.FailureThreshold,
+			InitialDelaySeconds: probe.InitialDelaySeconds,
+			SuccessThreshold:    probe.SuccessThreshold,
+			TimeoutSeconds:      probe.TimeoutSeconds,
+		}
+
+		if probe.HTTPGet != nil {
+			httpGet := &bitesize.HTTPGetAction{}
+
+			for _, v := range probe.HTTPGet.HTTPHeaders {
+				httpGet.HTTPHeaders = append(httpGet.HTTPHeaders, bitesize.HTTPHeader{
+					Name:  v.Name,
+					Value: v.Value,
+				})
+			}
+
+			httpGet.Host = probe.HTTPGet.Host
+			httpGet.Path = probe.HTTPGet.Path
+			httpGet.Port = probe.HTTPGet.Port.IntVal
+			httpGet.Scheme = probe.HTTPGet.Scheme
+
+			retval.Handler = bitesize.Handler{
+				HTTPGet: httpGet,
+			}
+		}
+
+		if probe.Exec != nil {
+			exec := &bitesize.ExecAction{}
+
+			exec.Command = probe.Exec.Command
+
+			retval.Handler = bitesize.Handler{
+				Exec: exec,
+			}
+		}
+
+		if probe.TCPSocket != nil {
+			socket := &bitesize.TCPSocketAction{}
+
+			socket.Host = probe.TCPSocket.Host
+			socket.Port = probe.TCPSocket.Port.IntVal
+
+			retval.Handler = bitesize.Handler{
+				TCPSocket: socket,
+			}
+		}
+	}
+	return retval
+}
+
+func livenessProbe(deployment v1beta1_ext.Deployment) *bitesize.Probe {
+	probe := deployment.Spec.Template.Spec.Containers[0].LivenessProbe
+
+	return convertProbeType(probe)
+}
+
+func readinessProbe(deployment v1beta1_ext.Deployment) *bitesize.Probe {
+	probe := deployment.Spec.Template.Spec.Containers[0].ReadinessProbe
+
+	return convertProbeType(probe)
+}
+
 func healthCheckStatefulset(statefulset v1beta2_apps.StatefulSet) *bitesize.HealthCheck {
 	var retval *bitesize.HealthCheck
 

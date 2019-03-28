@@ -3,7 +3,9 @@ package cluster
 import (
 	"testing"
 
-	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 )
 
@@ -36,6 +38,84 @@ func TestHealthCheck(t *testing.T) {
 		t.Errorf("Unexpected initial delay: %d", r.InitialDelay)
 	}
 
+}
+
+func TestLivenessProbe(t *testing.T) {
+	deployment := v1beta1.Deployment{
+		Spec: v1beta1.DeploymentSpec{
+			Template: v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							LivenessProbe: &v1.Probe{
+								Handler: v1.Handler{
+									HTTPGet: &v1.HTTPGetAction{
+										Path: "/healthz",
+										Port: intstr.IntOrString{
+											IntVal: 8080,
+										},
+										HTTPHeaders: []v1.HTTPHeader{
+											{
+												Name:  "Custom-Header",
+												Value: "Awesome",
+											},
+										},
+									},
+								},
+								InitialDelaySeconds: 3,
+								PeriodSeconds:       3,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	r := livenessProbe(deployment)
+	if r.HTTPGet.Path != "/healthz" {
+		t.Errorf("Unexpected path in healthcehck. Expected /healthz, got: %s", r.HTTPGet.Path)
+	}
+
+	if r.HTTPGet.HTTPHeaders[0].Name != "Custom-Header" && r.HTTPGet.HTTPHeaders[0].Value != "Awesome" {
+		t.Errorf("Unexpected header name %s or value %s", r.HTTPGet.HTTPHeaders[0].Name, r.HTTPGet.HTTPHeaders[0].Value)
+	}
+
+	if r.InitialDelaySeconds != 3 {
+		t.Errorf("Unexpected initial delay: %d", r.InitialDelaySeconds)
+	}
+
+}
+
+func TestReadinessProbe(t *testing.T) {
+	deployment := v1beta1.Deployment{
+		Spec: v1beta1.DeploymentSpec{
+			Template: v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							ReadinessProbe: &v1.Probe{
+								Handler: v1.Handler{
+									TCPSocket: &v1.TCPSocketAction{
+										Port: intstr.IntOrString{
+											IntVal: 8080,
+										},
+									},
+								},
+								InitialDelaySeconds: 3,
+								PeriodSeconds:       3,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	r := readinessProbe(deployment)
+	if r.TCPSocket.Port != 8080 {
+		t.Errorf("Unexpected value for port %d", r.TCPSocket.Port)
+	}
 }
 
 func TestGetAccessModesAsString(t *testing.T) {

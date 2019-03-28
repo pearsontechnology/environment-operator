@@ -190,3 +190,8 @@ environments:
     deployment:
       method: bluegreen
       active: green
+- name: environment12
+  namespace: environment-sqs
+  services:
+  - type: sqs
+    name: sqs_queue_name

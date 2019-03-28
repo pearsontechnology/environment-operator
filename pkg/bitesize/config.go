@@ -77,6 +77,45 @@ type HealthCheck struct {
 	// XXX          map[string]interface{} `yaml:",inline"`
 }
 
+// Probe describes a health check to be performed against a container to determine whether it is
+// alive or ready to receive traffic.
+type Probe struct {
+	Handler             `yaml:"handler"`
+	InitialDelaySeconds int32 `yaml:"initial_delay_seconds,omitempty"`
+	TimeoutSeconds      int32 `yaml:"timeout_seconds,omitempty"`
+	PeriodSeconds       int32 `yaml:"period_seconds,omitempty"`
+	SuccessThreshold    int32 `yaml:"success_threshold,omitempty"`
+	FailureThreshold    int32 `yaml:"failure_threshold,omitempty"`
+}
+
+type Handler struct {
+	Exec      *ExecAction      `yaml:"exec,omitempty"`
+	HTTPGet   *HTTPGetAction   `yaml:"http_get,omitempty"`
+	TCPSocket *TCPSocketAction `yaml:"tcp_socket,omitempty"`
+}
+
+type ExecAction struct {
+	Command []string `yaml:"command,omitempty"`
+}
+
+type HTTPGetAction struct {
+	Path        string       `yaml:"path,omitempty"`
+	Port        int32        `yaml:"port"`
+	Host        string       `yaml:"host,omitempty"`
+	Scheme      v1.URIScheme `yaml:"scheme,omitempty"`
+	HTTPHeaders []HTTPHeader `yaml:"http_headers,omitempty"`
+}
+
+type HTTPHeader struct {
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
+}
+
+type TCPSocketAction struct {
+	Port int32  `yaml:"port"`
+	Host string `yaml:"host,omitempty"`
+}
+
 // EnvVar represents environment variables in pod
 type EnvVar struct {
 	Name     string `yaml:"name"`

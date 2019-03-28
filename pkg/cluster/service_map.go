@@ -110,6 +110,8 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 	biteservice.HTTPSBackend = getLabel(deployment.ObjectMeta, "httpsBackend")
 	biteservice.EnvVars = envVars(deployment)
 	biteservice.HealthCheck = healthCheck(deployment)
+	biteservice.LivenessProbe = livenessProbe(deployment)
+	biteservice.ReadinessProbe = readinessProbe(deployment)
 
 	for _, cmd := range deployment.Spec.Template.Spec.Containers[0].Command {
 		biteservice.Commands = append(biteservice.Commands, string(cmd))
