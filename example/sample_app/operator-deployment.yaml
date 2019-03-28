@@ -57,7 +57,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
-        image: geribatai/eo:5cdd0b841dc0c4183fa605d45b56410bbea12206
+        image: pearsontechnology/environment-operator:dev
         imagePullPolicy: Always
         name: environment-operator
         ports:
