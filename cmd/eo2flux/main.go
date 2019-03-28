@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"flag"
+	"github.com/jessevdk/go-flags"
 	"fmt"
 	"github.com/gobuffalo/packr/v2"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
@@ -11,15 +11,33 @@ import (
 	"text/template"
 )
 
+type options struct {
+	// Environment .bitesize file to read
+	InputFile string `short:"i" long:"input-file" description:"input .bitesize file" required:"true"`
+
+	// Where to write HelmRelease files
+	OutputDir string `short:"o" long:"output-directory" description:"output directory for HelmRelease files" required:"true"`
+
+	// Where to write HelmRelease files
+	RegistryPath string `short:"r" long:"registry-path" description:"Docker registry path to inject in HelmRelease image: tags" default:"815492460363.dkr.ecr.us-east-1.amazonaws.com/glp2" required:"true"`
+}
+
+var opts options
+
+var parser = flags.NewParser(&opts, flags.Default)
+
 func main() {
-	inputFile := flag.String("i", "./environment.sample", "input .bitesize file")
-	outputDir := flag.String("o", "./helmreleases", "output directory for HelmRelease files")
-	registryPath := flag.String("r", "815492460363.dkr.ecr.us-east-1.amazonaws.com/glp2", "docker registry path for app image:")
-	flag.Parse()
+	if _, err := parser.Parse(); err != nil {
+		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
+			os.Exit(0)
+		} else {
+			os.Exit(1)
+		}
+	}
 	// load templates
 	box := packr.New("eo2flux", "./templates")
 
-	environmentFile, err := bitesize.LoadFromFile(*inputFile)
+	environmentFile, err := bitesize.LoadFromFile(opts.InputFile)
 	if err != nil {
 		panic(err)
 	}
@@ -31,21 +49,21 @@ func main() {
 			}
 			
 			outputFileName := fmt.Sprintf("%s/%s-%s.yaml",
-				*outputDir, environment.Namespace, service.Name)
+			opts.OutputDir, environment.Namespace, service.Name)
 
 			log.Printf("Writing %s\n", outputFileName)
 			f, err := os.Create(outputFileName)
 			if err != nil {
 				panic(err)
 			}
-			f.WriteString(renderHelmRelease(box, environment, service, registryPath))
+			f.WriteString(renderHelmRelease(box, environment, service, opts.RegistryPath))
 			defer f.Close()
 
 		}
 	}
 }
 
-func renderHelmRelease(box *packr.Box, env bitesize.Environment, svc bitesize.Service, registryPath *string) string {
+func renderHelmRelease(box *packr.Box, env bitesize.Environment, svc bitesize.Service, registryPath string) string {
 	templateFile := ""
 	switch svc.Type {
 	case "webservice":
@@ -84,7 +102,7 @@ func renderHelmRelease(box *packr.Box, env bitesize.Environment, svc bitesize.Se
 	}{
 		env,
 		svc,
-		*registryPath,
+		registryPath,
 	}
 	var rendered bytes.Buffer
 	tmpl.Execute(&rendered, data)
