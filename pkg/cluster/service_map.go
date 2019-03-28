@@ -8,7 +8,7 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	v1beta2_apps "k8s.io/api/apps/v1beta2"
 	autoscale_v2beta1 "k8s.io/api/autoscaling/v2beta1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	v1beta1_ext "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
@@ -91,6 +91,8 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 	biteservice.HTTPSBackend = getLabel(deployment.ObjectMeta, "httpsBackend")
 	biteservice.EnvVars = envVars(deployment)
 	biteservice.HealthCheck = healthCheck(deployment)
+	biteservice.LivenessProbe = livenessProbe(deployment)
+	biteservice.ReadinessProbe = readinessProbe(deployment)
 
 	for _, cmd := range deployment.Spec.Template.Spec.Containers[0].Command {
 		biteservice.Commands = append(biteservice.Commands, string(cmd))

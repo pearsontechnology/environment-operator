@@ -27,6 +27,8 @@ type Service struct {
 	Requests        ContainerRequests       `yaml:"requests" validate:"requests"`
 	Limits          ContainerLimits         `yaml:"limits" validate:"limits"`
 	HealthCheck     *HealthCheck            `yaml:"health_check,omitempty"`
+	LivenessProbe   *Probe                  `yaml:"liveness_probe,omitempty"`
+	ReadinessProbe  *Probe                  `yaml:"readiness_probe,omitempty"`
 	EnvVars         []EnvVar                `yaml:"env,omitempty"`
 	Commands        []string                `yaml:"command,omitempty"`
 	Annotations     map[string]string       `yaml:"-"` // Annotations have custom unmarshaler
