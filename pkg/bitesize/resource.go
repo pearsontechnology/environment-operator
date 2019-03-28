@@ -25,7 +25,7 @@ type Resource struct {
 
 // ImportsRepository contains the repository info all the imports per env
 type ImportsRepository struct {
-	Remote string `yaml:"resource,omitempty"`
+	Remote string `yaml:"remote"`
 	Branch string `yaml:"branch,omitempty" default:"master"`
 }
 

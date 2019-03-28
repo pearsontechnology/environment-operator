@@ -76,20 +76,20 @@ func LoadEnvironment(path, envName string) (*Environment, error) {
 	for _, env := range e.Environments {
 		if env.Name == envName {
 			// Environment name found check for git configs
+			rootPath := config.Env.GitLocalPath
 			if len(env.Repo.Remote) > 0 {
 				gitClient, err := git.EnvGitClient(env.Repo.Remote, env.Repo.Branch, env.Namespace, env.Name)
 				if err != nil {
 					return nil, err
 				}
-				err = gitClient.Pull()
-				if err != nil {
+				if err := gitClient.Refresh(); err != nil {
 					return nil, fmt.Errorf("Git Client Information: \n RemotePath=%s \n LocalPath=%s \n Branch=%s \n SSHkey= \n %s", gitClient.RemotePath, gitClient.LocalPath, gitClient.BranchName, gitClient.SSHKey)
 				}
-				gitClient.Refresh()
+				rootPath = gitClient.LocalPath
 			}
 			// load imported resources
 			for k, im := range env.Imports {
-				res, err := LoadResource(im, gitClient.LocalPath)
+				res, err := LoadResource(im, rootPath)
 				if err != nil {
 					return nil, fmt.Errorf("Unable to load resource %s", err.Error())
 				}

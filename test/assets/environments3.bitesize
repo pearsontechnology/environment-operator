@@ -3,22 +3,17 @@ environments:
 - name: environment1
   namespace: environment-dev
   imports_repository:
-    remote: "git@bitbucket.pearson.com/configmap.git"
-    branch: master
+    remote: "../../"
+    branch: BITE-5048
   imports:
-     - name: "application"
-       files:
-          - "k8s/application-v1.bitesize/application-v2.properties"
+     - path: "test/assets/k8s/application-v1.bitesize"
        version: 1.0.1
        type: configmap
-     - name: "application-v1"
-       files:
-          - "k8s/application-v1.bitesize/application-v2.properties"
+     - path: "test/assets/k8s/application-v1.bitesize"
        version: 1.0.0
        type: configmap
-     - name: "application-v2"
-       files:
-          - "k8s/application-v1.bitesize/application-v2.properties"
+     - files:
+          - "test/assets/k8s/application-v1.bitesize"
        type: configmap
   services:
   - name: service1_environment1
@@ -26,4 +21,26 @@ environments:
     volumes:
       - name: application-v1
         path: "/etc/config/application-v1.config"
+        type: configmap
+- name: environment2
+  namespace: environment-dev
+  imports_repository:
+    remote: "../../"
+    branch: master
+  imports:
+     - path: k8s/application-v1.bitesize/aplication.bitesize"
+       version: 1.0.1
+       type: configmap
+     - path: "k8s/application-v1.bitesize/application-v1.properties"
+       version: 1.0.0
+       type: configmap
+     - name: "application-v3"
+       files:
+          - "k8s/application-v1.bitesize/application-v2.properties"
+       type: configmap
+  services:
+  - name: service1_environment1
+    version: 1.0.0
+    volumes:
+      - path: "/etc/config/application-v1.config"
         type: configmap

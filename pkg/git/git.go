@@ -63,30 +63,48 @@ func EnvGitClient(repo string, branch string, namespace string, env string) (*Gi
 	localPath := path.Join(config.Env.GitRootPath, namespace, env)
 
 	var repository *gogit.Repository
-	var err error
 
-	repository, err = gogit.PlainOpen(localPath)
+	repository, err := gogit.PlainOpen(localPath)
 
-	if err != nil {
-		// repository doesn't exist re-initialize the repository
+	if err == gogit.ErrRepositoryNotExists {
 		repository, err = gogit.PlainInit(localPath, false)
 		if err != nil {
 			return nil, fmt.Errorf("could not init local repository %s: %s", localPath, err.Error())
 		}
-	} else {
-		remote, err := repository.Remote("origin")
-		if err == gogit.ErrRemoteNotFound || remote.Config().URLs[0] == repo {
-			os.RemoveAll(localPath)
-			repository, err = gogit.PlainInit(localPath, false)
-			if err != nil {
-				return nil, fmt.Errorf("could not init local repository %s: %s", localPath, err.Error())
-			}
+	}
+
+	remote, err := repository.Remote("origin")
+	if err == gogit.ErrRemoteNotFound {
+		_, err = repository.CreateRemote(&gitconfig.RemoteConfig{
+			Name: "origin",
+			URLs: []string{repo},
+		})
+		if err != nil {
+			log.Errorf("could not attach to origin %s: %s", repo, err.Error())
+		}
+	}
+
+	ref, err := repository.Head()
+
+	// remote has been changed re-init repo
+	if remote == nil || remote.Config().URLs[0] != repo || (err == nil && ref.Name().String() != branch) {
+		os.RemoveAll(localPath)
+		repository, err = gogit.PlainInit(localPath, false)
+		if err != nil {
+			return nil, fmt.Errorf("could not init local repository %s: %s", localPath, err.Error())
+		}
+		_, err = repository.CreateRemote(&gitconfig.RemoteConfig{
+			Name: "origin",
+			URLs: []string{repo},
+		})
+		if err != nil {
+			log.Errorf("could not attach to origin %s: %s", repo, err.Error())
 		}
 	}
 
 	return &Git{
 		LocalPath:  localPath,
-		RemotePath: repo,
+		RemotePath: remote.Config().URLs[0],
 		BranchName: branch,
 		SSHKey:     config.Env.GitKey,
 		Repository: repository,
