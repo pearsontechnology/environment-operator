@@ -9,7 +9,7 @@ metadata:
    flux.weave.works/tag.chart-image: glob:{{ .Environment.Namespace }}-*
 spec:
   chart:
-    repository: github.com/pearsontechnology/onestack
+    git: git@github.com:pearsontechnology/onestack
     path: charts/webservice
     ref: master
   values:
@@ -31,44 +31,44 @@ spec:
       tag: latest
     probePath: "/account/v1/account"
     env:
-    {{- range .Service.EnvVars }}
-    {{- if .PodField }}
-    - name: {{ .Name }}
-      valueFrom:
-      fieldRef:
-        apiVersion: v1
-        fieldPath: {{ .PodField }}
-    {{- else if .Secret }}
-    - name: {{ .Secret }}
-      valueFrom:
-        secretKeyRef:
-          key: {{ .Value }}
-          name: {{ .Value }}
-    {{- else }}
-    - name: {{ .Name }}
-      value: {{ .Value}}
-    {{- end }}
-    {{- end }}
+      {{- range .Service.EnvVars }}
+      {{- if .PodField }}
+      - name: {{ .Name }}
+        valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: {{ .PodField }}
+      {{- else if .Secret }}
+      - name: {{ .Secret }}
+        valueFrom:
+          secretKeyRef:
+            key: {{ .Value }}
+            name: {{ .Value }}
+      {{- else }}
+      - name: {{ .Name }}
+        value: {{ .Value}}
+      {{- end }}
+      {{- end }}
     {{- if .Service.ExternalURL }}
     ingress:
       enabled: true
       hosts:
-      {{- range .Service.ExternalURL }}
-      - host: {{ . }}
-        paths:
-        - path: /
-      {{- end }}
+        {{- range .Service.ExternalURL }}
+        - host: {{ . }}
+          paths:
+          - path: /
+        {{- end }}
     {{- end }}
     volumes:
-    {{- range .Service.Volumes }}
-    - name: {{ .Name }}
-      path: {{ .Path }}
-      type: {{ .Type }}
-      {{- if .Size }}
-      size: {{ .Size }}
+      {{- range .Service.Volumes }}
+      - name: {{ .Name }}
+        path: {{ .Path }}
+        type: {{ .Type }}
+        {{- if .Size }}
+        size: {{ .Size }}
+        {{- end }}
+        modes: {{ .Modes }}
       {{- end }}
-      modes: {{ .Modes }}
-    {{- end }}
     {{- if .Service.HPA.MaxReplicas }}
     {{- with .Service.HPA }}
     hpa:
@@ -82,4 +82,4 @@ spec:
     {{- end }}
     {{- end }}
   valueFileSecrets:
-  - name: "{{ .Service.Name }}-values"
+    - name: "{{ .Service.Name }}-values"
