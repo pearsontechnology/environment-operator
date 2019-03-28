@@ -17,7 +17,7 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
 	v1beta2_apps "k8s.io/api/apps/v1beta2"
 	autoscale_v2beta1 "k8s.io/api/autoscaling/v2beta1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	v1beta1_ext "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -473,16 +473,100 @@ func (w *KubeMapper) container() (*v1.Container, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	liveness, err := w.livenessProbe()
+	if err != nil {
+		return nil, err
+	}
+
+	readiness, err := w.readinessProbe()
+	if err != nil {
+		return nil, err
+	}
+
 	retval = &v1.Container{
-		Name:         w.BiteService.Name,
-		Image:        "",
-		Env:          evars,
-		VolumeMounts: mounts,
-		Resources:    resources,
-		Command:      w.BiteService.Commands,
+		Name:           w.BiteService.Name,
+		Image:          "",
+		Env:            evars,
+		VolumeMounts:   mounts,
+		Resources:      resources,
+		Command:        w.BiteService.Commands,
+		LivenessProbe:  liveness,
+		ReadinessProbe: readiness,
 	}
 
 	return retval, nil
+}
+
+func convertProbeType(probe *bitesize.Probe) *v1.Probe {
+	var retval *v1.Probe
+
+	if probe != nil {
+
+		retval = &v1.Probe{
+			FailureThreshold:    probe.FailureThreshold,
+			InitialDelaySeconds: probe.InitialDelaySeconds,
+			SuccessThreshold:    probe.SuccessThreshold,
+			TimeoutSeconds:      probe.TimeoutSeconds,
+		}
+
+		if probe.HTTPGet != nil {
+			httpGet := &v1.HTTPGetAction{}
+
+			for _, v := range probe.HTTPGet.HTTPHeaders {
+				httpGet.HTTPHeaders = append(httpGet.HTTPHeaders, v1.HTTPHeader{
+					Name:  v.Name,
+					Value: v.Value,
+				})
+			}
+
+			httpGet.Host = probe.HTTPGet.Host
+			httpGet.Path = probe.HTTPGet.Path
+			httpGet.Port.IntVal = probe.HTTPGet.Port
+			httpGet.Scheme = probe.HTTPGet.Scheme
+
+			retval.Handler = v1.Handler{
+				HTTPGet: httpGet,
+			}
+		}
+
+		if probe.Exec != nil {
+			exec := &v1.ExecAction{}
+
+			exec.Command = probe.Exec.Command
+
+			retval.Handler = v1.Handler{
+				Exec: exec,
+			}
+		}
+
+		if probe.TCPSocket != nil {
+			socket := &v1.TCPSocketAction{}
+
+			socket.Host = probe.TCPSocket.Host
+			socket.Port.IntVal = probe.TCPSocket.Port
+
+			retval.Handler = v1.Handler{
+				TCPSocket: socket,
+			}
+		}
+	}
+
+	return retval
+}
+
+func (w *KubeMapper) livenessProbe() (*v1.Probe, error) {
+
+	probe := w.BiteService.LivenessProbe
+
+	return convertProbeType(probe), nil
+}
+
+func (w *KubeMapper) readinessProbe() (*v1.Probe, error) {
+
+	probe := w.BiteService.ReadinessProbe
+
+	return convertProbeType(probe), nil
 }
 
 func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
