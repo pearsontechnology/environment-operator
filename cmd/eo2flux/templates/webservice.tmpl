@@ -17,11 +17,19 @@ spec:
     replicaCount: {{ .Service.Replicas }}
     resources:
       limits:
+        {{- if .Service.Limits.CPU }}
         cpu: {{ .Service.Limits.CPU }}
+        {{- end }}
+        {{- if .Service.Limits.Memory }}
         memory: {{ .Service.Limits.Memory }}
+        {{- end }}
       requests:
+        {{- if .Service.Requests.CPU }}
         cpu: {{ .Service.Requests.CPU }}
+        {{- end }}
+        {{- if .Service.Requests.Memory }}
         memory: {{ .Service.Requests.Memory }}
+        {{- end }}
     annotations:
       {{- range $k, $v := .Service.Annotations }}
       {{ $k }}: {{ $v }}
