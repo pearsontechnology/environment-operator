@@ -12,7 +12,8 @@ environments:
      - path: "test/assets/k8s/application-v1.bitesize"
        version: 1.0.0
        type: configmap
-     - files:
+     - name: "application-v1"
+       Files:
           - "test/assets/k8s/application-v1.bitesize"
        type: configmap
   services:

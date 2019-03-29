@@ -8,7 +8,16 @@ import (
 	v1batch "k8s.io/api/batch/v1"
 	v1beta1 "k8s.io/api/batch/v1beta1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/yaml"
+	k8Yaml "k8s.io/apimachinery/pkg/util/yaml"
+)
+
+const (
+	// TypeConfigMap k8s configmap type
+	TypeConfigMap string = "configmap"
+	// TypeJob k8s job type
+	TypeJob string = "job"
+	// TypeCronJob k8s cronjob type
+	TypeCronJob string = "cronjob"
 )
 
 // Resource represent a resource
@@ -36,6 +45,7 @@ func (slice Imports) Len() int {
 	return len(slice)
 }
 
+// TODO: Implement better soring algorithm
 func (slice Imports) Less(i, j int) bool {
 	return slice[i].Name < slice[j].Name
 }
@@ -45,26 +55,25 @@ func (slice Imports) Swap(i, j int) {
 }
 
 // LoadResource loads named resource from a filename with a given path
-func LoadResource(res Resource, localPath string) (*Resource, error) {
-	t := &Resource{}
-
+func LoadResource(res *Resource, namespace, localPath string) error {
 	if len(res.Path) > 0 {
 		resPath := path.Join(localPath, res.Path)
 
 		file, err := os.Open(resPath)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		decoder := yaml.NewYAMLToJSONDecoder(file)
+
+		decoder := k8Yaml.NewYAMLOrJSONDecoder(file, 1000)
 
 		switch res.Type {
-		case "configmap":
+		case TypeConfigMap:
 			{
 
-				if err := decoder.Decode(&t.ConfigMap); err != nil {
-					return nil, err
+				if err := decoder.Decode(&res.ConfigMap); err != nil {
+					return err
 				}
-				labels := t.ConfigMap.GetLabels()
+				labels := res.ConfigMap.GetLabels()
 				if labels == nil {
 					labels = map[string]string{
 						"creator": "pipeline",
@@ -72,14 +81,16 @@ func LoadResource(res Resource, localPath string) (*Resource, error) {
 				} else {
 					labels["creator"] = "pipeline"
 				}
-				t.ConfigMap.SetLabels(labels)
+				res.ConfigMap.SetLabels(labels)
+				// override metadata namespace to current environment namespace
+				res.ConfigMap.SetNamespace(namespace)
 			}
-		case "job":
+		case TypeJob:
 			{
-				if err := decoder.Decode(&t.Job); err != nil {
-					return nil, err
+				if err := decoder.Decode(&res.Job); err != nil {
+					return err
 				}
-				labels := t.Job.GetLabels()
+				labels := res.Job.GetLabels()
 				if labels == nil {
 					labels = map[string]string{
 						"creator": "pipeline",
@@ -87,14 +98,16 @@ func LoadResource(res Resource, localPath string) (*Resource, error) {
 				} else {
 					labels["creator"] = "pipeline"
 				}
-				t.Job.SetLabels(labels)
+				res.Job.SetLabels(labels)
+				// override metadata namespace to current environment namespace
+				res.Job.SetNamespace(namespace)
 			}
-		case "cronjob":
+		case TypeCronJob:
 			{
-				if err := decoder.Decode(&t.CronJob); err != nil {
-					return nil, err
+				if err := decoder.Decode(&res.CronJob); err != nil {
+					return err
 				}
-				labels := t.CronJob.GetLabels()
+				labels := res.CronJob.GetLabels()
 				if labels == nil {
 					labels = map[string]string{
 						"creator": "pipeline",
@@ -102,15 +115,17 @@ func LoadResource(res Resource, localPath string) (*Resource, error) {
 				} else {
 					labels["creator"] = "pipeline"
 				}
-				t.CronJob.SetLabels(labels)
+				res.CronJob.SetLabels(labels)
+				// override metadata namespace to current environment namespace
+				res.CronJob.SetNamespace(namespace)
 			}
 		}
 	}
 
-	if len(t.Files) > 0 {
+	if len(res.Files) > 0 {
 		// set absolute paths
-		for k, v := range t.Files {
-			t.Files[k] = path.Join(localPath, v)
+		for k, v := range res.Files {
+			res.Files[k] = path.Join(localPath, v)
 		}
 		// if the configmap is to be generated from files
 		generator := util.ConfigMapGenerator{
@@ -120,19 +135,28 @@ func LoadResource(res Resource, localPath string) (*Resource, error) {
 		}
 		cfmap, err := generator.Generate()
 		if err != nil {
-			return nil, err
+			return err
 		}
-		t.ConfigMap = *cfmap
+		res.ConfigMap = *cfmap
 
-		labels := t.ConfigMap.GetLabels()
+		labels := res.ConfigMap.GetLabels()
 		labels["creator"] = "pipeline"
-		t.ConfigMap.SetLabels(labels)
+		res.ConfigMap.SetLabels(labels)
+		// override metadata namespace to current environment namespace
+		res.ConfigMap.SetNamespace(namespace)
 	}
 
-	return t, nil
+	return nil
 }
 
 // Find returns service with a name match
+// path is a UNC path relative to the configured repository root
+// rstype is the resource type of the imported resource
+//   available type are:
+//      - configmap
+//      - job
+//      - cronjob
+// if resource found returns the resource else returns nil
 func (slice Imports) Find(path string, rstype string) *Resource {
 	for _, s := range slice {
 		if s.Path == path && s.Type == rstype {
@@ -142,10 +166,16 @@ func (slice Imports) Find(path string, rstype string) *Resource {
 	return nil
 }
 
-// FindConfigMapByName returns service with a name match
-func (slice Imports) FindConfigMapByName(name string) *Resource {
+// FindByName returns configmap resource matched with name parameter
+// rstype is the resource type of the imported resource
+//   available type are:
+//      - configmap
+//      - job
+//      - cronjob
+// if resource found returns the resource else returns nil
+func (slice Imports) FindByName(name string, rstype string) *Resource {
 	for _, s := range slice {
-		if s.Type == "configmap" && s.ConfigMap.Name == name {
+		if s.Type == rstype && s.ConfigMap.Name == name {
 			return &s
 		}
 	}
