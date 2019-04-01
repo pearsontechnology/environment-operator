@@ -37,27 +37,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	for _, env := range environmentFile.Environments {
-		for _, svc := range env.Services {
-
-			if svc.Type == "" { // EO uses nil type for web apps
-				svc.Type = "webservice"
-			}
-
-			outputFileName := fmt.Sprintf("%s/%s-%s.yaml",
-				opts.OutputDir, env.Namespace, svc.Name)
-
-			log.Printf("Writing %s\n", outputFileName)
-			f, err := os.Create(outputFileName)
-			if err != nil {
-				panic(err)
-			}
-			s, err := flux.RenderHelmRelease(env, svc, opts.RegistryPath)
-			if err != nil {
-				panic(err)
-			}
-			f.WriteString(s)
-			defer f.Close()
+	x := flux.RenderHelmReleases(environmentFile, opts.RegistryPath)
+	for filename, helmrelease := range x {
+		outputFileName := fmt.Sprintf("%s/%s.yaml", opts.OutputDir, filename)
+		log.Printf("Writing %s\n", outputFileName)
+		f, err := os.Create(outputFileName)
+		if err != nil {
+			panic(err)
 		}
+		f.WriteString(helmrelease)
+		defer f.Close()
 	}
 }
