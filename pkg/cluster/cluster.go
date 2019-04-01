@@ -49,7 +49,6 @@ func (cluster *Cluster) ApplyIfChanged(newConfig *bitesize.Environment) error {
 		log.Errorf("Error while loading environment: %s", err.Error())
 		return err
 	}
-
 	if diff.Compare(*newConfig, *currentConfig) {
 		err = cluster.ApplyEnvironment(currentConfig, newConfig)
 	}
@@ -63,92 +62,98 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 	var err error
 
 	for _, service := range newEnvironment.Services {
-
-		mapper := &translator.KubeMapper{
-			BiteService: &service,
-			Namespace:   newEnvironment.Namespace,
-		}
-
-		client := &k8s.Client{
-			Interface: cluster.Interface,
-			Namespace: newEnvironment.Namespace,
-			CRDClient: cluster.CRDClient,
-		}
-
-		if !shouldDeploy(currentEnvironment, newEnvironment, service.Name) {
+		if !shouldDeployOnChange(currentEnvironment, newEnvironment, service.Name) {
 			continue
 		}
+		err = cluster.ApplyService(&service, newEnvironment.Namespace)
+	}
+	return err
+}
 
-		if service.Type == "" {
+// ApplyService applies a single service to the namespace
+func (cluster *Cluster) ApplyService(service *bitesize.Service, namespace string) error {
+	var err error
+	mapper := &translator.KubeMapper{
+		BiteService: service,
+		Namespace:   namespace,
+	}
 
-			if service.DatabaseType == "mongo" {
-				log.Debugf("Applying Stateful set for Mongo DB Service: %s ", service.Name)
+	client := &k8s.Client{
+		Interface: cluster.Interface,
+		Namespace: namespace,
+		CRDClient: cluster.CRDClient,
+	}
 
-				secret, _ := mapper.MongoInternalSecret()
+	if service.Type == "" {
 
-				//Only apply the secret if it doesnt exist. Changing this secret would cause a deployed mongo
-				//cluster from being able to communicate between replicas.  Need a way to update this secret
-				// and redploy the mongo statefulset. For now, just protect against changing the secret
-				// via environment operator
-				if !client.Secret().Exists(secret.Name) {
-					if err = client.Secret().Apply(secret); err != nil {
-						log.Error(err)
-					}
-				}
+		if service.DatabaseType == "mongo" {
+			log.Debugf("Applying Stateful set for Mongo DB Service: %s", service.Name)
 
-				statefulset, _ := mapper.MongoStatefulSet()
-				if err = client.StatefulSet().Apply(statefulset); err != nil {
-					log.Error(err)
-				}
+			secret, _ := mapper.MongoInternalSecret()
 
-				svc, _ := mapper.HeadlessService()
-				if err = client.Service().Apply(svc); err != nil {
-					log.Error(err)
-				}
-
-			} else { //Only apply a Deployment and PVCs if this is not a DB service. The DB Statefulset creates its own PVCs
-				log.Debugf("Applying Deployment for Service %s ", service.Name)
-				deployment, err := mapper.Deployment()
-				if err != nil {
-					log.Error(err)
-					continue
-				}
-				if err = client.Deployment().Apply(deployment); err != nil {
-					log.Error(err)
-				}
-
-				pvc, _ := mapper.PersistentVolumeClaims()
-				for _, claim := range pvc {
-					if err = client.PVC().Apply(&claim); err != nil {
-						log.Error(err)
-					}
-				}
-
-				svc, _ := mapper.Service()
-				if err = client.Service().Apply(svc); err != nil {
+			//Only apply the secret if it doesnt exist. Changing this secret would cause a deployed mongo
+			//cluster from being able to communicate between replicas.  Need a way to update this secret
+			// and redploy the mongo statefulset. For now, just protect against changing the secret
+			// via environment operator
+			if !client.Secret().Exists(secret.Name) {
+				if err = client.Secret().Apply(secret); err != nil {
 					log.Error(err)
 				}
 			}
 
-			hpa, _ := mapper.HPA()
-			if err = client.HorizontalPodAutoscaler().Apply(&hpa); err != nil {
+			statefulset, _ := mapper.MongoStatefulSet()
+			if err = client.StatefulSet().Apply(statefulset); err != nil {
 				log.Error(err)
 			}
 
-			if service.HasExternalURL() {
-				ingress, _ := mapper.Ingress()
-				if err = client.Ingress().Apply(ingress); err != nil {
+			svc, _ := mapper.HeadlessService()
+			if err = client.Service().Apply(svc); err != nil {
+				log.Error(err)
+			}
+
+		} else { //Only apply a Deployment and PVCs if this is not a DB service. The DB Statefulset creates its own PVCs
+			log.Debugf("Applying Deployment for Service %s", service.Name)
+			deployment, err := mapper.Deployment()
+			if err != nil {
+				log.Error(err)
+				return err
+			}
+			if err = client.Deployment().Apply(deployment); err != nil {
+				log.Error(err)
+			}
+
+			pvc, _ := mapper.PersistentVolumeClaims()
+			for _, claim := range pvc {
+				if err = client.PVC().Apply(&claim); err != nil {
 					log.Error(err)
 				}
 			}
 
+			svc, _ := mapper.Service()
+			if err = client.Service().Apply(svc); err != nil {
+				log.Error(err)
+				log.Debugf("Service +%v", svc)
+			}
+		}
+
+		hpa, _ := mapper.HPA()
+		if err = client.HorizontalPodAutoscaler().Apply(hpa); err != nil {
+			log.Error(err)
+		}
+
+		if service.HasExternalURL() {
+			ingress, _ := mapper.Ingress()
+			if err = client.Ingress().Apply(ingress); err != nil {
+				log.Error(err)
+			}
+		}
+
+	} else {
+		crd, _ := mapper.CustomResourceDefinition()
+		if err = client.CustomResourceDefinition(crd.Kind).Apply(crd); err != nil {
+			log.Error(err)
 		} else {
-			crd, _ := mapper.CustomResourceDefinition()
-			if err = client.CustomResourceDefinition(crd.Kind).Apply(crd); err != nil {
-				log.Error(err)
-			} else {
-				log.Infof("Successfully updated CRD resource: %s", crd.Name)
-			}
+			log.Infof("Successfully updated CRD resource: %s", crd.Name)
 		}
 	}
 	return err
@@ -268,14 +273,29 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 }
 
 //Only deploy k8s resources when the environment was actually deployed and changed or if the service has specified a version
-func shouldDeploy(currentEnvironment, newEnvironment *bitesize.Environment, serviceName string) bool {
+func shouldDeployOnChange(currentEnvironment, newEnvironment *bitesize.Environment, serviceName string) bool {
+	if !diff.ServiceChanged(serviceName) {
+		return false
+	}
+
 	currentService := currentEnvironment.Services.FindByName(serviceName)
 	updatedService := newEnvironment.Services.FindByName(serviceName)
 
-	if (currentService != nil && currentService.Status.DeployedAt != "") || (updatedService != nil && updatedService.Version != "") {
-		if diff.ServiceChanged(serviceName) {
-			return true
-		}
+	if updatedService == nil {
+		return true
+	}
+
+	if updatedService.IsBlueGreenParentDeployment() {
+		log.Debugf("Should deploy blue/green service %s", serviceName)
+		return true
+	}
+
+	if currentService != nil && currentService.Status.DeployedAt != "" {
+		return true
+	}
+
+	if updatedService.Version != "" {
+		return true
 	}
 	return false
 }

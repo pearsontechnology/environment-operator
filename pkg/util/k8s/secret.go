@@ -2,7 +2,7 @@ package k8s
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -40,6 +40,9 @@ func (client *Secret) Exists(secretname string) bool {
 
 // Apply updates or creates secrets in k8s
 func (client *Secret) Apply(resource *v1.Secret) error {
+	if resource == nil {
+		return nil
+	}
 	if client.Exists(resource.Name) {
 		return client.Update(resource)
 	}
@@ -48,6 +51,9 @@ func (client *Secret) Apply(resource *v1.Secret) error {
 
 // Create creates new secret in k8s
 func (client *Secret) Create(resource *v1.Secret) error {
+	if resource == nil {
+		return nil
+	}
 	_, err := client.
 		Core().
 		Secrets(client.Namespace).
@@ -57,6 +63,9 @@ func (client *Secret) Create(resource *v1.Secret) error {
 
 // Update updates existing secrets in k8s
 func (client *Secret) Update(resource *v1.Secret) error {
+	if resource == nil {
+		return nil
+	}
 	current, err := client.Get(resource.Name)
 	if err != nil {
 		return err

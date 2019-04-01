@@ -32,6 +32,7 @@ type Config struct {
 	LimitMaxMemory     int    `envconfig:"LIMITS_MAX_MEMORY" default:"8192"`       //8Gib
 	LimitDefaultCPU    string `envconfig:"LIMITS_DEFAULT_CPU" default:"1000m"`     //1 Core
 	LimitDefaultMemory string `envconfig:"LIMITS_DEFAULT_MEMORY" default:"2048Mi"` //2Gib
+	RequestsDefaultCPU string `envconfig:"REQUESTS_DEFAULT_CPU" default:"100m"`
 
 	TokenFile string `envconfig:"AUTH_TOKEN_FILE"`
 

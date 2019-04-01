@@ -36,6 +36,10 @@ type KubeMapper struct {
 
 // Service extracts Kubernetes object from Bitesize definition
 func (w *KubeMapper) Service() (*v1.Service, error) {
+	targetServiceName := w.BiteService.Name
+	if w.BiteService.IsBlueGreenParentDeployment() {
+		targetServiceName = w.BiteService.ActiveDeploymentName()
+	}
 	var ports []v1.ServicePort
 	for _, p := range w.BiteService.Ports {
 		servicePort := v1.ServicePort{
@@ -47,19 +51,16 @@ func (w *KubeMapper) Service() (*v1.Service, error) {
 	}
 	retval := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      w.BiteService.Name,
-			Namespace: w.Namespace,
-			Labels: map[string]string{
-				"creator":     "pipeline",
-				"name":        w.BiteService.Name,
-				"application": w.BiteService.Application,
-			},
+			Name:        w.BiteService.Name,
+			Namespace:   w.Namespace,
+			Labels:      w.labels(),
+			Annotations: w.annotations(),
 		},
 		Spec: v1.ServiceSpec{
 			Ports: ports,
 			Selector: map[string]string{
 				"creator": "pipeline",
-				"name":    w.BiteService.Name,
+				"name":    targetServiceName,
 			},
 		},
 	}
@@ -68,6 +69,11 @@ func (w *KubeMapper) Service() (*v1.Service, error) {
 
 // HeadlessService extracts Kubernetes Headless Service object (No ClusterIP) from Bitesize definition
 func (w *KubeMapper) HeadlessService() (*v1.Service, error) {
+	targetServiceName := w.BiteService.Name
+	if w.BiteService.IsBlueGreenParentDeployment() {
+		targetServiceName = w.BiteService.ActiveDeploymentName()
+	}
+
 	var ports []v1.ServicePort
 	//Need to update this to have an option to create the headless service (no loadbalancing with Cluster IP not getting set)
 	for _, p := range w.BiteService.Ports {
@@ -87,12 +93,13 @@ func (w *KubeMapper) HeadlessService() (*v1.Service, error) {
 				"name":        w.BiteService.Name,
 				"application": w.BiteService.Application,
 			},
+			Annotations: w.annotations(),
 		},
 		Spec: v1.ServiceSpec{
 			Ports: ports,
 			Selector: map[string]string{
 				"creator": "pipeline",
-				"name":    w.BiteService.Name,
+				"name":    targetServiceName,
 			},
 			ClusterIP: v1.ClusterIPNone,
 		},
@@ -311,6 +318,9 @@ func (w *KubeMapper) MongoStatefulSet() (*v1beta2_apps.StatefulSet, error) {
 
 // Deployment extracts Kubernetes object from Bitesize definition
 func (w *KubeMapper) Deployment() (*v1beta1_ext.Deployment, error) {
+	if w.BiteService.IsBlueGreenParentDeployment() {
+		return nil, nil
+	}
 	replicas := int32(w.BiteService.Replicas)
 	container, err := w.container()
 	if err != nil {
@@ -389,17 +399,15 @@ func (w *KubeMapper) imagePullSecrets() ([]v1.LocalObjectReference, error) {
 }
 
 // HPA extracts Kubernetes object from Bitesize definition
-func (w *KubeMapper) HPA() (autoscale_v2beta1.HorizontalPodAutoscaler, error) {
-	retval := autoscale_v2beta1.HorizontalPodAutoscaler{
+func (w *KubeMapper) HPA() (*autoscale_v2beta1.HorizontalPodAutoscaler, error) {
+	if w.BiteService.IsBlueGreenParentDeployment() {
+		return nil, nil
+	}
+	retval := &autoscale_v2beta1.HorizontalPodAutoscaler{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      w.BiteService.Name,
 			Namespace: w.Namespace,
-			Labels: map[string]string{
-				"creator":     "pipeline",
-				"name":        w.BiteService.Name,
-				"application": w.BiteService.Application,
-				"version":     w.BiteService.Version,
-			},
+			Labels:    w.labels(),
 		},
 		Spec: autoscale_v2beta1.HorizontalPodAutoscalerSpec{
 			ScaleTargetRef: autoscale_v2beta1.CrossVersionObjectReference{
@@ -624,11 +632,23 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 		}
 		retval = append(retval, evar)
 	}
+
+	if w.BiteService.IsBlueGreenChildDeployment() {
+		evar := v1.EnvVar{
+			Name:  "POD_DEPLOYMENT_COLOUR",
+			Value: w.BiteService.Deployment.BlueGreen.DeploymentColour.String(),
+		}
+		retval = append(retval, evar)
+	}
 	return retval, err
 }
 
 func (w *KubeMapper) volumeMounts() ([]v1.VolumeMount, error) {
 	var retval []v1.VolumeMount
+
+	if w.BiteService.IsBlueGreenParentDeployment() {
+		return retval, nil
+	}
 
 	for _, v := range w.BiteService.Volumes {
 		if v.Name == "" || v.Path == "" {
@@ -780,47 +800,45 @@ func getAccessModesFromString(modes string) []v1.PersistentVolumeAccessMode {
 
 func (w *KubeMapper) resources() (v1.ResourceRequirements, error) {
 	//Environment Operator allows for Guaranteed and Burstable QoS Classes as limits are always assigned to containers
-	cpuRequest, memoryRequestError := resource.ParseQuantity(w.BiteService.Requests.CPU)
-	memoryRequest, cpuRequestError := resource.ParseQuantity(w.BiteService.Requests.Memory)
-	cpuLimit, _ := resource.ParseQuantity(w.BiteService.Limits.CPU)
-	memoryLimit, _ := resource.ParseQuantity(w.BiteService.Limits.Memory)
+	requests := v1.ResourceList{}
+	limits := v1.ResourceList{}
 
-	if cpuRequestError != nil && memoryRequestError != nil { //If no CPU or Memory Request provided, default to limits for Guaranteed QoS
-		return v1.ResourceRequirements{
-			Limits: v1.ResourceList{
-				"cpu":    cpuLimit,
-				"memory": memoryLimit,
-			},
-		}, nil
-	} else if cpuRequestError != nil && memoryRequestError == nil {
-		return v1.ResourceRequirements{
-			Requests: v1.ResourceList{
-				"memory": memoryRequest,
-			},
-			Limits: v1.ResourceList{
-				"cpu":    cpuLimit,
-				"memory": memoryLimit,
-			},
-		}, nil
-	} else if cpuRequestError == nil && memoryRequestError != nil {
-		return v1.ResourceRequirements{
-			Requests: v1.ResourceList{
-				"cpu": cpuRequest,
-			},
-			Limits: v1.ResourceList{
-				"cpu":    cpuLimit,
-				"memory": memoryLimit,
-			},
-		}, nil
+	if quantity, err := resource.ParseQuantity(w.BiteService.Limits.CPU); err == nil {
+		limits["cpu"] = quantity
 	}
+
+	if quantity, err := resource.ParseQuantity(w.BiteService.Limits.Memory); err == nil {
+		limits["memory"] = quantity
+	}
+
+	if quantity, err := resource.ParseQuantity(w.BiteService.Requests.CPU); err == nil {
+		requests["cpu"] = quantity
+	}
+
+	if quantity, err := resource.ParseQuantity(w.BiteService.Requests.Memory); err == nil {
+		requests["memory"] = quantity
+	}
+
 	return v1.ResourceRequirements{
-		Requests: v1.ResourceList{
-			"cpu":    cpuRequest,
-			"memory": memoryRequest,
-		},
-		Limits: v1.ResourceList{
-			"cpu":    cpuLimit,
-			"memory": memoryLimit,
-		},
+		Limits:   limits,
+		Requests: requests,
 	}, nil
+}
+
+func (w *KubeMapper) annotations() map[string]string {
+	retval := map[string]string{}
+	retval["deployment_method"] = w.BiteService.DeploymentMethod()
+	if w.BiteService.IsBlueGreenParentDeployment() {
+		retval["deployment_active"] = w.BiteService.ActiveDeploymentTag().String()
+	}
+	return retval
+}
+
+func (w *KubeMapper) labels() map[string]string {
+	return map[string]string{
+		"creator":     "pipeline",
+		"application": w.BiteService.Application,
+		"name":        w.BiteService.Name,
+		"version":     w.BiteService.Version,
+	}
 }
