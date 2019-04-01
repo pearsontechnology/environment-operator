@@ -4,8 +4,8 @@ kind: HelmRelease
 metadata:
   name: {{ .Environment.Namespace }}-{{ .Service.Name }}
   namespace: {{ .Environment.Namespace }}
- annotations:
-   flux.weave.works/automated: "false"
+  annotations:
+    flux.weave.works/automated: "false"
 spec:
   chart:
     repository: github.com/pearsontechnology/onestack

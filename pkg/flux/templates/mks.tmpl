@@ -9,13 +9,7 @@ metadata:
 spec:
   chart:
     repository: github.com/pearsontechnology/onestack
-    path: charts/mysql
+    path: charts/mks
     ref: master
-  {{- with .Service.Options }}
   values:
-    version: {{ .version }}
-    replicas: {{ .replicas }}
-    multiaz: {{ .multiaz }}
-    dbinstanceclass: {{ .dbinstanceclass }}
-    allocatedstorage: {{ .allocatedstorage }}
-  {{- end }}
+    instance_type: {{ .Service.Options.instance_type }}

@@ -4,9 +4,9 @@ kind: HelmRelease
 metadata:
   name: {{ .Environment.Namespace }}-{{ .Service.Name }}
   namespace: {{ .Environment.Namespace }}
- annotations:
-   flux.weave.works/automated: "true"
-   flux.weave.works/tag.chart-image: glob:{{ .Environment.Namespace }}-*
+  annotations:
+    flux.weave.works/automated: "true"
+    flux.weave.works/tag.chart-image: glob:{{ .Environment.Namespace }}-*
 spec:
   chart:
     git: git@github.com:pearsontechnology/onestack
