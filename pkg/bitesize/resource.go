@@ -22,7 +22,7 @@ const (
 
 // Resource represent a resource
 type Resource struct {
-	Name       string          `yaml:"name,omitempty"`
+	Name       string          `yaml:"name"`
 	Path       string          `yaml:"path,omitempty"`
 	Files      []string        `yaml:"files,omitempty"`
 	AppendHash bool            `yaml:"append_hash"`
@@ -82,6 +82,7 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 					labels["creator"] = "pipeline"
 				}
 				res.ConfigMap.SetLabels(labels)
+				res.ConfigMap.SetName(res.Name)
 				// override metadata namespace to current environment namespace
 				res.ConfigMap.SetNamespace(namespace)
 			}
@@ -99,6 +100,7 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 					labels["creator"] = "pipeline"
 				}
 				res.Job.SetLabels(labels)
+				res.ConfigMap.SetName(res.Name)
 				// override metadata namespace to current environment namespace
 				res.Job.SetNamespace(namespace)
 			}
@@ -116,6 +118,7 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 					labels["creator"] = "pipeline"
 				}
 				res.CronJob.SetLabels(labels)
+				res.ConfigMap.SetName(res.Name)
 				// override metadata namespace to current environment namespace
 				res.CronJob.SetNamespace(namespace)
 			}
@@ -175,7 +178,7 @@ func (slice Imports) Find(path string, rstype string) *Resource {
 // if resource found returns the resource else returns nil
 func (slice Imports) FindByName(name string, rstype string) *Resource {
 	for _, s := range slice {
-		if s.Type == rstype && s.ConfigMap.Name == name {
+		if s.Type == rstype && s.Name == name {
 			return &s
 		}
 	}

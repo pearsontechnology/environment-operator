@@ -20,7 +20,7 @@ func (m ResourceMap) AddConfigMap(res v1.ConfigMap) *bitesize.Resource {
 	if m[path] == nil {
 		m[path] = &bitesize.Resource{
 			Path:      path,
-			Type:      "configmap",
+			Type:      bitesize.TypeConfigMap,
 			ConfigMap: res,
 		}
 	}
@@ -34,7 +34,7 @@ func (m ResourceMap) AddJob(res v1batch.Job) *bitesize.Resource {
 	if m[path] == nil {
 		m[path] = &bitesize.Resource{
 			Path: path,
-			Type: "job",
+			Type: bitesize.TypeJob,
 			Job:  res,
 		}
 	}
@@ -48,7 +48,7 @@ func (m ResourceMap) AddCronJob(res v1beta1.CronJob) *bitesize.Resource {
 	if m[path] == nil {
 		m[path] = &bitesize.Resource{
 			Path:    path,
-			Type:    "cronjob",
+			Type:    bitesize.TypeCronJob,
 			CronJob: res,
 		}
 	}

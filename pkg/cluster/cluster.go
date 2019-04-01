@@ -67,6 +67,7 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 		mapper := &translator.KubeMapper{
 			BiteService: &service,
 			Namespace:   newEnvironment.Namespace,
+			Imports:     &newEnvironment.Imports,
 		}
 
 		client := &k8s.Client{
@@ -80,21 +81,31 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 		}
 
 		if service.Type == "" {
+			log.Debugf("Applying persistent volume claims for Service %s ", service.Name)
+			pvc, _ := mapper.PersistentVolumeClaims()
+			for _, claim := range pvc {
+				if err = client.PVC().Apply(&claim); err != nil {
+					log.Error(err)
+				}
+			}
+
+			log.Debugf("Applying configmaps for Service %s ", service.Name)
+			cMaps, _ := mapper.ConfigMaps()
+			for _, c := range cMaps {
+				if err = client.ConfigMap().Apply(c); err != nil {
+					log.Error(err)
+				}
+			}
+
 			log.Debugf("Applying Deployment for Service %s ", service.Name)
 			deployment, err := mapper.Deployment()
 			if err != nil {
 				log.Error(err)
 				continue
 			}
+
 			if err = client.Deployment().Apply(deployment); err != nil {
 				log.Error(err)
-			}
-
-			pvc, _ := mapper.PersistentVolumeClaims()
-			for _, claim := range pvc {
-				if err = client.PVC().Apply(&claim); err != nil {
-					log.Error(err)
-				}
 			}
 
 			svc, _ := mapper.Service()

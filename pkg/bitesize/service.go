@@ -42,7 +42,6 @@ type Service struct {
 	DatabaseType    string                  `yaml:"database_type,omitempty" validate:"regexp=^(mongo)*$"`
 	GracePeriod     *int64                  `yaml:"graceperiod,omitempty"`
 	ResourceVersion string                  `yaml:"resourceVersion,omitempty"`
-	// XXX          map[string]interface{} `yaml:",inline"`
 }
 
 // ServiceStatus stores service deployment information

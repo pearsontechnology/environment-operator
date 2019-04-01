@@ -84,18 +84,15 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 
 	for _, vol := range deployment.Spec.Template.Spec.Volumes {
 		if vol.ConfigMap != nil {
-			res := environment.Imports.FindConfigMapByName(vol.ConfigMap.Name)
-			if res != nil {
-				config, err := bitesize.LoadResource(res)
+			c := environment.Imports.FindByName(vol.ConfigMap.Name, bitesize.TypeConfigMap)
+			if c != nil {
 				if err != nil {
-					log.Errorf("Error getting import %s: %s", d.Name, err.Error())
-					http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
-					return
+					log.Errorf("No matching resource found for %s: %s", d.Name, err.Error())
 				}
-				if err = client.ConfigMap().Apply(&config.ConfigMap); err != nil {
-					log.Errorf("Error updating imported configmap %s: %s", d.Name, err.Error())
+				if err = client.ConfigMap().Apply(&c.ConfigMap); err != nil {
+					log.Errorf("Error updating imported configmap resource %s: %s", d.Name, err.Error())
 					http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
-					metrics.Deploys.With(prometheus.Labels{"status": "failed"}).Inc()
+					metrics.ConfigMapDeploys.With(prometheus.Labels{"status": "failed"}).Inc()
 				}
 			}
 		}

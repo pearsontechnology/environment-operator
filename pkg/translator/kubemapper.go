@@ -23,6 +23,7 @@ import (
 // KubeMapper maps BitesizeService object to Kubernetes objects
 type KubeMapper struct {
 	BiteService *bitesize.Service
+	Imports     *bitesize.Imports
 	Namespace   string
 	Config      struct {
 		Project        string
@@ -92,6 +93,22 @@ func (w *KubeMapper) HeadlessService() (*v1.Service, error) {
 			},
 			ClusterIP: v1.ClusterIPNone,
 		},
+	}
+	return retval, nil
+}
+
+// ConfigMaps returns a list of configmaps defined in the service
+// definition
+func (w *KubeMapper) ConfigMaps() ([]*v1.ConfigMap, error) {
+	var retval []*v1.ConfigMap
+
+	for _, vol := range w.BiteService.Volumes {
+		if vol.IsConfigMapVolume() {
+			c := w.Imports.FindByName(vol.Name, bitesize.TypeConfigMap)
+			if c != nil {
+				retval = append(retval, &c.ConfigMap)
+			}
+		}
 	}
 	return retval, nil
 }
