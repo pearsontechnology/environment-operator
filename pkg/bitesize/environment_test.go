@@ -58,3 +58,14 @@ func TestEnvironmentSortInterface(t *testing.T) {
 		t.Errorf("Environment sort invalid, got %v", e)
 	}
 }
+
+func TestEnvironmentBlueGreenLoading(t *testing.T) {
+	e, err := LoadEnvironment("../../test/assets/environments.bitesize", "environment11")
+	if err != nil {
+		t.Errorf("Unexpected error when loading environment: %s", err.Error())
+	}
+
+	if len(e.Services) != 3 {
+		t.Errorf("Unexpected environment count: expected 3, got %d", len(e.Services))
+	}
+}

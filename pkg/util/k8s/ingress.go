@@ -28,6 +28,9 @@ func (client *Ingress) Exist(name string) bool {
 
 // Apply updates or creates ingress in k8s
 func (client *Ingress) Apply(resource *v1beta1.Ingress) error {
+	if resource == nil {
+		return nil
+	}
 	if client.Exist(resource.Name) {
 		return client.Update(resource)
 	}
@@ -37,6 +40,9 @@ func (client *Ingress) Apply(resource *v1beta1.Ingress) error {
 
 // Update updates existing ingress in k8s
 func (client *Ingress) Update(resource *v1beta1.Ingress) error {
+	if resource == nil {
+		return nil
+	}
 	current, err := client.Get(resource.Name)
 	if err != nil {
 		return err
@@ -52,6 +58,9 @@ func (client *Ingress) Update(resource *v1beta1.Ingress) error {
 
 // Create creates new ingress in k8s
 func (client *Ingress) Create(resource *v1beta1.Ingress) error {
+	if resource == nil {
+		return nil
+	}
 	_, err := client.
 		Extensions().
 		Ingresses(client.Namespace).

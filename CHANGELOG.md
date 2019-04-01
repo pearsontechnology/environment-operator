@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[0.0.28] 2019-04-01 [RELEASED]**
+ #### Added
+  * Added Blue/Green deployment Support [BITE-4946](https://agile-jira.pearson.com/browse/BITE-4946)
+
 ### **[0.0.27] 2019-03-27 [RELEASED]**
  #### Added
   * Added liveness and readiness Support [BITE-4993](https://agile-jira.pearson.com/browse/BITE-4993)
