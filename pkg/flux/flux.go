@@ -38,29 +38,11 @@ func RenderHelmReleases(envs *bitesize.EnvironmentsBitesize, regPath string) map
 
 // RenderHelmRelease creates a Weaveworks Flux-compatible "HelmRelease" file
 func RenderHelmRelease(env bitesize.Environment, svc bitesize.Service, registryPath string) (string, error) {
-	templateFile := ""
-	switch svc.Type {
-	case "webservice":
-		templateFile = "webservice.tmpl"
-	case "Cb":
-		templateFile = "couchbase.tmpl"
-	case "Kafka":
-		templateFile = "kafka.tmpl"
-	case "Zookeeper":
-		templateFile = "zookeeper.tmpl"
-	case "postgres":
-		templateFile = "postgres.tmpl"
-	case "mysql":
-		templateFile = "mysql.tmpl"
-	case "Neptune":
-		templateFile = "neptune.tmpl"
-	default:
-		return "", fmt.Errorf("Couldn't determine template file for type \"%s\"", svc.Type)
-	}
+	templateFile := fmt.Sprintf("%s.tmpl", svc.Type)
 
 	templateText, err := box.FindString(templateFile)
 	if err != nil {
-		return "", fmt.Errorf("No template available for type \"%s\"", err.Error())
+		return "", fmt.Errorf("No template available for type \"%s\": %s", svc.Type, err.Error())
 	}
 
 	t := template.New("T")

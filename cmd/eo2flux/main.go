@@ -37,9 +37,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	x := flux.RenderHelmReleases(environmentFile, opts.RegistryPath)
-	for filename, helmrelease := range x {
-		outputFileName := fmt.Sprintf("%s/%s.yaml", opts.OutputDir, filename)
+
+	// retrieve dict of name: HelmRelease string
+	helmReleases := flux.RenderHelmReleases(environmentFile, opts.RegistryPath)
+
+	// write each HelmRelease to file
+	for envSvcName, helmrelease := range helmReleases {
+		outputFileName := fmt.Sprintf("%s/%s.yaml", opts.OutputDir, envSvcName)
 		log.Printf("Writing %s\n", outputFileName)
 		f, err := os.Create(outputFileName)
 		if err != nil {
