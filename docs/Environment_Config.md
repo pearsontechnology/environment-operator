@@ -39,7 +39,9 @@ environments:
         hpa:
           min_replicas: 2
           max_replicas: 5
-          target_cpu_utilization_percentage: 75
+	  metric:
+	    name: cpu
+            target_average_utilization: 75
       - name: docs-app-back
         port: 80
         replicas: 2
@@ -187,7 +189,9 @@ The environment section of the manifest may specify multiple environments to man
             hpa:
                min_replicas: 2
                max_replicas: 5
-               target_cpu_utilization_percentage: 75
+	       metric:
+	         name: cpu
+                 target_average_utilization: 75
     ```
     - **limits**:  This is how you specify [limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#resource-requests-and-limits-of-pod-and-container) for you service.  If you choose not to specify a limit for your service, the containers that are created will utilize the default limit configuration (1000m CPU/2048MiB Memory) specified by environment operator. This value may be changed within environment operators configuration (pkg>config>config.go). In the example below, the hpaservice pod will be restricted to 500m (.5 CPU core) CPU / 100MiB Memory and will be given Guaranteed QoS.  Since no requests were specified, kubernetees will set the requests equal to the limits. Note: The acceptable unit for CPU in the manifest is "m" and for Memory, "Mi" is supported.  For information on what these units mean, please review the [kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#meaning-of-cpu).
     ```
