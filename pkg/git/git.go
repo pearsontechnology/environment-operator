@@ -93,7 +93,7 @@ func EnvGitClient(repo string, branch string, namespace string, env string) (*Gi
 		if err != nil {
 			return nil, fmt.Errorf("could not init local repository %s: %s", localPath, err.Error())
 		}
-		_, err = repository.CreateRemote(&gitconfig.RemoteConfig{
+		remote, err = repository.CreateRemote(&gitconfig.RemoteConfig{
 			Name: "origin",
 			URLs: []string{repo},
 		})

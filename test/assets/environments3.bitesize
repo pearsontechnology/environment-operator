@@ -28,7 +28,7 @@ environments:
 - name: environment2
   namespace: environment-dev
   imports_repository:
-    remote: "../../"
+    remote: "./"
     branch: master
   imports:
      - name: "application-v1"
