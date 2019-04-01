@@ -44,7 +44,7 @@ type Service struct {
 	ResourceVersion string                  `yaml:"resourceVersion,omitempty"`
 }
 
-// ServiceStatus stores service deployment information
+// ServiceStatus represents cluster service's status metrics
 type ServiceStatus struct {
 	DeployedAt        string
 	AvailableReplicas int
@@ -64,6 +64,11 @@ func ServiceWithDefaults() *Service {
 			Memory: config.Env.LimitDefaultMemory,
 			CPU:    config.Env.LimitDefaultCPU,
 		},
+		Requests: ContainerRequests{
+			CPU: config.Env.RequestsDefaultCPU,
+		},
+		Deployment:  &DeploymentSettings{},
+		ExternalURL: []string{},
 	}
 }
 
@@ -114,6 +119,10 @@ func (e *Service) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		e.Replicas = int(e.HPA.MinReplicas)
 	}
 
+	if e.HPA.MinReplicas != 0 && e.HPA.Metric.Name == "" {
+		e.HPA.Metric = Metric{Name: "cpu", TargetAverageUtilization: int32(80)}
+	}
+
 	if err = validator.Validate(e); err != nil {
 		return fmt.Errorf("service.%s", err.Error())
 	}
@@ -124,6 +133,78 @@ func (e *Service) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // HasExternalURL checks if the service has an external_url defined
 func (e Service) HasExternalURL() bool {
 	return len(e.ExternalURL) != 0
+}
+
+// IsBlueGreenParentDeployment verifies if deployment method set for the service
+// is bluegreen
+func (e Service) IsBlueGreenParentDeployment() bool {
+	if e.Deployment == nil {
+		return false
+	}
+	return e.DeploymentMethod() == "bluegreen"
+}
+
+// IsBlueGreenChildDeployment returns true if this service is a child of main bluegreen service
+func (e Service) IsBlueGreenChildDeployment() bool {
+	if e.Deployment == nil || e.Deployment.BlueGreen == nil {
+		return false
+	}
+	if e.Deployment.BlueGreen.DeploymentColour != nil {
+		return true
+	}
+	return false
+}
+
+// DeploymentMethod returns deployment method for service. rolling-upgrade or bluegreen
+func (e Service) DeploymentMethod() string {
+	if e.Deployment == nil {
+		return "rolling-upgrade"
+	}
+	return e.Deployment.Method
+}
+
+// InactiveDeploymentTag returns inactive deployment in bluegreen set
+func (e Service) InactiveDeploymentTag() BlueGreenServiceSet {
+	if e.Deployment == nil || e.Deployment.BlueGreen == nil {
+		return BlueService
+	}
+	if *e.Deployment.BlueGreen.Active == BlueService {
+		return GreenService
+	}
+	return BlueService
+}
+
+// ActiveDeploymentName returns a fully formatted name for active bluegreen deployment
+func (e Service) ActiveDeploymentName() string {
+	if !e.IsBlueGreenParentDeployment() {
+		return e.Name
+	}
+	return fmt.Sprintf("%s-%s", e.Name, e.ActiveDeploymentTag().String())
+}
+
+// InactiveDeploymentName returns a fully formatted name for the inactive bluegreen deployment
+func (e Service) InactiveDeploymentName() string {
+	if !e.IsBlueGreenParentDeployment() {
+		return ""
+	}
+	return fmt.Sprintf("%s-%s", e.Name, e.InactiveDeploymentTag().String())
+}
+
+// IsActiveBlueGreenDeployment returns a boolean specifying whether current "child" service
+// is service active traffic
+func (e Service) IsActiveBlueGreenDeployment() bool {
+	if e.Deployment == nil || e.Deployment.BlueGreen == nil {
+		return false
+	}
+	return e.Deployment.BlueGreen.ActiveFlag
+}
+
+// ActiveDeploymentTag returns active deployment in bluegreen set
+func (e Service) ActiveDeploymentTag() BlueGreenServiceSet {
+	if e.Deployment == nil || e.Deployment.BlueGreen == nil {
+		return 0
+	}
+	return *e.Deployment.BlueGreen.Active
 }
 
 func (slice Services) Len() int {
@@ -259,10 +340,10 @@ func unmarshalExternalURL(unmarshal func(interface{}) error) ([]string, error) {
 	var u struct {
 		URL interface{} `yaml:"external_url,omitempty"`
 	}
-	var urls []string
+	urls := []string{}
 
 	if err := unmarshal(&u); err != nil {
-		return nil, err
+		return urls, err
 	}
 
 	switch v := u.URL.(type) {
@@ -273,7 +354,7 @@ func unmarshalExternalURL(unmarshal func(interface{}) error) ([]string, error) {
 			urls = append(urls, reflect.ValueOf(url).String())
 		}
 	case nil:
-		return nil, nil
+		return urls, nil
 	default:
 		return nil, fmt.Errorf("unsupported type %v declared for external_url %v", v, u)
 	}
@@ -307,8 +388,7 @@ func (v *Volume) HasManualProvisioning() bool {
 	return false
 }
 
-// IsSecretVolume is check for volume type defined and
-// if the type is secret it will return true.
+// IsSecretVolume returns true if volume is secret
 func (v *Volume) IsSecretVolume() bool {
 	if strings.ToLower(v.Type) == "secret" {
 		return true

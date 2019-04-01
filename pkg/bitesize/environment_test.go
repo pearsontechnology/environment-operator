@@ -59,6 +59,17 @@ func TestEnvironmentSortInterface(t *testing.T) {
 	}
 }
 
+func TestEnvironmentBlueGreenLoading(t *testing.T) {
+	e, err := LoadEnvironment("../../test/assets/environments.bitesize", "environment11")
+	if err != nil {
+		t.Errorf("Unexpected error when loading environment: %s", err.Error())
+	}
+
+	if len(e.Services) != 3 {
+		t.Errorf("Unexpected environment count: expected 3, got %d", len(e.Services))
+	}
+}
+
 func TestEnvironmentImportConfigMap(t *testing.T) {
 
 	e, err := LoadEnvironment("../../test/assets/environments3.bitesize", "environment1")
@@ -70,5 +81,4 @@ func TestEnvironmentImportConfigMap(t *testing.T) {
 	if len(e.Imports) != 3 {
 		t.Errorf("Unexpected count of import. Expected 3, got: %d", len(e.Imports))
 	}
-
 }

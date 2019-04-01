@@ -49,7 +49,6 @@ func (cluster *Cluster) ApplyIfChanged(newConfig *bitesize.Environment) error {
 		log.Errorf("Error while loading environment: %s", err.Error())
 		return err
 	}
-
 	if diff.Compare(*newConfig, *currentConfig) {
 		err = cluster.ApplyEnvironment(currentConfig, newConfig)
 	}
@@ -63,75 +62,80 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 	var err error
 
 	for _, service := range newEnvironment.Services {
-
-		mapper := &translator.KubeMapper{
-			BiteService: &service,
-			Namespace:   newEnvironment.Namespace,
-			Imports:     &newEnvironment.Imports,
-		}
-
-		client := &k8s.Client{
-			Interface: cluster.Interface,
-			Namespace: newEnvironment.Namespace,
-			CRDClient: cluster.CRDClient,
-		}
-
-		if !shouldDeploy(currentEnvironment, newEnvironment, service.Name) {
+		if !shouldDeployOnChange(currentEnvironment, newEnvironment, service.Name) {
 			continue
 		}
+		err = cluster.ApplyService(&service, newEnvironment.Namespace)
+	}
+	return err
+}
 
-		if service.Type == "" {
-			log.Debugf("Applying persistent volume claims for Service %s ", service.Name)
-			pvc, _ := mapper.PersistentVolumeClaims()
-			for _, claim := range pvc {
-				if err = client.PVC().Apply(&claim); err != nil {
-					log.Error(err)
-				}
-			}
+// ApplyService applies a single service to the namespace
+func (cluster *Cluster) ApplyService(service *bitesize.Service, namespace string) error {
+	var err error
+	mapper := &translator.KubeMapper{
+		BiteService: service,
+		Namespace:   namespace,
+	}
 
-			log.Debugf("Applying configmaps for Service %s ", service.Name)
-			cMaps, _ := mapper.ConfigMaps()
-			for _, c := range cMaps {
-				if err = client.ConfigMap().Apply(c); err != nil {
-					log.Error(err)
-				}
-			}
+	client := &k8s.Client{
+		Interface: cluster.Interface,
+		Namespace: namespace,
+		CRDClient: cluster.CRDClient,
+	}
 
-			log.Debugf("Applying Deployment for Service %s ", service.Name)
-			deployment, err := mapper.Deployment()
-			if err != nil {
-				log.Error(err)
-				continue
-			}
-
-			if err = client.Deployment().Apply(deployment); err != nil {
+	if service.Type == "" {
+		log.Debugf("Applying pvcs for Service %s ", service.Name)
+		pvc, _ := mapper.PersistentVolumeClaims()
+		for _, claim := range pvc {
+			if err = client.PVC().Apply(&claim); err != nil {
 				log.Error(err)
 			}
+		}
 
-			svc, _ := mapper.Service()
-			if err = client.Service().Apply(svc); err != nil {
+		log.Debugf("Applying configmaps for Service %s ", service.Name)
+		cMaps, _ := mapper.ConfigMaps()
+		for _, c := range cMaps {
+			if err = client.ConfigMap().Apply(c); err != nil {
 				log.Error(err)
 			}
+		}
 
-			hpa, _ := mapper.HPA()
-			if err = client.HorizontalPodAutoscaler().Apply(&hpa); err != nil {
+		log.Debugf("Applying Deployment for Service %s", service.Name)
+		deployment, err := mapper.Deployment()
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+
+		if err = client.Deployment().Apply(deployment); err != nil {
+			log.Error(err)
+		}
+
+		svc, _ := mapper.Service()
+		if err = client.Service().Apply(svc); err != nil {
+			log.Error(err)
+			log.Debugf("Service +%v", svc)
+		}
+
+		hpa, _ := mapper.HPA()
+		if err = client.HorizontalPodAutoscaler().Apply(hpa); err != nil {
+			log.Error(err)
+		}
+
+		if service.HasExternalURL() {
+			ingress, _ := mapper.Ingress()
+			if err = client.Ingress().Apply(ingress); err != nil {
 				log.Error(err)
 			}
+		}
 
-			if service.HasExternalURL() {
-				ingress, _ := mapper.Ingress()
-				if err = client.Ingress().Apply(ingress); err != nil {
-					log.Error(err)
-				}
-			}
-
+	} else {
+		crd, _ := mapper.CustomResourceDefinition()
+		if err = client.CustomResourceDefinition(crd.Kind).Apply(crd); err != nil {
+			log.Error(err)
 		} else {
-			crd, _ := mapper.CustomResourceDefinition()
-			if err = client.CustomResourceDefinition(crd.Kind).Apply(crd); err != nil {
-				log.Error(err)
-			} else {
-				log.Infof("Successfully updated CRD resource: %s", crd.Name)
-			}
+			log.Infof("Successfully updated CRD resource: %s", crd.Name)
 		}
 	}
 	return err
@@ -251,14 +255,29 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 }
 
 //Only deploy k8s resources when the environment was actually deployed and changed or if the service has specified a version
-func shouldDeploy(currentEnvironment, newEnvironment *bitesize.Environment, serviceName string) bool {
+func shouldDeployOnChange(currentEnvironment, newEnvironment *bitesize.Environment, serviceName string) bool {
+	if !diff.ServiceChanged(serviceName) {
+		return false
+	}
+
 	currentService := currentEnvironment.Services.FindByName(serviceName)
 	updatedService := newEnvironment.Services.FindByName(serviceName)
 
-	if (currentService != nil && currentService.Status.DeployedAt != "") || (updatedService != nil && updatedService.Version != "") {
-		if diff.ServiceChanged(serviceName) {
-			return true
-		}
+	if updatedService == nil {
+		return true
+	}
+
+	if updatedService.IsBlueGreenParentDeployment() {
+		log.Debugf("Should deploy blue/green service %s", serviceName)
+		return true
+	}
+
+	if currentService != nil && currentService.Status.DeployedAt != "" {
+		return true
+	}
+
+	if updatedService.Version != "" {
+		return true
 	}
 	return false
 }

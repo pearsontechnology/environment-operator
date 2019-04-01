@@ -95,8 +95,21 @@ func LoadEnvironment(path, envName string) (*Environment, error) {
 				}
 				env.Imports[k] = im
 			}
+			env.Services = loadServices(env)
 			return &env, nil
 		}
 	}
 	return nil, fmt.Errorf("Environment %s not found in %s", envName, path)
+}
+
+func loadServices(env Environment) Services {
+	var blueGreenServices Services
+	for _, svc := range env.Services {
+		if svc.IsBlueGreenParentDeployment() {
+			blueGreenServices = append(blueGreenServices, copyBlueGreenService(svc, BlueService))
+			blueGreenServices = append(blueGreenServices, copyBlueGreenService(svc, GreenService))
+		}
+	}
+
+	return append(env.Services, blueGreenServices...)
 }

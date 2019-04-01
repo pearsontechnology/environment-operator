@@ -1,7 +1,7 @@
 package k8s
 
 import (
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -25,6 +25,9 @@ func (client *Service) Exist(name string) bool {
 
 // Apply updates or creates service in k8s
 func (client *Service) Apply(resource *v1.Service) error {
+	if resource == nil {
+		return nil
+	}
 	if client.Exist(resource.Name) {
 		return client.Update(resource)
 	}
@@ -33,6 +36,9 @@ func (client *Service) Apply(resource *v1.Service) error {
 
 // Create creates new service in k8s
 func (client *Service) Create(resource *v1.Service) error {
+	if resource == nil {
+		return nil
+	}
 	_, err := client.
 		Core().
 		Services(client.Namespace).
@@ -42,6 +48,9 @@ func (client *Service) Create(resource *v1.Service) error {
 
 // Update updates existing service in k8s
 func (client *Service) Update(resource *v1.Service) error {
+	if resource == nil {
+		return nil
+	}
 	current, err := client.Get(resource.Name)
 	if err != nil {
 		return err

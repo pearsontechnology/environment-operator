@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"fmt"
 	"testing"
 
 	log "github.com/Sirupsen/logrus"
@@ -88,14 +89,17 @@ func TestApplyEnvironment(t *testing.T) {
 	//environments2.bitesize removes annotated_service2 and testdb from environment2
 	//The diff between e2 and e3 should only contain the testdb change as annotated_service2 didn't have a "version" field in the source config
 	e3, err := bitesize.LoadEnvironment("../../test/assets/environments2.bitesize", "environment2")
-	diff.Compare(*e2, *e3)
+	if !diff.Compare(*e2, *e3) {
+		fmt.Printf("%+v\n", diff.Changes())
+		t.Errorf("expected diff, got none")
+	}
 	_, exists := diff.Changes()["testdb"]
 	if !exists {
 		t.Errorf("Expected testdb to exist in the diff, yet it does not exist: %s", diff.Changes())
 	}
 }
 
-func TestShouldDeploy(t *testing.T) {
+func TestShouldDeployOnChange(t *testing.T) {
 
 	log.SetLevel(log.FatalLevel)
 
@@ -118,13 +122,13 @@ func TestShouldDeploy(t *testing.T) {
 
 	diff.Compare(*e1, *e2)
 
-	deploy := shouldDeploy(e1, e2, "annotated_service2")
+	deploy := shouldDeployOnChange(e1, e2, "annotated_service2")
 
 	if deploy {
 		t.Error("Expected that the annotated_service2 service should not be marked for deploy, but it was.")
 	}
 
-	deploy = shouldDeploy(e1, e2, "testdb")
+	deploy = shouldDeployOnChange(e1, e2, "testdb")
 
 	if !deploy {
 		t.Error("Expected that the testdb service should be marked for deploy, but it was not.")

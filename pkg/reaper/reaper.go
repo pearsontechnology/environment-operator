@@ -20,7 +20,7 @@ type Reaper struct {
 // deletes them from the cluster
 func (r *Reaper) Cleanup(cfg *bitesize.Environment) error {
 
-	if cfg == nil {
+	if cfg == nil || cfg.Services == nil {
 		return errors.New("REAPER Error with bitesize file, configuration is nil")
 	}
 
@@ -30,11 +30,15 @@ func (r *Reaper) Cleanup(cfg *bitesize.Environment) error {
 	}
 
 	for _, service := range current.Services {
-		// do we need to check for null
-		if cfg.Services != nil && cfg.Services.FindByName(service.Name) == nil {
+		configService := cfg.Services.FindByName(service.Name)
+
+		if configService == nil {
 			log.Infof("REAPER: Found orphan service %s, deleting.", service.Name)
 			r.deleteService(service)
+		} else if configService.IsBlueGreenParentDeployment() {
+			r.destroyDeployment(service.Name)
 		}
+
 		// delete ingresses that were removed from the service config
 		r.CleanupIngress(cfg.Services.FindByName(service.Name), &service)
 	}
@@ -79,7 +83,10 @@ func (r *Reaper) destroyDeployment(name string) error {
 		Interface: r.Wrapper.Interface,
 		Namespace: r.Namespace,
 	}
-	return client.Destroy(name)
+	if client.Exist(name) {
+		return client.Destroy(name)
+	}
+	return nil
 }
 
 func (r *Reaper) destroyService(name string) error {

@@ -1,3 +1,4 @@
+---
 project: pearsontechnology
 environments:
   - name: sample-app-environment
@@ -25,15 +26,15 @@ environments:
           max_replicas: 5
           metric:
             name: cpu
-            target_cpu_utilization_percentage: 75
+            target_average_utilization: 75
         env:
           - name: APP_PORT
             value: 80
         requests:
-           cpu: 100m
+          cpu: 100m
         limits:
-           cpu: 500m
-           memory: 100Mi
+          cpu: 500m
+          memory: 100Mi
       - name: api
         port: 9898
         replicas: 1
@@ -54,7 +55,6 @@ environments:
           - name: prometheus.io/port
             value: 9898
         requests:
-           cpu: 100m
+          cpu: 100m
         limits:
-           cpu: 500m
-
+          cpu: 500m
