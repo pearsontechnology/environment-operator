@@ -44,9 +44,9 @@ func (r *Reaper) Cleanup(cfg *bitesize.Environment) error {
 	}
 
 	for _, resource := range current.Imports {
-		if cfg.Imports != nil && cfg.Imports.Find(resource.Path, resource.Type) == nil {
+		if cfg.Imports != nil && cfg.Imports.Find(resource.Name, resource.Type) == nil {
 			log.Infof("REAPER: Found orphan resource %s,%s, deleting.", resource.Name, resource.Type)
-			r.destroyResource(resource.Path, resource.Type)
+			r.destroyResource(resource.Name, resource.Type)
 		}
 	}
 
@@ -109,7 +109,7 @@ func (r *Reaper) destroyCustomResourceDefinition(name string) error {
 	return nil
 }
 
-func (r *Reaper) destroyResource(path string, rstype string) error {
+func (r *Reaper) destroyResource(name string, rstype string) error {
 	switch rstype {
 	case "configmap":
 		{
