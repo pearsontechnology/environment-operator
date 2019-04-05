@@ -31,6 +31,7 @@ type Service struct {
 	ReadinessProbe  *Probe                  `yaml:"readiness_probe,omitempty"`
 	EnvVars         []EnvVar                `yaml:"env,omitempty"`
 	Commands        []string                `yaml:"command,omitempty"`
+	InitContainers  *[]Container            `yaml:"init_containers,omitempty"`
 	Annotations     map[string]string       `yaml:"-"` // Annotations have custom unmarshaler
 	Volumes         []Volume                `yaml:"volumes,omitempty"`
 	Options         map[string]interface{}  `yaml:"-"` // Options have custom unmarshaler
