@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	autoscale_v2beta1 "k8s.io/api/autoscaling/v2beta1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 )
@@ -13,6 +14,8 @@ func TestHPACreate(t *testing.T) {
 	target := new(int32)
 	*min = 1
 	*target = 50
+	targetValue := "100m"
+	v, _ := resource.ParseQuantity(targetValue)
 
 	fakeHPAClient := createFakeHPAClient()
 	newHPA := &autoscale_v2beta1.HorizontalPodAutoscaler{
@@ -42,6 +45,13 @@ func TestHPACreate(t *testing.T) {
 						Name:                     "cpu",
 					},
 				},
+				{
+					Type: autoscale_v2beta1.PodsMetricSourceType,
+					Pods: &autoscale_v2beta1.PodsMetricSource{
+						TargetAverageValue: v,
+						MetricName:         "custom_metric",
+					},
+				},
 			},
 		},
 	}
@@ -58,6 +68,8 @@ func TestHPACreate(t *testing.T) {
 
 func TestHPAUpdate(t *testing.T) {
 	var min, target int32 = 1, 50
+	targetValue := "100m"
+	v, _ := resource.ParseQuantity(targetValue)
 	fakeHPAClient := createFakeHPAClient()
 	updatedHPA := &autoscale_v2beta1.HorizontalPodAutoscaler{
 		ObjectMeta: metav1.ObjectMeta{
@@ -86,6 +98,13 @@ func TestHPAUpdate(t *testing.T) {
 						Name:                     "cpu",
 					},
 				},
+				{
+					Type: autoscale_v2beta1.PodsMetricSourceType,
+					Pods: &autoscale_v2beta1.PodsMetricSource{
+						TargetAverageValue: v,
+						MetricName:         "custom_metric",
+					},
+				},
 			},
 		},
 	}
@@ -106,6 +125,8 @@ func TestHPAUpdate(t *testing.T) {
 
 func TestHPAApplyNew(t *testing.T) {
 	var min, target int32 = 2, 75
+	targetValue := "100m"
+	v, _ := resource.ParseQuantity(targetValue)
 	fakeHPAClient := createFakeHPAClient()
 	newHPA := &autoscale_v2beta1.HorizontalPodAutoscaler{
 		ObjectMeta: metav1.ObjectMeta{
@@ -134,6 +155,13 @@ func TestHPAApplyNew(t *testing.T) {
 						Name:                     "cpu",
 					},
 				},
+				{
+					Type: autoscale_v2beta1.PodsMetricSourceType,
+					Pods: &autoscale_v2beta1.PodsMetricSource{
+						TargetAverageValue: v,
+						MetricName:         "custom_metric",
+					},
+				},
 			},
 		},
 	}
@@ -150,6 +178,8 @@ func TestHPAApplyNew(t *testing.T) {
 
 func TestHPAApplyExisting(t *testing.T) {
 	var min, target int32 = 1, 50
+	targetValue := "100m"
+	v, _ := resource.ParseQuantity(targetValue)
 	fakeHPAClient := createFakeHPAClient()
 	newHPA := &autoscale_v2beta1.HorizontalPodAutoscaler{
 		ObjectMeta: metav1.ObjectMeta{
@@ -176,6 +206,13 @@ func TestHPAApplyExisting(t *testing.T) {
 					Resource: &autoscale_v2beta1.ResourceMetricSource{
 						TargetAverageUtilization: &target,
 						Name:                     "cpu",
+					},
+				},
+				{
+					Type: autoscale_v2beta1.PodsMetricSourceType,
+					Pods: &autoscale_v2beta1.PodsMetricSource{
+						TargetAverageValue: v,
+						MetricName:         "custom_metric",
 					},
 				},
 			},
@@ -246,6 +283,8 @@ func createFakeHPAClient() HorizontalPodAutoscaler {
 
 func createFakeHPAClientset() *fake.Clientset {
 	var min, target int32 = 1, 50
+	targetValue := "100m"
+	v, _ := resource.ParseQuantity(targetValue)
 	return fake.NewSimpleClientset(
 		&autoscale_v2beta1.HorizontalPodAutoscaler{
 			ObjectMeta: metav1.ObjectMeta{
@@ -272,6 +311,13 @@ func createFakeHPAClientset() *fake.Clientset {
 						Resource: &autoscale_v2beta1.ResourceMetricSource{
 							TargetAverageUtilization: &target,
 							Name:                     "cpu",
+						},
+					},
+					{
+						Type: autoscale_v2beta1.PodsMetricSourceType,
+						Pods: &autoscale_v2beta1.PodsMetricSource{
+							TargetAverageValue: v,
+							MetricName:         "custom_metric",
 						},
 					},
 				},

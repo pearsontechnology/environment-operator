@@ -40,6 +40,14 @@ type HorizontalPodAutoscaler struct {
 	Metric      Metric `yaml:"metric"`
 }
 
+// Container maps a single application container that you want to run within a pod
+type Container struct {
+	Application string   `yaml:"application,omitempty"`
+	Name        string   `yaml:"name" validate:"nonzero"`
+	Version     string   `yaml:"version,omitempty"`
+	Command     []string `yaml:"command"`
+}
+
 // ContainerRequests maps to requests in kubernetes
 type ContainerRequests struct {
 	CPU    string `yaml:"cpu"`
