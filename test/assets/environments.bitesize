@@ -195,3 +195,18 @@ environments:
   services:
   - type: sqs
     name: sqs_queue_name
+- name: environment13
+  namespace: environment-init
+  services:
+  - name: init_svc
+    init_containers:
+          - application: init_1
+            name: init1
+            version: 1
+            command:
+              - sample1
+          - application: init_2
+            name: init2
+            version: 1
+            command:
+              - sample2

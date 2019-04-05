@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[0.0.29] 2019-04-05 [RELEASED]**
+ #### Added
+  * Added basic init container support [BITE-5033](https://agile-jira.pearson.com/browse/BITE-5033)
+
 ### **[0.0.28] 2019-04-01 [RELEASED]**
  #### Added
   * Added Blue/Green deployment Support [BITE-4946](https://agile-jira.pearson.com/browse/BITE-4946)
