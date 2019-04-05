@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -163,6 +163,24 @@ func BuildKubeMapper() *KubeMapper {
 	m.Config.Project = "project"
 	m.Config.DockerRegistry = "registry"
 	return m
+}
+
+func TestInitContainers(t *testing.T) {
+	w := BuildKubeMapper()
+
+	w.BiteService.InitContainers = &[]bitesize.Container{
+		bitesize.Container{
+			Name:        "nginx",
+			Version:     "1.15.10-1~stretch",
+			Application: "nginx_init",
+		},
+	}
+
+	d, _ := w.Deployment()
+
+	if d.Spec.Template.Spec.InitContainers[0].Name != "nginx" {
+		t.Errorf("Wrong name for the init container %s", d.Spec.Template.Spec.InitContainers[0].Image)
+	}
 }
 
 func TestTranslatorHPA(t *testing.T) {

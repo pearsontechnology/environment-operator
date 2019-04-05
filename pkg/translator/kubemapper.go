@@ -323,6 +323,8 @@ func (w *KubeMapper) Deployment() (*v1beta1_ext.Deployment, error) {
 	}
 	replicas := int32(w.BiteService.Replicas)
 	container, err := w.container()
+	initContainers, _ := w.initContainers()
+
 	if err != nil {
 		return nil, err
 	}
@@ -372,6 +374,7 @@ func (w *KubeMapper) Deployment() (*v1beta1_ext.Deployment, error) {
 					Containers:       []v1.Container{*container},
 					ImagePullSecrets: imagePullSecrets,
 					Volumes:          volumes,
+					InitContainers:   initContainers,
 				},
 			},
 		},
@@ -461,6 +464,31 @@ func (w *KubeMapper) getMetricSpec() (m []autoscale_v2beta1.MetricSpec) {
 	}
 
 	return
+}
+
+func (w *KubeMapper) initContainers() ([]v1.Container, error) {
+	var retval []v1.Container
+	// TODO: Need to add volume, env and other configs support here
+
+	if w.BiteService.InitContainers == nil {
+		return nil, nil
+	}
+
+	for _, container := range *w.BiteService.InitContainers {
+		con := v1.Container{
+			Name:    container.Name,
+			Image:   "",
+			Command: container.Command,
+		}
+
+		if container.Version != "" {
+			con.Image = util.Image(container.Application, container.Version)
+		}
+
+		retval = append(retval, con)
+	}
+
+	return retval, nil
 }
 
 func (w *KubeMapper) container() (*v1.Container, error) {
