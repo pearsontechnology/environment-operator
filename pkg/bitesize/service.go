@@ -21,7 +21,7 @@ type Service struct {
 	Ssl             string                  `yaml:"ssl,omitempty" validate:"regexp=^(true|false)*$"`
 	Version         string                  `yaml:"version,omitempty"`
 	Application     string                  `yaml:"application,omitempty"`
-	Replicas        int                     `yaml:"replicas,omitempty"`
+	Replicas        *int32                  `yaml:"replicas,omitempty"`
 	Deployment      *DeploymentSettings     `yaml:"deployment,omitempty"`
 	HPA             HorizontalPodAutoscaler `yaml:"hpa" validate:"hpa"`
 	Requests        ContainerRequests       `yaml:"requests" validate:"requests"`
@@ -56,11 +56,14 @@ type ServiceStatus struct {
 // Services implement sort.Interface
 type Services []Service
 
+// Default Replica count
+var DefaultReplicas int32 = 1
+
 // ServiceWithDefaults returns new *Service object with default values set
 func ServiceWithDefaults() *Service {
 	return &Service{
 		Ports:    []int{80},
-		Replicas: 1,
+		Replicas: &DefaultReplicas,
 		Limits: ContainerLimits{
 			Memory: config.Env.LimitDefaultMemory,
 			CPU:    config.Env.LimitDefaultCPU,
@@ -117,7 +120,7 @@ func (e *Service) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// e.Annotations = append(e.Annotations, annotation)
 
 	if e.HPA.MinReplicas != 0 {
-		e.Replicas = int(e.HPA.MinReplicas)
+		e.Replicas = nil
 	}
 
 	if e.HPA.MinReplicas != 0 && e.HPA.Metric.Name == "" {

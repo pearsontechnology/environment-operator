@@ -195,7 +195,7 @@ func TestTranslatorHPA(t *testing.T) {
 
 func TestTranslatorEnvVars(t *testing.T) {
 	w := BuildKubeMapper()
-	w.BiteService.Replicas = 1
+	w.BiteService.Replicas = &bitesize.DefaultReplicas
 	w.BiteService.Name = "test"
 	w.BiteService.Application = "test"
 	w.BiteService.Version = "test"

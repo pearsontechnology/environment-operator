@@ -25,7 +25,7 @@ func (s ServiceMap) CreateOrGet(name string) *bitesize.Service {
 	if s[name] == nil {
 		s[name] = &bitesize.Service{
 			Name:        name,
-			Replicas:    1,
+			Replicas:    &bitesize.DefaultReplicas,
 			Annotations: map[string]string{},
 			ExternalURL: []string{},
 			Deployment:  &bitesize.DeploymentSettings{},
@@ -82,7 +82,7 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 
 	biteservice := s.CreateOrGet(name)
 	if deployment.Spec.Replicas != nil {
-		biteservice.Replicas = int(*deployment.Spec.Replicas)
+		biteservice.Replicas = deployment.Spec.Replicas
 	}
 
 	resources := deployment.Spec.Template.Spec.Containers[0].Resources
@@ -137,6 +137,7 @@ func (s ServiceMap) AddHPA(hpa autoscale_v2beta1.HorizontalPodAutoscaler) {
 
 	biteservice := s.CreateOrGet(name)
 
+	biteservice.Replicas = nil
 	biteservice.HPA.MinReplicas = *hpa.Spec.MinReplicas
 	biteservice.HPA.MaxReplicas = hpa.Spec.MaxReplicas
 
@@ -188,7 +189,8 @@ func (s ServiceMap) AddCustomResourceDefinition(crd k8_extensions.PrsnExternalRe
 	biteservice.Options = crd.Spec.Options
 	biteservice.Version = crd.Spec.Version
 	if crd.Spec.Replicas != 0 {
-		biteservice.Replicas = crd.Spec.Replicas
+		crdSpecReplicas := int32(crd.Spec.Replicas)
+		biteservice.Replicas = &crdSpecReplicas
 	}
 }
 
@@ -231,7 +233,7 @@ func (s ServiceMap) AddMongoStatefulSet(statefulset v1beta2_apps.StatefulSet) {
 	biteservice := s.CreateOrGet(name)
 
 	if statefulset.Spec.Replicas != nil {
-		biteservice.Replicas = int(*statefulset.Spec.Replicas)
+		biteservice.Replicas = statefulset.Spec.Replicas
 	}
 
 	if len(statefulset.Spec.Template.Spec.Containers[0].Resources.Requests) != 0 {
