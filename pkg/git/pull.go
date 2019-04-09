@@ -7,6 +7,7 @@ func (g *Git) Pull() error {
 	if err != nil {
 		return err
 	}
-
+	// @DEBUG: use spew for debug struct
+	// spew.Dump(g.pullOptions())
 	return tree.Pull(g.pullOptions())
 }

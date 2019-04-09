@@ -34,6 +34,27 @@ func initAndClone(t *testing.T, local, remote string) *Git {
 	return g
 }
 
+func initAndCloneToken(t *testing.T, local, remote string, gittoken string, gituser string) *Git {
+	repository, _ := gogit.PlainInit(local, false)
+	repository.CreateRemote(&gitconfig.RemoteConfig{
+		Name: "origin",
+		URLs: []string{remote},
+	})
+	g := &Git{
+		LocalPath:  local,
+		RemotePath: remote,
+		BranchName: "master",
+		Repository: repository,
+		GitToken:   gittoken,
+		GitUser:    gituser,
+	}
+
+	if err := g.Pull(); err != nil {
+		t.Errorf("Error on initial pull: %s", err.Error())
+	}
+	return g
+}
+
 func createTestRepo(t *testing.T) string {
 	path, err := ioutil.TempDir("", "env-operator")
 	checkFatal(t, err, "temp dir create")
