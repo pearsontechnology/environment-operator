@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: eo-secrets
+  namespace: eo-test
+  labels:
+    name: environment-operator
+type: Opaque
+data:
+  git_user: B64EncodedGitusername== # echo -n username | base64
+  git_token: B64EncodedGitToken==  # echo -n password | base64 
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    name: environment-operator
+  name: environment-operator
+  namespace: sample-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: environment-operator
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: environment-operator
+      name: environment-operator
+    spec:
+      containers:
+      - name: environment-operator
+        env:
+        - name: GIT_REMOTE_REPOSITORY
+          value: https://github.com/pearsontechnology/environment-operator.git
+        - name: GIT_USER
+          valueFrom:
+            secretKeyRef:
+              name: eo-secrets
+              key: git_user
+        - name: GIT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: eo-secrets
+              key: git_token
+        - name: DOCKER_REGISTRY
+          value: "index.docker.io"
+        - name: PROJECT
+          value: pearsontechnology
+        - name: ENVIRONMENT_NAME
+          value: sample-app-environment
+        - name: BITESIZE_FILE
+          value: environment.sample
+        - name: AUTH_TOKEN_FILE
+          value: /etc/auth/token
+        - name: DEBUG
+          value: "true"
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: pearsontechnology/environment-operator:dev
+        imagePullPolicy: Always
+        securityContext:
+          runAsUser: 1000
+        volumeMounts:
+        - name: "auth-token"
+          mountPath: "/etc/auth"
+          readOnly: true
+        - name: "git-key"
+          mountPath: "/etc/git"
+          readOnly: true
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+      volumes:
+      - name: "auth-token"
+        secret:
+          secretName: "auth-token-file"
+      - name: "git-key"
+        secret:
+          secretName: "git-private-key"
