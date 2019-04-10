@@ -106,14 +106,14 @@ func (w *KubeMapper) HeadlessService() (*v1.Service, error) {
 
 // ConfigMaps returns a list of configmaps defined in the service
 // definition
-func (w *KubeMapper) ConfigMaps() ([]*v1.ConfigMap, error) {
-	var retval []*v1.ConfigMap
+func (w *KubeMapper) ConfigMaps() ([]v1.ConfigMap, error) {
+	var retval []v1.ConfigMap
 
 	for _, vol := range w.BiteService.Volumes {
 		if vol.IsConfigMapVolume() {
 			c := w.Imports.FindByName(vol.Name, bitesize.TypeConfigMap)
 			if c != nil {
-				retval = append(retval, &c.ConfigMap)
+				retval = append(retval, c.ConfigMap)
 			}
 		}
 	}

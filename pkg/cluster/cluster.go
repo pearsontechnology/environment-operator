@@ -96,7 +96,7 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, namespace string
 		log.Debugf("Applying configmaps for Service %s ", service.Name)
 		cMaps, _ := mapper.ConfigMaps()
 		for _, c := range cMaps {
-			if err = client.ConfigMap().Apply(c); err != nil {
+			if err = client.ConfigMap().Apply(&c); err != nil {
 				log.Error(err)
 			}
 		}
