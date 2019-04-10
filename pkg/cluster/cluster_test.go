@@ -526,6 +526,42 @@ func testFullBitesizeEnvironment(t *testing.T) {
 	}
 }
 
+func TestInitContainers(t *testing.T) {
+	crdcli := loadEmptyCRDs()
+	client := fake.NewSimpleClientset(
+		&v1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "environment-dev",
+				Labels: map[string]string{
+					"environment": "environment-dev",
+				},
+			},
+		},
+	)
+
+	cluster := Cluster{
+		Interface: client,
+		CRDClient: crdcli,
+	}
+
+	e1, err := bitesize.LoadEnvironment("../../test/assets/environments.bitesize", "environment13")
+	if err != nil {
+		t.Fatalf("Unexpected err: %s", err.Error())
+	}
+
+	cluster.ApplyEnvironment(e1, e1)
+
+	e2, err := cluster.LoadEnvironment("environment-dev")
+
+	if err != nil {
+		t.Fatalf("Unexpected err: %s", err.Error())
+	}
+
+	if diff.Compare(*e1, *e2) {
+		t.Errorf("Expected loaded environments to be equal, yet diff is: %s", diff.Changes())
+	}
+}
+
 func TestEnvironmentAnnotations(t *testing.T) {
 	client := loadTestEnvironment()
 	crdcli := loadTestCRDs()

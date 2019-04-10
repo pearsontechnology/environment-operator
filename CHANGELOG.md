@@ -9,6 +9,15 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[0.0.30 ] 2019-03-05 [RELEASED]**
+ #### Added
+  * Option to use github/bitbucket token in place of sshkeys for authentication
+  * **NOTE** Default authentication is still based on sshkeys
+
+### **[0.0.29] 2019-04-05 [RELEASED]**
+ #### Added
+  * Added basic init container support [BITE-5033](https://agile-jira.pearson.com/browse/BITE-5033)
+
 ### **[0.0.28] 2019-04-01 [RELEASED]**
  #### Added
   * Added Blue/Green deployment Support [BITE-4946](https://agile-jira.pearson.com/browse/BITE-4946)
@@ -93,11 +102,11 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 
 ### **[0.0.12] 2018-01-22 [RELEASED]**
 
-#### Changed 
+#### Changed
 
- * Rewrite git pkg using go-git library instead of libgit2 + git2go. 
+ * Rewrite git pkg using go-git library instead of libgit2 + git2go.
 
-#### Fixed 
+#### Fixed
 
  * EO intermittent panic issue. [[BITE-1941](https://agile-jira.pearson.com/browse/BITE-1941)]  
 
@@ -106,7 +115,7 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 #### Added
 
  * Support for overriding the default backend for a service's kubernetes ingress.
- * Support for setting pod fields as values for container environment variables. 
+ * Support for setting pod fields as values for container environment variables.
 
 #### Fixed
 
