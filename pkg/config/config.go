@@ -16,6 +16,7 @@ type Config struct {
 	GitUser           string `envconfig:"GIT_USER"`
 	GitToken          string `envconfig:"GIT_TOKEN"`
 	GitLocalPath      string `envconfig:"GIT_LOCAL_PATH" default:"/tmp/repository"`
+	GitRootPath       string `envconfig:"GIT_ROOT_PATH" default:"/tmp/"`
 	EnvName           string `envconfig:"ENVIRONMENT_NAME"`
 	EnvFile           string `envconfig:"BITESIZE_FILE"`
 	Namespace         string `envconfig:"NAMESPACE"`
