@@ -165,6 +165,7 @@ func testFindCronJobByPathNotFound(t *testing.T) {
 
 func testUmarshalConfigMap(t *testing.T) {
 	r := &Resource{
+		Name: "application-v1",
 		Path: "../../test/assets/k8s/application-v1.bitesize",
 		Type: TypeConfigMap,
 	}
