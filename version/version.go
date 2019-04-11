@@ -1,4 +1,4 @@
 package version
 
 // Version for environment-operator
-var Version = "0.0.30"
+var Version = "1.0.0"
