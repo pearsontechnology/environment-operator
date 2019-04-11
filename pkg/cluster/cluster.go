@@ -65,17 +65,18 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 		if !shouldDeployOnChange(currentEnvironment, newEnvironment, service.Name) {
 			continue
 		}
-		err = cluster.ApplyService(&service, newEnvironment.Namespace)
+		err = cluster.ApplyService(&service, &newEnvironment.Imports, newEnvironment.Namespace)
 	}
 	return err
 }
 
 // ApplyService applies a single service to the namespace
-func (cluster *Cluster) ApplyService(service *bitesize.Service, namespace string) error {
+func (cluster *Cluster) ApplyService(service *bitesize.Service, imports *bitesize.Imports, namespace string) error {
 	var err error
 	mapper := &translator.KubeMapper{
 		BiteService: service,
 		Namespace:   namespace,
+		Imports:     imports,
 	}
 
 	client := &k8s.Client{
