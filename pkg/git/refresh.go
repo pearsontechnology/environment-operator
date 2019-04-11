@@ -14,7 +14,7 @@ func (g *Git) Refresh() error {
 	}
 
 	if ok {
-		log.Infof("pdates in repository: %s", g.RemotePath)
+		log.Infof("updates in repository: %s", g.RemotePath)
 		if err := g.Pull(); err != nil {
 			log.Errorf("error while pulling the changes from repository: %s", err)
 			return err
