@@ -63,7 +63,7 @@ func Compare(config1, config2 bitesize.Environment) bool {
 			}
 
 			if serviceDiff := compareConfig.Compare(d, s); serviceDiff != "" {
-				log.Debugf("Change detected for service %s - %s", s.Name, serviceDiff)
+				log.Debugf("change detected for service %s - %s", s.Name, serviceDiff)
 				addServiceChange(s.Name, serviceDiff)
 			}
 		}
