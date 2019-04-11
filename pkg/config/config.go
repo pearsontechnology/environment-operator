@@ -7,7 +7,7 @@ import (
 
 // Config contains environment variables used to configure the app
 type Config struct {
-	LogLevel          string `envconfig:"LOG_LEVEL"`
+	LogLevel          string `envconfig:"LOG_LEVEL" default:"info"`
 	UseAuth           bool   `envconfig:"USE_AUTH" default:true`
 	GitRepo           string `envconfig:"GIT_REMOTE_REPOSITORY"`
 	GitBranch         string `envconfig:"GIT_BRANCH" default:"master"`
@@ -27,7 +27,7 @@ type Config struct {
 	OIDCAllowedGroups string `envconfig:"OIDC_ALLOWED_GROUPS"`
 	OIDCClientID      string `envconfig:"OIDC_CLIENT_ID" default:"bitesize"`
 
-	HPAMaxReplicas     int    `envconfig:"HPA_MAX_REPLICAS" default:"50"`
+	HPAMaxReplicas     int    `envconfig:"HPA_MAX_REPLICAS" defgiault:"50"`
 	LimitMaxCPU        int    `envconfig:"LIMITS_MAX_CPU" default:"4000"`          //4 Cores
 	LimitMaxMemory     int    `envconfig:"LIMITS_MAX_MEMORY" default:"8192"`       //8Gib
 	LimitDefaultCPU    string `envconfig:"LIMITS_DEFAULT_CPU" default:"1000m"`     //1 Core
@@ -54,7 +54,9 @@ func init() {
 		log.Fatal("Please choose either Gitkey or GitToken but not both")
 	}
 
-	if Env.LogLevel == "debug" {
-		log.SetLevel(log.DebugLevel)
+	logLevel, err := log.ParseLevel(Env.LogLevel)
+	if err != nil {
+		log.Fatalf("Can't set loglevel \"%s\": %s", Env.LogLevel, err.Error())
 	}
+	log.SetLevel(logLevel)
 }

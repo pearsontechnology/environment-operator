@@ -12,6 +12,8 @@ import (
 // Compare creates a changeMap for the diff between environment configs and returns a boolean if changes were detected
 func Compare(desiredCfg, existingCfg bitesize.Environment) bool {
 	newChangeMap()
+	log.Tracef("existingCfg: %#v", existingCfg)
+	log.Tracef("desiredCfg: %#v", desiredCfg)
 
 	// Following fields are ignored for diff purposes
 	desiredCfg.Tests = []bitesize.Test{}
@@ -29,6 +31,7 @@ func Compare(desiredCfg, existingCfg bitesize.Environment) bool {
 
 	for _, desiredCfgSvc := range desiredCfg.Services {
 		existingCfgSvc := existingCfg.Services.FindByName(desiredCfgSvc.Name)
+		log.Tracef("existingCfgSvc: %#v", existingCfgSvc)
 
 		// Force changes for blue green "parent" service
 		if existingCfgSvc == nil && desiredCfgSvc.IsBlueGreenParentDeployment() {

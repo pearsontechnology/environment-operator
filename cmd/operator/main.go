@@ -24,6 +24,7 @@ func init() {
 	var err error
 
 	gitClient = git.Client()
+	log.Tracef("gitClient: %#v", gitClient)
 
 	client, err = cluster.Client()
 	if err != nil {
@@ -58,6 +59,7 @@ func main() {
 
 	go webserver()
 
+	sleepDuration := 30000 * time.Millisecond
 	err := gitClient.Pull()
 
 	if err != nil {
@@ -68,6 +70,7 @@ func main() {
 	for {
 		gitClient.Refresh()
 		gitConfiguration, err := bitesize.LoadEnvironmentFromConfig(config.Env)
+		log.Tracef("gitConfiguration: %#v", gitConfiguration)
 
 		if err != nil {
 			log.Errorf("Error while loading environment config: %s", err.Error())
@@ -75,8 +78,8 @@ func main() {
 			client.ApplyIfChanged(gitConfiguration)
 			reap.Cleanup(gitConfiguration)
 		}
-
-		time.Sleep(30000 * time.Millisecond)
+		log.Tracef("Sleeping: %d ms", sleepDuration)
+		time.Sleep(sleepDuration)
 	}
 
 }
