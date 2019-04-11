@@ -27,7 +27,7 @@ type Config struct {
 	OIDCAllowedGroups string `envconfig:"OIDC_ALLOWED_GROUPS"`
 	OIDCClientID      string `envconfig:"OIDC_CLIENT_ID" default:"bitesize"`
 
-	HPAMaxReplicas     int    `envconfig:"HPA_MAX_REPLICAS" defgiault:"50"`
+	HPAMaxReplicas     int    `envconfig:"HPA_MAX_REPLICAS" default:"50"`
 	LimitMaxCPU        int    `envconfig:"LIMITS_MAX_CPU" default:"4000"`          //4 Cores
 	LimitMaxMemory     int    `envconfig:"LIMITS_MAX_MEMORY" default:"8192"`       //8Gib
 	LimitDefaultCPU    string `envconfig:"LIMITS_DEFAULT_CPU" default:"1000m"`     //1 Core
