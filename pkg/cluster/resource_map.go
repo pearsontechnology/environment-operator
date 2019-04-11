@@ -16,12 +16,10 @@ type ResourceMap map[string]*bitesize.Resource
 // AddConfigMap adds imported ConfigMap resource to resourcemap
 func (m ResourceMap) AddConfigMap(res v1.ConfigMap) *bitesize.Resource {
 	name := res.Name
-	path := res.Labels["path"]
 	// Create with some defaults -- defaults should probably live in bitesize.Resource
 	if m[name] == nil {
 		m[name] = &bitesize.Resource{
 			Name:      name,
-			Path:      path,
 			Type:      bitesize.TypeConfigMap,
 			ConfigMap: res,
 		}
@@ -31,34 +29,26 @@ func (m ResourceMap) AddConfigMap(res v1.ConfigMap) *bitesize.Resource {
 
 // AddJob adds imported v1batch.Job resource to resourcemap
 func (m ResourceMap) AddJob(res v1batch.Job) *bitesize.Resource {
-	name := res.Name
-	path := res.Labels["path"]
-	// Create with some defaults -- defaults should probably live in bitesize.Resource
-	if m[name] == nil {
-		m[name] = &bitesize.Resource{
+	if m[res.Name] == nil {
+		m[res.Name] = &bitesize.Resource{
 			Name: res.Name,
-			Path: path,
 			Type: bitesize.TypeJob,
 			Job:  res,
 		}
 	}
-	return m[name]
+	return m[res.Name]
 }
 
 // AddCronJob adds imported v1beta1.CronJob resource to resourcemap
 func (m ResourceMap) AddCronJob(res v1beta1.CronJob) *bitesize.Resource {
-	name := res.Name
-	path := res.Labels["path"]
-	// Create with some defaults -- defaults should probably live in bitesize.Resource
-	if m[name] == nil {
-		m[name] = &bitesize.Resource{
+	if m[res.Name] == nil {
+		m[res.Name] = &bitesize.Resource{
 			Name:    res.Name,
-			Path:    path,
 			Type:    bitesize.TypeCronJob,
 			CronJob: res,
 		}
 	}
-	return m[name]
+	return m[res.Name]
 }
 
 // Resources extracts a sorted list of bitesize.Import type out from
