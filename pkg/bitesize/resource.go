@@ -77,9 +77,11 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 				if labels == nil {
 					labels = map[string]string{
 						"creator": "pipeline",
+						"path":    res.Path,
 					}
 				} else {
 					labels["creator"] = "pipeline"
+					labels["path"] = res.Path
 				}
 				res.ConfigMap.ObjectMeta.SetLabels(labels)
 				res.ConfigMap.ObjectMeta.SetName(res.Name)
@@ -95,9 +97,11 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 				if labels == nil {
 					labels = map[string]string{
 						"creator": "pipeline",
+						"path":    res.Path,
 					}
 				} else {
 					labels["creator"] = "pipeline"
+					labels["path"] = res.Path
 				}
 				res.Job.SetLabels(labels)
 				res.ConfigMap.ObjectMeta.SetLabels(labels)
@@ -114,9 +118,11 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 				if labels == nil {
 					labels = map[string]string{
 						"creator": "pipeline",
+						"path":    res.Path,
 					}
 				} else {
 					labels["creator"] = "pipeline"
+					labels["path"] = res.Path
 				}
 				res.ConfigMap.ObjectMeta.SetLabels(labels)
 				res.ConfigMap.ObjectMeta.SetName(res.Name)
@@ -145,6 +151,7 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 
 		labels := res.ConfigMap.GetLabels()
 		labels["creator"] = "pipeline"
+		labels["path"] = res.Path
 		res.ConfigMap.ObjectMeta.SetLabels(labels)
 		res.ConfigMap.ObjectMeta.SetName(res.Name)
 		// override metadata namespace to current environment namespace
