@@ -78,7 +78,7 @@ func LoadEnvironment(path, envName string) (*Environment, error) {
 			// Environment name found check for git configs
 			rootPath := config.Env.GitLocalPath
 			if len(env.Repo.Remote) > 0 {
-				gitClient, err := git.EnvGitClient(env.Repo.Remote, env.Repo.Branch, env.Namespace, env.Name)
+				gitClient, err = git.EnvGitClient(env.Repo.Remote, env.Repo.Branch, env.Namespace, env.Name)
 				if err != nil {
 					return nil, err
 				}

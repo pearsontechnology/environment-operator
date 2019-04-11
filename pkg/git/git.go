@@ -82,6 +82,7 @@ func EnvGitClient(repo string, branch string, namespace string, env string) (*Gi
 	repository, err := gogit.PlainOpen(localPath)
 
 	if err == gogit.ErrRepositoryNotExists {
+		log.Debugf("environment %s repository not exisit initializing a new empty repository", env)
 		repository, err = gogit.PlainInit(localPath, false)
 		if err != nil {
 			return nil, fmt.Errorf("could not init local repository %s: %s", localPath, err.Error())
@@ -90,6 +91,7 @@ func EnvGitClient(repo string, branch string, namespace string, env string) (*Gi
 
 	remote, err := repository.Remote("origin")
 	if err == gogit.ErrRemoteNotFound {
+		log.Debugf("remote not found, generating new origin")
 		_, err = repository.CreateRemote(&gitconfig.RemoteConfig{
 			Name: "origin",
 			URLs: []string{repo},
@@ -103,6 +105,7 @@ func EnvGitClient(repo string, branch string, namespace string, env string) (*Gi
 
 	// remote has been changed re-init repo
 	if remote == nil || remote.Config().URLs[0] != repo || (err == nil && ref.Name().String() != branch) {
+		log.Debugf("remote has been changed, re-initializing repository")
 		os.RemoveAll(localPath)
 		repository, err = gogit.PlainInit(localPath, false)
 		if err != nil {

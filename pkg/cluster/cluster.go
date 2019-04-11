@@ -39,14 +39,14 @@ func Client() (*Cluster, error) {
 func (cluster *Cluster) ApplyIfChanged(newConfig *bitesize.Environment) error {
 	var err error
 	if newConfig == nil {
-		return errors.New("Could not compare against config (nil)")
+		return errors.New("could not compare against config (nil)")
 	}
 
-	log.Debugf("Loading namespaces: %s", newConfig.Namespace)
+	log.Debugf("loading namespaces: %s", newConfig.Namespace)
 	currentConfig, err := cluster.LoadEnvironment(newConfig.Namespace)
 
 	if err != nil {
-		log.Errorf("Error while loading environment: %s", err.Error())
+		log.Errorf("error while loading environment: %s", err.Error())
 		return err
 	}
 	if diff.Compare(*newConfig, *currentConfig) {
@@ -72,7 +72,7 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 			if vol.IsConfigMapVolume() {
 				res := newEnvironment.Imports.FindByName(vol.Name, bitesize.TypeConfigMap)
 				if res == nil {
-					log.Warnf("coud not find import source for the configmap volume %s", vol.Name)
+					log.Warnf("could not find import source for the configmap volume %s", vol.Name)
 					continue
 				}
 				resources = append(resources, *res)
@@ -204,13 +204,13 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 
 	ns, err := client.Ns().Get()
 	if err != nil {
-		return nil, fmt.Errorf("Error while retrieving namespace: %s", err.Error())
+		return nil, fmt.Errorf("error while retrieving namespace: %s", err.Error())
 	}
 	environmentName := ns.ObjectMeta.Labels["environment"]
 
 	services, err := client.Service().List()
 	if err != nil {
-		log.Errorf("Error loading kubernetes services: %s", err.Error())
+		log.Errorf("error loading kubernetes services: %s", err.Error())
 	}
 	for _, service := range services {
 		serviceMap.AddService(service)
@@ -218,7 +218,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 
 	deployments, err := client.Deployment().List()
 	if err != nil {
-		log.Errorf("Error loading kubernetes deployments: %s", err.Error())
+		log.Errorf("error loading kubernetes deployments: %s", err.Error())
 	}
 	for _, deployment := range deployments {
 		serviceMap.AddDeployment(deployment)
@@ -226,7 +226,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 
 	hpas, err := client.HorizontalPodAutoscaler().List()
 	if err != nil {
-		log.Errorf("Error loading kubernetes hpas: %s", err.Error())
+		log.Errorf("error loading kubernetes hpas: %s", err.Error())
 	}
 	for _, hpa := range hpas {
 		serviceMap.AddHPA(hpa)
@@ -234,7 +234,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 
 	ingresses, err := client.Ingress().List()
 	if err != nil {
-		log.Errorf("Error loading kubernetes ingresses: %s", err.Error())
+		log.Errorf("error loading kubernetes ingresses: %s", err.Error())
 	}
 
 	for _, ingress := range ingresses {
@@ -286,7 +286,7 @@ func shouldDeployOnChange(currentEnvironment, newEnvironment *bitesize.Environme
 	}
 
 	if updatedService.IsBlueGreenParentDeployment() {
-		log.Debugf("Should deploy blue/green service %s", serviceName)
+		log.Debugf("should deploy blue/green service %s", serviceName)
 		return true
 	}
 
