@@ -94,7 +94,7 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 				labels := res.Job.GetLabels()
 				if labels == nil {
 					labels = map[string]string{
-						"creator": "pipeline"
+						"creator": "pipeline",
 					}
 				} else {
 					labels["creator"] = "pipeline"
