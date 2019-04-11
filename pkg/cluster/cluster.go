@@ -96,23 +96,25 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, imports *bitesiz
 	}
 
 	if service.Type == "" {
-		log.Debugf("Applying pvcs for Service %s ", service.Name)
+		log.Debugf("applying pvcs for service %s ", service.Name)
 		pvc, _ := mapper.PersistentVolumeClaims()
 		for _, claim := range pvc {
+			log.Debugf("pvc: %s", claim.Name)
 			if err = client.PVC().Apply(&claim); err != nil {
 				log.Error(err)
 			}
 		}
 
-		log.Debugf("Applying configmaps for Service %s ", service.Name)
+		log.Debugf("applying configmaps for service %s ", service.Name)
 		cMaps, _ := mapper.ConfigMaps()
 		for _, c := range cMaps {
+			log.Debugf("configmap: %s", c.Name)
 			if err = client.ConfigMap().Apply(&c); err != nil {
 				log.Error(err)
 			}
 		}
 
-		log.Debugf("Applying Deployment for Service %s", service.Name)
+		log.Debugf("applying deployment for service %s", service.Name)
 		deployment, err := mapper.Deployment()
 		if err != nil {
 			log.Error(err)
@@ -126,7 +128,7 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, imports *bitesiz
 		svc, _ := mapper.Service()
 		if err = client.Service().Apply(svc); err != nil {
 			log.Error(err)
-			log.Debugf("Service +%v", svc)
+			log.Debugf("service +%v", svc)
 		}
 
 		hpa, _ := mapper.HPA()
@@ -146,7 +148,7 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, imports *bitesiz
 		if err = client.CustomResourceDefinition(crd.Kind).Apply(crd); err != nil {
 			log.Error(err)
 		} else {
-			log.Infof("Successfully updated CRD resource: %s", crd.Name)
+			log.Infof("successfully updated CRD resource: %s", crd.Name)
 		}
 	}
 	return err
