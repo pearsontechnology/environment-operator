@@ -39,12 +39,13 @@ func (r *Reaper) Cleanup(cfg *bitesize.Environment) error {
 			r.destroyDeployment(service.Name)
 		}
 
-		// cleanup configmaps before sevice get deleted
-		r.CleanupConfigMaps(cfg.Services.FindByName(service.Name), &service)
-
 		// delete ingresses that were removed from the service config
 		r.CleanupIngress(cfg.Services.FindByName(service.Name), &service)
 	}
+
+	// cleanup all resources that were removed from the service config
+	r.CleanupResources(cfg.Imports, current.Imports)
+
 	return nil
 }
 
@@ -143,21 +144,19 @@ func (r *Reaper) CleanupIngress(configSvc, clusterSvc *bitesize.Service) {
 	}
 }
 
-// CleanupConfigMaps deletes an confgimap if the corresponding volume is removed from the config
-func (r *Reaper) CleanupConfigMaps(configSvc, clusterSvc *bitesize.Service) {
-	if clusterSvc != nil {
-		for _, vol := range clusterSvc.Volumes {
-			if vol.IsConfigMapVolume() {
-				found := false
-				for _, cvol := range configSvc.Volumes {
-					if cvol.IsConfigMapVolume() && vol.Name == cvol.Name {
-						found = true
-					}
+// CleanupResources deletes all resorce types if the corresponding resource is removed from the config
+func (r *Reaper) CleanupResources(configRes bitesize.Imports, clusterRes bitesize.Imports) {
+	if configRes != nil {
+		for _, res := range clusterRes {
+			found := false
+			for _, cfgRes := range configRes {
+				if res.Name == cfgRes.Name {
+					found = true
 				}
-				if !found {
-					log.Infof("REAPER: Found orphan configmap %s, deleting.", vol.Name)
-					r.destroyResource(vol.Name, bitesize.TypeConfigMap)
-				}
+			}
+			if !found {
+				log.Infof("REAPER: Found orphan resource %s, type %s deleting.", res.Name, res.Type)
+				r.destroyResource(res.Name, res.Type)
 			}
 		}
 	}
