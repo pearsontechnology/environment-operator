@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### UNRELEASED]**
+ #### Added
+  * Ability to set LOG_LEVEL to trace
+
 ### **[0.0.30 ] 2019-03-05 [RELEASED]**
  #### Added
   * Option to use github/bitbucket token in place of sshkeys for authentication
