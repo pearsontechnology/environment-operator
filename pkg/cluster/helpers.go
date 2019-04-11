@@ -198,3 +198,37 @@ func containsAccessMode(modes []v1.PersistentVolumeAccessMode, mode v1.Persisten
 	}
 	return false
 }
+
+func volumes(deployment v1beta1_ext.Deployment) []bitesize.Volume {
+	//TODO: implement other volume types
+	volumes := []bitesize.Volume{}
+
+	volumeMounts := deployment.Spec.Template.Spec.Containers[0].VolumeMounts
+	// add configmap volumes to diff
+	for _, v := range deployment.Spec.Template.Spec.Volumes {
+		// if configmap volume
+		if v.VolumeSource.ConfigMap != nil {
+			vol := bitesize.Volume{
+				Name:  v.Name,
+				Type:  bitesize.TypeConfigMap,
+				Modes: "ReadWriteOnce",
+			}
+			// find the mount path for the volume
+			for _, mount := range volumeMounts {
+				if mount.Name == v.Name {
+					vol.Path = mount.MountPath
+				}
+			}
+			// generate items if any
+			for _, it := range v.ConfigMap.Items {
+				vol.Items = append(vol.Items, bitesize.KeyToPath{
+					Key:  it.Key,
+					Path: it.Path,
+					Mode: it.Mode,
+				})
+			}
+			volumes = append(volumes, vol)
+		}
+	}
+	return volumes
+}

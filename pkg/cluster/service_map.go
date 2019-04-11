@@ -84,8 +84,6 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 	}
 
 	resources := deployment.Spec.Template.Spec.Containers[0].Resources
-	volumes := deployment.Spec.Template.Spec.Volumes
-	volumeMounts := deployment.Spec.Template.Spec.Containers[0].VolumeMounts
 
 	if len(resources.Requests) != 0 {
 		cpuQuantity := resources.Requests["cpu"]
@@ -112,6 +110,7 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 	biteservice.HealthCheck = healthCheck(deployment)
 	biteservice.LivenessProbe = livenessProbe(deployment)
 	biteservice.ReadinessProbe = readinessProbe(deployment)
+	biteservice.Volumes = append(biteservice.Volumes, volumes(deployment)...)
 
 	for _, cmd := range deployment.Spec.Template.Spec.Containers[0].Command {
 		biteservice.Commands = append(biteservice.Commands, string(cmd))
@@ -121,32 +120,6 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 		biteservice.Annotations = deployment.Spec.Template.ObjectMeta.Annotations
 	} else {
 		biteservice.Annotations = map[string]string{}
-	}
-
-	// add configmap volumes to diff
-	for _, v := range volumes {
-		// if configmap volume
-		if v.VolumeSource.ConfigMap != nil {
-			vol := bitesize.Volume{
-				Name: v.Name,
-				Type: bitesize.TypeConfigMap,
-			}
-			// find the mount path for the volume
-			for _, mount := range volumeMounts {
-				if mount.Name == v.Name {
-					vol.Path = mount.MountPath
-				}
-			}
-			// generate items if any
-			for _, it := range v.ConfigMap.Items {
-				vol.Items = append(vol.Items, bitesize.KeyToPath{
-					Key:  it.Key,
-					Path: it.Path,
-					Mode: it.Mode,
-				})
-			}
-			biteservice.Volumes = append(biteservice.Volumes)
-		}
 	}
 
 	biteservice.Status = bitesize.ServiceStatus{
