@@ -45,6 +45,7 @@ type Container struct {
 	Application string   `yaml:"application,omitempty"`
 	Name        string   `yaml:"name" validate:"nonzero"`
 	Version     string   `yaml:"version,omitempty"`
+	EnvVars     []EnvVar `yaml:"env,omitempty"`
 	Command     []string `yaml:"command"`
 }
 

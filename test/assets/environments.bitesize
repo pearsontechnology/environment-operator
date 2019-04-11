@@ -196,6 +196,7 @@ environments:
   - type: sqs
     name: sqs_queue_name
 - name: environment13
+  version: 1
   namespace: environment-init
   services:
   - name: init_svc
@@ -210,3 +211,10 @@ environments:
             version: 1
             command:
               - sample2
+            env: 
+              - name: sample1
+                value: sample1-value
+              - secret: sample2
+                value: sample2-value
+              - name: sample3
+                pod_field: sample3-value

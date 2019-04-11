@@ -475,9 +475,16 @@ func (w *KubeMapper) initContainers() ([]v1.Container, error) {
 	}
 
 	for _, container := range *w.BiteService.InitContainers {
+		evars, err := w.initEnvVars(container)
+
+		if err != nil {
+			return nil, err
+		}
+
 		con := v1.Container{
 			Name:    container.Name,
 			Image:   "",
+			Env:     evars,
 			Command: container.Command,
 		}
 
@@ -603,6 +610,72 @@ func (w *KubeMapper) readinessProbe() (*v1.Probe, error) {
 	probe := w.BiteService.ReadinessProbe
 
 	return convertProbeType(probe), nil
+}
+
+func (w *KubeMapper) initEnvVars(container bitesize.Container) ([]v1.EnvVar, error) {
+	var retval []v1.EnvVar
+	var err error
+	//Create in cluster rest client to be utilized for secrets processing
+	client, _ := k8s.ClientForNamespace(config.Env.Namespace)
+
+	for _, e := range container.EnvVars {
+		var evar v1.EnvVar
+		switch {
+		case e.Secret != "":
+			kv := strings.Split(e.Value, "/")
+			secretName := ""
+			secretDataKey := ""
+
+			if len(kv) == 2 {
+				secretName = kv[0]
+				secretDataKey = kv[1]
+			} else {
+				secretName = kv[0]
+				secretDataKey = secretName
+			}
+
+			if !client.Secret().Exists(secretName) {
+				log.Debugf("Unable to find Secret %s", secretName)
+				err = fmt.Errorf("Unable to find secret [%s] in namespace [%s] when processing envvars for init containers [%s]", secretName, config.Env.Namespace, w.BiteService.Name)
+			}
+
+			evar = v1.EnvVar{
+				Name: e.Secret,
+				ValueFrom: &v1.EnvVarSource{
+					SecretKeyRef: &v1.SecretKeySelector{
+						LocalObjectReference: v1.LocalObjectReference{
+							Name: secretName,
+						},
+						Key: secretDataKey,
+					},
+				},
+			}
+		case e.Value != "":
+			evar = v1.EnvVar{
+				Name:  e.Name,
+				Value: e.Value,
+			}
+		case e.PodField != "":
+			evar = v1.EnvVar{
+				Name: e.Name,
+				ValueFrom: &v1.EnvVarSource{
+					FieldRef: &v1.ObjectFieldSelector{
+						FieldPath: e.PodField,
+					},
+				},
+			}
+		}
+		retval = append(retval, evar)
+	}
+
+	if w.BiteService.IsBlueGreenChildDeployment() {
+		evar := v1.EnvVar{
+			Name:  "POD_DEPLOYMENT_COLOUR",
+			Value: w.BiteService.Deployment.BlueGreen.DeploymentColour.String(),
+		}
+		retval = append(retval, evar)
+	}
+	return retval, err
 }
 
 func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {

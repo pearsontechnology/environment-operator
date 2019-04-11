@@ -539,6 +539,9 @@ func TestInitContainers(t *testing.T) {
 				},
 			},
 		},
+		&v1.Service{
+			ObjectMeta: validMeta("environment-dev", "init_svc"),
+		},
 	)
 
 	cluster := Cluster{
@@ -551,9 +554,9 @@ func TestInitContainers(t *testing.T) {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
 
-	cluster.ApplyEnvironment(e1, e1)
-
 	e2, err := cluster.LoadEnvironment("environment-dev")
+
+	cluster.ApplyEnvironment(e2, e1)
 
 	if err != nil {
 		t.Fatalf("Unexpected err: %s", err.Error())
