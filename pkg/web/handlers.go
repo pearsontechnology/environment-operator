@@ -73,6 +73,13 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	configmaps, err := loadConfigMapsFromConfig()
+	if err != nil {
+		log.Errorf("Error getting ConfigMaps %s: %s", d.Name, err.Error())
+		http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
+		return
+	}
+
 	if service.IsBlueGreenParentDeployment() {
 		service, err = loadServiceFromConfig(service.InactiveDeploymentName())
 		if err != nil {
@@ -85,7 +92,7 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 	service.Version = d.Version
 	service.Application = d.Application
 
-	if err := client.ApplyService(service, config.Env.Namespace); err != nil {
+	if err := client.ApplyService(service, configmaps, config.Env.Namespace); err != nil {
 		log.Errorf("Error updating deployment %s: %s", d.Name, err.Error())
 		http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
 		metrics.Deploys.With(prometheus.Labels{"status": "failed"}).Inc()

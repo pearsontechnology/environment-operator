@@ -65,7 +65,17 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 		if !shouldDeployOnChange(currentEnvironment, newEnvironment, service.Name) {
 			continue
 		}
-		err = cluster.ApplyService(&service, &newEnvironment.Imports, newEnvironment.Namespace)
+
+		res := bitesize.Imports{}
+		// Load configmaps for the service
+		for _, vol := range service.Volumes {
+			if vol.IsConfigMapVolume() {
+				res = append(res, *newEnvironment.Imports.FindByName(vol.Name, bitesize.TypeConfigMap))
+			}
+		}
+		// TODO: load jobs and cronjobs
+
+		err = cluster.ApplyService(&service, &res, newEnvironment.Namespace)
 	}
 	return err
 }

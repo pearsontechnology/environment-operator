@@ -81,10 +81,10 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 				} else {
 					labels["creator"] = "pipeline"
 				}
-				res.ConfigMap.SetLabels(labels)
-				res.ConfigMap.SetName(res.Name)
+				res.ConfigMap.ObjectMeta.SetLabels(labels)
+				res.ConfigMap.ObjectMeta.SetName(res.Name)
 				// override metadata namespace to current environment namespace
-				res.ConfigMap.SetNamespace(namespace)
+				res.ConfigMap.ObjectMeta.SetNamespace(namespace)
 			}
 		case TypeJob:
 			{
@@ -100,9 +100,10 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 					labels["creator"] = "pipeline"
 				}
 				res.Job.SetLabels(labels)
-				res.ConfigMap.SetName(res.Name)
+				res.ConfigMap.ObjectMeta.SetLabels(labels)
+				res.ConfigMap.ObjectMeta.SetName(res.Name)
 				// override metadata namespace to current environment namespace
-				res.Job.SetNamespace(namespace)
+				res.ConfigMap.ObjectMeta.SetNamespace(namespace)
 			}
 		case TypeCronJob:
 			{
@@ -117,10 +118,10 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 				} else {
 					labels["creator"] = "pipeline"
 				}
-				res.CronJob.SetLabels(labels)
-				res.ConfigMap.SetName(res.Name)
+				res.ConfigMap.ObjectMeta.SetLabels(labels)
+				res.ConfigMap.ObjectMeta.SetName(res.Name)
 				// override metadata namespace to current environment namespace
-				res.CronJob.SetNamespace(namespace)
+				res.ConfigMap.ObjectMeta.SetNamespace(namespace)
 			}
 		}
 	}
@@ -144,9 +145,10 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 
 		labels := res.ConfigMap.GetLabels()
 		labels["creator"] = "pipeline"
-		res.ConfigMap.SetLabels(labels)
+		res.ConfigMap.ObjectMeta.SetLabels(labels)
+		res.ConfigMap.ObjectMeta.SetName(res.Name)
 		// override metadata namespace to current environment namespace
-		res.ConfigMap.SetNamespace(namespace)
+		res.ConfigMap.ObjectMeta.SetNamespace(namespace)
 	}
 
 	return nil
@@ -183,4 +185,21 @@ func (slice Imports) FindByName(name string, rstype string) *Resource {
 		}
 	}
 	return nil
+}
+
+// FindByType returns slice of resources matched with type parameter
+// rstype is the resource type of the imported resource
+//   available type are:
+//      - configmap
+//      - job
+//      - cronjob
+// if resource found returns the resource else returns nil
+func (slice Imports) FindByType(rstype string) Imports {
+	res := Imports{}
+	for _, s := range slice {
+		if s.Type == rstype {
+			res = append(res, s)
+		}
+	}
+	return res
 }
