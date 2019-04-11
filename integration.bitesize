@@ -1,0 +1,32 @@
+---
+project: pearsontechnology
+environments:
+  - name: integration-test
+    namespace: default
+    deployment:
+      method: rolling-upgrade
+    services:
+      - name: metrics-test-app
+        version: "6"
+        application: metrics-test-app
+        port: 9898
+        hpa:
+          min_replicas: 1
+          max_replicas: 10
+          metric:
+            name: http_requests
+            target_average_value: 500m
+        env:
+          - name: APP_PORT
+            value: 9898
+        annotations:
+          - name: prometheus.io/scrape
+            value: true
+          - name: prometheus.io/path
+            value: /metrics
+          - name: prometheus.io/port
+            value: 9898
+        requests:
+          cpu: 100m
+        limits:
+          cpu: 500m
