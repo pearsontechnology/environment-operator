@@ -149,7 +149,7 @@ type Annotation struct {
 type Volume struct {
 	// Name of the referent.
 	Name string `yaml:"name"`
-	// Pathe
+	// Path
 	Path  string `yaml:"path"`
 	Modes string `yaml:"modes" validate:"volume_modes"`
 	Size  string `yaml:"size"`
@@ -162,7 +162,7 @@ type Volume struct {
 	// the volume setup will error unless it is marked optional. Paths must be
 	// relative and may not contain the '..' path or start with '..'.
 	// +optional
-	Items []KeyToPath `yaml:"item"`
+	Items []KeyToPath `yaml:"items"`
 	// volume provisioning types accepted 'dynamic' and 'manual'
 	provisioning string `yaml:"provisioning" validate:"volume_provisioning"`
 }

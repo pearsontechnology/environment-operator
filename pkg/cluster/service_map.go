@@ -84,6 +84,8 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 	}
 
 	resources := deployment.Spec.Template.Spec.Containers[0].Resources
+	volumes := deployment.Spec.Template.Spec.Volumes
+	volumeMounts := deployment.Spec.Template.Spec.Containers[0].VolumeMounts
 
 	if len(resources.Requests) != 0 {
 		cpuQuantity := resources.Requests["cpu"]
@@ -120,6 +122,33 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 	} else {
 		biteservice.Annotations = map[string]string{}
 	}
+
+	// add configmap volumes to diff
+	for _, v := range volumes {
+		// if configmap volume
+		if v.VolumeSource.ConfigMap != nil {
+			vol := bitesize.Volume{
+				Name: v.Name,
+				Type: bitesize.TypeConfigMap,
+			}
+			// find the mount path for the volume
+			for _, mount := range volumeMounts {
+				if mount.Name == v.Name {
+					vol.Path = mount.MountPath
+				}
+			}
+			// generate items if any
+			for _, it := range v.ConfigMap.Items {
+				vol.Items = append(vol.Items, bitesize.KeyToPath{
+					Key:  it.Key,
+					Path: it.Path,
+					Mode: it.Mode,
+				})
+			}
+			biteservice.Volumes = append(biteservice.Volumes)
+		}
+	}
+
 	biteservice.Status = bitesize.ServiceStatus{
 
 		AvailableReplicas: int(deployment.Status.AvailableReplicas),
@@ -127,6 +156,7 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 		CurrentReplicas:   int(deployment.Status.UpdatedReplicas),
 		DeployedAt:        deployment.CreationTimestamp.String(),
 	}
+
 }
 
 // AddHPA adds Kubernetes HPA to biteservice
