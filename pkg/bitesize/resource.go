@@ -4,6 +4,7 @@ import (
 	"os"
 	"path"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	v1batch "k8s.io/api/batch/v1"
 	v1beta1 "k8s.io/api/batch/v1beta1"
@@ -22,14 +23,13 @@ const (
 
 // Resource represent a resource
 type Resource struct {
-	Name       string          `yaml:"name"`
-	Path       string          `yaml:"path,omitempty"`
-	Files      []string        `yaml:"files,omitempty"`
-	AppendHash bool            `yaml:"append_hash"`
-	Type       string          `yaml:"type"`
-	ConfigMap  v1.ConfigMap    `yaml:"-"`
-	Job        v1batch.Job     `yaml:"-"`
-	CronJob    v1beta1.CronJob `yaml:"-"`
+	Name      string          `yaml:"name"`
+	Path      string          `yaml:"path,omitempty"`
+	Files     []string        `yaml:"files,omitempty"`
+	Type      string          `yaml:"type"`
+	ConfigMap v1.ConfigMap    `yaml:"-"`
+	Job       v1batch.Job     `yaml:"-"`
+	CronJob   v1beta1.CronJob `yaml:"-"`
 }
 
 // ImportsRepository contains the repository info all the imports per env
@@ -69,7 +69,7 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 		switch res.Type {
 		case TypeConfigMap:
 			{
-
+				log.Debugf("adding configmap %s from configmap path %s", res.Name, res.Path)
 				if err := decoder.Decode(&res.ConfigMap); err != nil {
 					return err
 				}
@@ -127,24 +127,33 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 	}
 
 	if len(res.Files) > 0 {
+		log.Debugf("generating configmap %s from file sources", res.Name)
 		// set absolute paths
 		for k, v := range res.Files {
 			res.Files[k] = path.Join(localPath, v)
+			log.Debugf("file: %s", res.Files[k])
 		}
 		// if the configmap is to be generated from files
 		generator := util.ConfigMapGenerator{
 			Name:        res.Name,
 			FileSources: res.Files,
-			AppendHash:  res.AppendHash,
+			AppendHash:  false,
 		}
 		cfmap, err := generator.Generate()
 		if err != nil {
 			return err
 		}
+
 		res.ConfigMap = *cfmap
 
 		labels := res.ConfigMap.GetLabels()
-		labels["creator"] = "pipeline"
+		if labels == nil {
+			labels = map[string]string{
+				"creator": "pipeline",
+			}
+		} else {
+			labels["creator"] = "pipeline"
+		}
 		res.ConfigMap.ObjectMeta.SetLabels(labels)
 		res.ConfigMap.ObjectMeta.SetName(res.Name)
 		// override metadata namespace to current environment namespace

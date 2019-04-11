@@ -51,9 +51,6 @@ func (s ConfigMapGenerator) validate() error {
 	if len(s.Name) == 0 {
 		return fmt.Errorf("name must be specified")
 	}
-	if len(s.FileSources) > 0 {
-		return fmt.Errorf("from-env-file cannot be combined with from-file or from-literal")
-	}
 	return nil
 }
 
