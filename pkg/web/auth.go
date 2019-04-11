@@ -12,12 +12,16 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/config"
 )
 
+// AuthClient handles webhook authentication
 type AuthClient struct {
 	Client        *oidc.Client
 	AllowedGroups []string
 	Token         string
 }
 
+// NewAuthClient creates a webhook authentication client using tokenfile
+// defined environment 'config.Env.TokenFile' configuration. It uses
+// `config.Env.OIDCAllowedGroups` envrionment configuration to allow access sepecific clients
 func NewAuthClient() (*AuthClient, error) {
 
 	retval := &AuthClient{}
@@ -56,6 +60,9 @@ func NewAuthClient() (*AuthClient, error) {
 
 }
 
+// Authenticate parse the jwt token provideded as parameter to authenticate
+// if the token is in jwt claims and request is comming from authenticated groups
+// the fuction will return true
 func (a *AuthClient) Authenticate(token string) bool {
 	if a.Token != "" {
 		return a.Token == token

@@ -42,6 +42,14 @@ func (r *Reaper) Cleanup(cfg *bitesize.Environment) error {
 		// delete ingresses that were removed from the service config
 		r.CleanupIngress(cfg.Services.FindByName(service.Name), &service)
 	}
+
+	for _, resource := range current.Imports {
+		if cfg.Imports != nil && cfg.Imports.Find(resource.Name, resource.Type) == nil {
+			log.Infof("REAPER: Found orphan resource %s,%s, deleting.", resource.Name, resource.Type)
+			r.destroyResource(resource.Name, resource.Type)
+		}
+	}
+
 	return nil
 }
 
@@ -98,6 +106,37 @@ func (r *Reaper) destroyPersistentVolume(name string) error {
 }
 
 func (r *Reaper) destroyCustomResourceDefinition(name string) error {
+	return nil
+}
+
+func (r *Reaper) destroyResource(name string, rstype string) error {
+	switch rstype {
+	case "configmap":
+		{
+			client := k8s.ConfigMap{
+				Interface: r.Wrapper.Interface,
+				Namespace: r.Namespace,
+			}
+			return client.Destroy(name)
+		}
+	case "job":
+		{
+			client := k8s.Job{
+				Interface: r.Wrapper.Interface,
+				Namespace: r.Namespace,
+			}
+			return client.Destroy(name)
+		}
+	case "cronjob":
+		{
+			client := k8s.CronJob{
+				Interface: r.Wrapper.Interface,
+				Namespace: r.Namespace,
+			}
+			return client.Destroy(name)
+		}
+	}
+
 	return nil
 }
 

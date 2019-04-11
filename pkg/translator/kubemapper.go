@@ -3,11 +3,8 @@ package translator
 // translator package converts objects between Kubernetes and Bitesize
 
 import (
-	"encoding/base64"
 	"fmt"
-	"math/rand"
 	"strings"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
@@ -15,7 +12,6 @@ import (
 	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
-	v1beta2_apps "k8s.io/api/apps/v1beta2"
 	autoscale_v2beta1 "k8s.io/api/autoscaling/v2beta1"
 	v1 "k8s.io/api/core/v1"
 	v1beta1_ext "k8s.io/api/extensions/v1beta1"
@@ -27,6 +23,7 @@ import (
 // KubeMapper maps BitesizeService object to Kubernetes objects
 type KubeMapper struct {
 	BiteService *bitesize.Service
+	Imports     *bitesize.Imports
 	Namespace   string
 	Config      struct {
 		Project        string
@@ -107,13 +104,29 @@ func (w *KubeMapper) HeadlessService() (*v1.Service, error) {
 	return retval, nil
 }
 
+// ConfigMaps returns a list of configmaps defined in the service
+// definition
+func (w *KubeMapper) ConfigMaps() ([]v1.ConfigMap, error) {
+	var retval []v1.ConfigMap
+
+	for _, vol := range w.BiteService.Volumes {
+		if vol.IsConfigMapVolume() {
+			c := w.Imports.FindByName(vol.Name, bitesize.TypeConfigMap)
+			if c != nil {
+				retval = append(retval, c.ConfigMap)
+			}
+		}
+	}
+	return retval, nil
+}
+
 // PersistentVolumeClaims returns a list of claims for a biteservice
 func (w *KubeMapper) PersistentVolumeClaims() ([]v1.PersistentVolumeClaim, error) {
 	var retval []v1.PersistentVolumeClaim
 
 	for _, vol := range w.BiteService.Volumes {
-		//Create a PVC only if the volume is not coming from a secret
-		if vol.IsSecretVolume() {
+		//Create a PVC only if the volume is not coming from a secret or configmap
+		if vol.IsSecretVolume() || vol.IsConfigMapVolume() {
 			continue
 		}
 
@@ -152,166 +165,6 @@ func (w *KubeMapper) PersistentVolumeClaims() ([]v1.PersistentVolumeClaim, error
 		}
 
 		retval = append(retval, ret)
-	}
-	return retval, nil
-}
-
-// MongoInternalSecret returns a secret to be used for mongo internal Auth
-func (w *KubeMapper) MongoInternalSecret() (*v1.Secret, error) {
-
-	const charset = "abcdefghijklmnopqrstuvwxyz" +
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	var seededRand *rand.Rand = rand.New(
-		rand.NewSource(time.Now().UnixNano()))
-	b := make([]byte, 700)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
-	}
-
-	value := base64.StdEncoding.EncodeToString(b)
-
-	s := map[string]string{
-		"internal-auth-mongodb-keyfile": value,
-	}
-
-	ret := &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "mongo-bootstrap-data",
-			Namespace: w.Namespace,
-			Labels: map[string]string{
-				"creator":    "pipeline",
-				"deployment": w.BiteService.Name,
-			},
-		},
-		StringData: s,
-	}
-
-	return ret, nil
-}
-
-// MongoStatefulSet extracts Mongo as Kubernetes object from Bitesize definition
-func (w *KubeMapper) MongoStatefulSet() (*v1beta2_apps.StatefulSet, error) {
-	replicas := int32(w.BiteService.Replicas)
-	imagePullSecrets, err := w.imagePullSecrets()
-	if err != nil {
-		return nil, err
-	}
-	mounts, err := w.volumeMounts()
-	if err != nil {
-		return nil, err
-	}
-	vol := v1.VolumeMount{
-		Name:      "secrets-volume",
-		MountPath: "/etc/secrets-volume",
-		ReadOnly:  true,
-	}
-
-	mounts = append(mounts, vol)
-
-	resources, err := w.resources()
-	if err != nil {
-		return nil, err
-	}
-
-	retval := &v1beta2_apps.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      w.BiteService.Name,
-			Namespace: w.Namespace,
-			Labels: map[string]string{
-				"creator":     "pipeline",
-				"name":        w.BiteService.Name,
-				"application": w.BiteService.Application,
-				"version":     w.BiteService.Version,
-			},
-		},
-		Spec: v1beta2_apps.StatefulSetSpec{
-			ServiceName: w.BiteService.Name,
-			Replicas:    &replicas,
-			Template: v1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      w.BiteService.Name,
-					Namespace: w.Namespace,
-					Labels: map[string]string{
-						"creator":     "pipeline",
-						"application": w.BiteService.Application,
-						"name":        w.BiteService.Name,
-						"version":     w.BiteService.Version,
-						"role":        "mongo",
-					},
-					Annotations: w.BiteService.Annotations,
-				},
-				Spec: v1.PodSpec{
-					TerminationGracePeriodSeconds: &[]int64{10}[0],
-					Volumes: []v1.Volume{
-						{
-							Name: "secrets-volume",
-							VolumeSource: v1.VolumeSource{
-								Secret: &v1.SecretVolumeSource{
-									SecretName:  "mongo-bootstrap-data",
-									DefaultMode: &[]int32{256}[0],
-								},
-							},
-						},
-					},
-					NodeSelector: map[string]string{"role": "minion"},
-					Containers: []v1.Container{
-						{
-							Name:            w.BiteService.DatabaseType,
-							Image:           fmt.Sprintf("%s:%s", w.BiteService.DatabaseType, w.BiteService.Version),
-							ImagePullPolicy: v1.PullAlways,
-							Command: []string{
-								"mongod",
-								"--replSet",
-								"mongo",
-								"--auth",
-								"--smallfiles",
-								"--noprealloc",
-								"--clusterAuthMode",
-								"keyFile",
-								"--keyFile",
-								"/etc/secrets-volume/internal-auth-mongodb-keyfile",
-								"--setParameter",
-								"authenticationMechanisms=SCRAM-SHA-1",
-							},
-							Ports: []v1.ContainerPort{
-								{
-									ContainerPort: int32(w.BiteService.Ports[0]),
-								},
-							},
-							VolumeMounts: mounts,
-							Resources:    resources,
-						},
-					},
-					ImagePullSecrets: imagePullSecrets,
-				},
-			},
-			VolumeClaimTemplates: []v1.PersistentVolumeClaim{
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      w.BiteService.Volumes[0].Name,
-						Namespace: w.Namespace,
-						Annotations: map[string]string{
-							"volume.beta.kubernetes.io/storage-class": "aws-ebs",
-						},
-						Labels: map[string]string{
-							"creator":    "pipeline",
-							"deployment": w.BiteService.Name,
-							"mount_path": w.BiteService.Volumes[0].Path,
-							"size":       w.BiteService.Volumes[0].Size,
-							"type":       w.BiteService.Volumes[0].Type,
-						},
-					},
-					Spec: v1.PersistentVolumeClaimSpec{
-						AccessModes: getAccessModesFromString(w.BiteService.Volumes[0].Modes),
-						Resources: v1.ResourceRequirements{
-							Requests: v1.ResourceList{
-								v1.ResourceName(v1.ResourceStorage): resource.MustParse(w.BiteService.Volumes[0].Size),
-							},
-						},
-					},
-				},
-			},
-		},
 	}
 	return retval, nil
 }
@@ -780,6 +633,28 @@ func (w *KubeMapper) volumeSource(vol bitesize.Volume) v1.VolumeSource {
 	if vol.IsSecretVolume() {
 		return v1.VolumeSource{
 			Secret: &v1.SecretVolumeSource{SecretName: vol.Name},
+		}
+	}
+
+	if vol.IsConfigMapVolume() {
+
+		items := []v1.KeyToPath{}
+
+		for _, v := range vol.Items {
+			items = append(items, v1.KeyToPath{
+				Key:  v.Key,
+				Path: v.Path,
+				Mode: v.Mode,
+			})
+		}
+
+		return v1.VolumeSource{
+			ConfigMap: &v1.ConfigMapVolumeSource{
+				LocalObjectReference: v1.LocalObjectReference{
+					Name: vol.Name,
+				},
+				Items: items,
+			},
 		}
 	}
 
