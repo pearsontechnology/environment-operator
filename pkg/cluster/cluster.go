@@ -248,7 +248,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 	}
 
 	// Handle imported resources
-	resourceMap := new(ResourceMap)
+	resourceMap := ResourceMap{}
 
 	configmaps, _ := client.ConfigMap().List()
 	for _, config := range configmaps {

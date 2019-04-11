@@ -39,17 +39,18 @@ func (r *Reaper) Cleanup(cfg *bitesize.Environment) error {
 			r.destroyDeployment(service.Name)
 		}
 
+		// cleanup configmaps
+		for _, vol := range service.Volumes {
+			if vol.IsConfigMapVolume() {
+				configmap := cfg.Imports.FindByName(service.Name, bitesize.TypeConfigMap)
+				log.Infof("REAPER: Found orphan configmap %s, deleting.", configmap.Name)
+				r.destroyResource(configmap.Name, bitesize.TypeConfigMap)
+			}
+		}
+
 		// delete ingresses that were removed from the service config
 		r.CleanupIngress(cfg.Services.FindByName(service.Name), &service)
 	}
-
-	for _, resource := range current.Imports {
-		if cfg.Imports != nil && cfg.Imports.Find(resource.Name, resource.Type) == nil {
-			log.Infof("REAPER: Found orphan resource %s,%s, deleting.", resource.Name, resource.Type)
-			r.destroyResource(resource.Name, resource.Type)
-		}
-	}
-
 	return nil
 }
 
