@@ -10,11 +10,8 @@ import (
 )
 
 // Compare creates a changeMap for the diff between environment configs and returns a boolean if changes were detected
-func Compare(config1, config2 bitesize.Environment) bool {
+func Compare(desiredCfg, existingCfg bitesize.Environment) bool {
 	newChangeMap()
-
-	desiredCfg := config1
-	existingCfg := config2
 
 	// Following fields are ignored for diff purposes
 	desiredCfg.Tests = []bitesize.Test{}
