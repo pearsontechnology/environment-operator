@@ -18,5 +18,5 @@ BUILD_IMAGE="golang:1.12-alpine"
 docker run --rm -v "$(pwd)":/go/src/github.com/pearsontechnology/environment-operator \
     -w /go/src/github.com/pearsontechnology/environment-operator \
     ${BUILD_IMAGE} \
-    /bin/sh -c "apk update && apk add git gcc musl-dev && go test -v ./pkg/bitesize ./pkg/cluster ./pkg/diff ./pkg/git ./pkg/reaper ./pkg/translator ./pkg/web ./pkg/util ./pkg/util/k8s"
+    /bin/sh -c "apk update && apk add git gcc musl-dev && go test -v ./..."
 
