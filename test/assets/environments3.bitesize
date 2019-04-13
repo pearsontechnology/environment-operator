@@ -3,7 +3,7 @@ environments:
 - name: environment1
   namespace: environment-dev
   gists_repository:
-    remote: "./../../"
+    remote: "https://github.com/pearsontechnology/environment-operator.git"
     branch: BITE-5048
   gists:
      - name: "application-v1"
@@ -25,7 +25,7 @@ environments:
 - name: environment2
   namespace: environment-dev
   gists_repository:
-    remote: "./"
+    remote: "https://github.com/pearsontechnology/environment-operator.git"
     branch: BITE-5048
   gists:
      - name: "application-v1"

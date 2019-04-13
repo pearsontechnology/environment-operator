@@ -134,11 +134,15 @@ func (g *Git) pullOptions() *gogit.PullOptions {
 	branch := fmt.Sprintf("refs/heads/%s", g.BranchName)
 	// Return options with token auth if enabled
 	log.Debug("performing git pull")
-	return &gogit.PullOptions{
+	opt := gogit.PullOptions{
 		ReferenceName: plumbing.ReferenceName(branch),
-		Auth:          g.auth(),
 	}
 
+	if config.Env.UseAuth {
+		opt.Auth =  g.auth()
+	}
+
+	return &opt
 }
 
 // Setup options for fetch. This will also be used
@@ -146,9 +150,13 @@ func (g *Git) pullOptions() *gogit.PullOptions {
 func (g *Git) fetchOptions() *gogit.FetchOptions {
 	//Return options with token auth if enabled
 	log.Debug("performing git fetch")
-	return &gogit.FetchOptions{
-		Auth: g.auth(),
+	opt := gogit.FetchOptions{}
+
+	if config.Env.UseAuth {
+		opt.Auth =  g.auth()
 	}
+
+	return &opt
 }
 
 // Auth returns AuthMethod object based on
