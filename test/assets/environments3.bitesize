@@ -2,17 +2,15 @@ project: test
 environments:
 - name: environment1
   namespace: environment-dev
-  imports_repository:
-    remote: "../../"
+  gists_repository:
+    remote: "./../../"
     branch: BITE-5048
-  imports:
+  gists:
      - name: "application-v1"
        path: "test/assets/k8s/application-v1.bitesize"
-       version: 1.0.1
        type: configmap
      - name: "application-v2"
        path: "test/assets/k8s/application-v1.bitesize"
-       version: 1.0.0
        type: configmap
      - name: "application-v3"
        Files:
@@ -20,32 +18,29 @@ environments:
        type: configmap
   services:
   - name: service1_environment1
-    version: 1.0.0
     volumes:
       - name: application-v3
         path: "/etc/config/application-v3.config"
         type: configmap
 - name: environment2
   namespace: environment-dev
-  imports_repository:
+  gists_repository:
     remote: "./"
-    branch: master
-  imports:
+    branch: BITE-5048
+  gists:
      - name: "application-v1"
-       path: k8s/application-v1.bitesize/aplication.bitesize"
-       version: 1.0.1
+       path: "test/assets/k8s/application.bitesize"
        type: configmap
      - name: "application-v2"
-       path: "k8s/application-v1.bitesize/application-v1.properties"
-       version: 1.0.0
+       path: "test/assets/k8s/application-v1.properties"
        type: configmap
      - name: "application-v3"
        files:
-          - "k8s/application-v1.bitesize/application-v2.properties"
+          - "test/assets/k8s/application-v2.properties"
        type: configmap
   services:
   - name: service1_environment1
-    version: 1.0.0
     volumes:
-      - path: "/etc/config/application-v1.config"
+      - name: application-v2
+        path: "/etc/config/application-v3.config"
         type: configmap

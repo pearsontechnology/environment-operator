@@ -23,7 +23,7 @@ import (
 // KubeMapper maps BitesizeService object to Kubernetes objects
 type KubeMapper struct {
 	BiteService *bitesize.Service
-	Imports     *bitesize.Imports
+	Imports     *bitesize.Gists
 	Namespace   string
 	Config      struct {
 		Project        string
@@ -482,7 +482,7 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 
 			if !client.Secret().Exists(secretName) {
 				log.Debugf("Unable to find Secret %s", secretName)
-				err = fmt.Errorf("Unable to find secret [%s] in namespace [%s] when processing envvars for deployment [%s]", secretName, config.Env.Namespace, w.BiteService.Name)
+				err = fmt.Errorf("unable to find secret [%s] in namespace [%s] when processing envvars for deployment [%s]", secretName, config.Env.Namespace, w.BiteService.Name)
 			}
 
 			evar = v1.EnvVar{
@@ -533,7 +533,7 @@ func (w *KubeMapper) volumeMounts() ([]v1.VolumeMount, error) {
 
 	for _, v := range w.BiteService.Volumes {
 		if v.Name == "" || v.Path == "" {
-			return nil, fmt.Errorf("Volume must have both name and path set")
+			return nil, fmt.Errorf("volume must have both name and path set")
 		}
 		vol := v1.VolumeMount{
 			Name:      v.Name,
@@ -565,7 +565,7 @@ func (w *KubeMapper) volumeSource(vol bitesize.Volume) v1.VolumeSource {
 
 	if vol.IsConfigMapVolume() {
 
-		items := []v1.KeyToPath{}
+		var items []v1.KeyToPath
 
 		for _, v := range vol.Items {
 			items = append(items, v1.KeyToPath{
@@ -686,7 +686,7 @@ func (w *KubeMapper) CustomResourceDefinition() (*ext.PrsnExternalResource, erro
 
 func getAccessModesFromString(modes string) []v1.PersistentVolumeAccessMode {
 	strmodes := strings.Split(modes, ",")
-	accessModes := []v1.PersistentVolumeAccessMode{}
+	var accessModes []v1.PersistentVolumeAccessMode
 	for _, s := range strmodes {
 		s = strings.Trim(s, " ")
 		switch {

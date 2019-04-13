@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	validator "gopkg.in/validator.v2"
-	yaml "gopkg.in/yaml.v2"
-	v1 "k8s.io/api/core/v1"
+	"gopkg.in/validator.v2"
+	"gopkg.in/yaml.v2"
+	"k8s.io/api/core/v1"
 )
 
 // EnvironmentsBitesize is a 1:1 mapping to environments.bitesize file

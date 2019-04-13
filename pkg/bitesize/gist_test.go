@@ -11,27 +11,27 @@ func TestUnmarshal(t *testing.T) {
 }
 
 func TestFind(t *testing.T) {
-	t.Run("find existing configmap by path", testFindConfigMapByPath)
-	t.Run("find non-existing configmap by path", testFindConfigMapByPathNotFound)
+	t.Run("find existing ConfigMap by path", testFindConfigMapByPath)
+	t.Run("find non-existing ConfigMap by path", testFindConfigMapByPathNotFound)
 	t.Run("find existing job by path", testFindJobByPathNotFound)
 	t.Run("find non-existing job by path", testFindJobByPathNotFound)
-	t.Run("find existing cronjob by path", testFindCronJobByPath)
-	t.Run("find non-existing cronjob by path", testFindCronJobByPathNotFound)
+	t.Run("find existing CronJob by path", testFindCronJobByPath)
+	t.Run("find non-existing CronJob by path", testFindCronJobByPathNotFound)
 }
 
 func testFindConfigMapByPath(t *testing.T) {
-	var svc = Imports{
-		Resource{
+	var svc = Gists{
+		Gist{
 			Name: "a",
 			Path: "k8s/a.properties",
 			Type: TypeConfigMap,
 		},
-		Resource{
+		Gist{
 			Name: "c",
 			Path: "k8s/b.properties",
 			Type: TypeCronJob,
 		},
-		Resource{
+		Gist{
 			Name: "b",
 			Path: "k8s/c.properties",
 			Type: TypeJob,
@@ -44,18 +44,18 @@ func testFindConfigMapByPath(t *testing.T) {
 }
 
 func testFindConfigMapByPathNotFound(t *testing.T) {
-	var im = Imports{
-		Resource{
+	var im = Gists{
+		Gist{
 			Name: "a",
 			Path: "k8s/a.properties",
 			Type: TypeCronJob,
 		},
-		Resource{
+		Gist{
 			Name: "c",
 			Path: "k8s/b.properties",
 			Type: TypeCronJob,
 		},
-		Resource{
+		Gist{
 			Name: "b",
 			Path: "k8s/c.properties",
 			Type: TypeJob,
@@ -68,18 +68,18 @@ func testFindConfigMapByPathNotFound(t *testing.T) {
 }
 
 func testFindJobByPath(t *testing.T) {
-	var svc = Imports{
-		Resource{
+	var svc = Gists{
+		Gist{
 			Name: "a",
 			Path: "k8s/a.properties",
 			Type: TypeConfigMap,
 		},
-		Resource{
+		Gist{
 			Name: "c",
 			Path: "k8s/b.properties",
 			Type: TypeCronJob,
 		},
-		Resource{
+		Gist{
 			Name: "b",
 			Path: "k8s/c.properties",
 			Type: TypeJob,
@@ -92,18 +92,18 @@ func testFindJobByPath(t *testing.T) {
 }
 
 func testFindJobByPathNotFound(t *testing.T) {
-	var im = Imports{
-		Resource{
+	var im = Gists{
+		Gist{
 			Name: "a",
 			Path: "k8s/a.properties",
 			Type: TypeConfigMap,
 		},
-		Resource{
+		Gist{
 			Name: "c",
 			Path: "k8s/b.properties",
 			Type: TypeCronJob,
 		},
-		Resource{
+		Gist{
 			Name: "b",
 			Path: "k8s/c.properties",
 			Type: TypeCronJob,
@@ -116,18 +116,18 @@ func testFindJobByPathNotFound(t *testing.T) {
 }
 
 func testFindCronJobByPath(t *testing.T) {
-	var svc = Imports{
-		Resource{
+	var svc = Gists{
+		Gist{
 			Name: "a",
 			Path: "k8s/a.properties",
 			Type: TypeConfigMap,
 		},
-		Resource{
+		Gist{
 			Name: "c",
 			Path: "k8s/b.properties",
 			Type: TypeCronJob,
 		},
-		Resource{
+		Gist{
 			Name: "b",
 			Path: "k8s/c.properties",
 			Type: TypeCronJob,
@@ -140,18 +140,18 @@ func testFindCronJobByPath(t *testing.T) {
 }
 
 func testFindCronJobByPathNotFound(t *testing.T) {
-	var im = Imports{
-		Resource{
+	var im = Gists{
+		Gist{
 			Name: "a",
 			Path: "k8s/a.properties",
 			Type: TypeJob,
 		},
-		Resource{
+		Gist{
 			Name: "c",
 			Path: "k8s/b.properties",
 			Type: TypeJob,
 		},
-		Resource{
+		Gist{
 			Name: "b",
 			Path: "k8s/c.properties",
 			Type: TypeConfigMap,
@@ -164,7 +164,7 @@ func testFindCronJobByPathNotFound(t *testing.T) {
 }
 
 func testUmarshalConfigMap(t *testing.T) {
-	r := &Resource{
+	r := &Gist{
 		Name: "application-v1",
 		Path: "../../test/assets/k8s/application-v1.bitesize",
 		Type: TypeConfigMap,

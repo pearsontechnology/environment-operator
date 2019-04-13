@@ -66,11 +66,11 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 			continue
 		}
 
-		resources := bitesize.Imports{}
+		resources := bitesize.Gists{}
 		// Load configmaps for the service
 		for _, vol := range service.Volumes {
 			if vol.IsConfigMapVolume() {
-				res := newEnvironment.Imports.FindByName(vol.Name, bitesize.TypeConfigMap)
+				res := newEnvironment.Gists.FindByName(vol.Name, bitesize.TypeConfigMap)
 				if res == nil {
 					log.Warnf("could not find import source for the configmap volume %s", vol.Name)
 					continue
@@ -86,7 +86,7 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 }
 
 // ApplyService applies a single service to the namespace
-func (cluster *Cluster) ApplyService(service *bitesize.Service, imports *bitesize.Imports, namespace string) error {
+func (cluster *Cluster) ApplyService(service *bitesize.Service, imports *bitesize.Gists, namespace string) error {
 	var err error
 	mapper := &translator.KubeMapper{
 		BiteService: service,
@@ -247,7 +247,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 		serviceMap.AddVolumeClaim(claim)
 	}
 
-	for _, supported := range k8_extensions.SupportedThirdPartyResources {
+	for _, supported := range k8_extensions.SupportedCustomResources {
 		crds, _ := client.CustomResourceDefinition(supported).List()
 		for _, crd := range crds {
 			serviceMap.AddCustomResourceDefinition(crd)
@@ -255,18 +255,18 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 	}
 
 	// Handle imported resources
-	resourceMap := ResourceMap{}
+	gistMap := GistMap{}
 
 	configmaps, _ := client.ConfigMap().List()
 	for _, config := range configmaps {
-		resourceMap.AddConfigMap(config)
+		gistMap.AddConfigMap(config)
 	}
 
 	bitesizeConfig := bitesize.Environment{
 		Name:      environmentName,
 		Namespace: namespace,
 		Services:  serviceMap.Services(),
-		Imports:   resourceMap.Resources(),
+		Gists:     gistMap.Gists(),
 	}
 
 	return &bitesizeConfig, nil

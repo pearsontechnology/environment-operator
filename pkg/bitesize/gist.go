@@ -7,8 +7,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	v1batch "k8s.io/api/batch/v1"
-	v1beta1 "k8s.io/api/batch/v1beta1"
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/batch/v1beta1"
+	"k8s.io/api/core/v1"
 	k8Yaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 
@@ -21,8 +21,8 @@ const (
 	TypeCronJob string = "cronjob"
 )
 
-// Resource represent a resource
-type Resource struct {
+// Gist represent a resource
+type Gist struct {
 	Name      string          `yaml:"name"`
 	Path      string          `yaml:"path,omitempty"`
 	Files     []string        `yaml:"files,omitempty"`
@@ -32,30 +32,29 @@ type Resource struct {
 	CronJob   v1beta1.CronJob `yaml:"-"`
 }
 
-// ImportsRepository contains the repository info all the imports per env
-type ImportsRepository struct {
+// GistsRepository contains the repository info all the imports per env
+type GistsRepository struct {
 	Remote string `yaml:"remote"`
 	Branch string `yaml:"branch,omitempty" default:"master"`
 }
 
-// Imports is the struct to hold all imported resources per env
-type Imports []Resource
+// Gists is the struct to hold all imported resources per env
+type Gists []Gist
 
-func (slice Imports) Len() int {
+func (slice Gists) Len() int {
 	return len(slice)
 }
 
-// TODO: Implement better soring algorithm
-func (slice Imports) Less(i, j int) bool {
+func (slice Gists) Less(i, j int) bool {
 	return slice[i].Name < slice[j].Name
 }
 
-func (slice Imports) Swap(i, j int) {
+func (slice Gists) Swap(i, j int) {
 	slice[i], slice[j] = slice[j], slice[i]
 }
 
 // LoadResource loads named resource from a filename with a given path
-func LoadResource(res *Resource, namespace, localPath string) error {
+func LoadResource(res *Gist, namespace, localPath string) error {
 	if len(res.Path) > 0 {
 		resPath := path.Join(localPath, res.Path)
 
@@ -69,7 +68,7 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 		switch res.Type {
 		case TypeConfigMap:
 			{
-				log.Debugf("adding configmap %s from configmap path %s", res.Name, res.Path)
+				log.Debugf("adding ConfigMap %s from ConfigMap path %s", res.Name, res.Path)
 				if err := decoder.Decode(&res.ConfigMap); err != nil {
 					return err
 				}
@@ -133,7 +132,7 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 			res.Files[k] = path.Join(localPath, v)
 			log.Debugf("file: %s", res.Files[k])
 		}
-		// if the configmap is to be generated from files
+		// if the ConfigMap is to be generated from files
 		generator := util.ConfigMapGenerator{
 			Name:        res.Name,
 			FileSources: res.Files,
@@ -171,7 +170,7 @@ func LoadResource(res *Resource, namespace, localPath string) error {
 //      - job
 //      - cronjob
 // if resource found returns the resource else returns nil
-func (slice Imports) Find(path string, rstype string) *Resource {
+func (slice Gists) Find(path string, rstype string) *Gist {
 	for _, s := range slice {
 		if s.Path == path && s.Type == rstype {
 			return &s
@@ -183,11 +182,11 @@ func (slice Imports) Find(path string, rstype string) *Resource {
 // FindByName returns configmap resource matched with name parameter
 // rstype is the resource type of the imported resource
 //   available type are:
-//      - configmap
-//      - job
-//      - cronjob
+//      - bitesize.TypeConfigMap
+//      - bitesize.TypeJob
+//      - bitesize.TypeCronJob
 // if resource found returns the resource else returns nil
-func (slice Imports) FindByName(name string, rstype string) *Resource {
+func (slice Gists) FindByName(name string, rstype string) *Gist {
 	for _, s := range slice {
 		if s.Type == rstype && s.Name == name {
 			return &s
@@ -199,12 +198,12 @@ func (slice Imports) FindByName(name string, rstype string) *Resource {
 // FindByType returns slice of resources matched with type parameter
 // rstype is the resource type of the imported resource
 //   available type are:
-//      - configmap
-//      - job
-//      - cronjob
+//      - bitesize.TypeConfigMap
+//      - bitesize.TypeJob
+//      - bitesize.TypeCronJob
 // if resource found returns the resource else returns nil
-func (slice Imports) FindByType(rstype string) Imports {
-	res := Imports{}
+func (slice Gists) FindByType(rstype string) Gists {
+	res := Gists{}
 	for _, s := range slice {
 		if s.Type == rstype {
 			res = append(res, s)

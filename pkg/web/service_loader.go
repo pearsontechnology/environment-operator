@@ -46,7 +46,7 @@ func loadServiceFromCluster(name string) (bitesize.Service, error) {
 	return *s, nil
 }
 
-func loadConfigMapsFromConfig() (*bitesize.Imports, error) {
+func loadConfigMapsFromConfig() (*bitesize.Gists, error) {
 	gitClient := git.Client()
 	gitClient.Refresh()
 
@@ -55,7 +55,7 @@ func loadConfigMapsFromConfig() (*bitesize.Imports, error) {
 		return nil, fmt.Errorf("Could not load env: %s", err.Error())
 	}
 
-	res := environment.Imports.FindByType(bitesize.TypeConfigMap)
+	res := environment.Gists.FindByType(bitesize.TypeConfigMap)
 	if res == nil {
 		log.Warnf("Imported Resources: %v", res)
 		return nil, fmt.Errorf("ConfigMaps not found")

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/pearsontechnology/environment-operator/pkg/config"
-	validator "gopkg.in/validator.v2"
+	"gopkg.in/validator.v2"
 )
 
 // Service represents a single service and it's configuration,

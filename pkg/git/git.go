@@ -103,7 +103,10 @@ func EnvGitClient(repo string, branch string, namespace string, env string) (*Gi
 	// remote has been changed re-init repo
 	if remote == nil || remote.Config() == nil || remote.Config().URLs[0] != repo {
 		log.Debugf("remote has been changed, re-initializing repository %s", repo)
-		os.RemoveAll(localPath)
+		err := os.RemoveAll(localPath)
+		if err != nil {
+			log.Errorf("EnvGitClient re-init remove failed: %s", err.Error())
+		}
 		repository, err = gogit.PlainInit(localPath, false)
 		if err != nil {
 			return nil, fmt.Errorf("could not init local repository %s: %s", localPath, err.Error())
@@ -169,7 +172,7 @@ func (g *Git) auth() transport.AuthMethod {
 func (g *Git) sshKeys() *gitssh.PublicKeys {
 
 	if g.SSHKey == "" {
-		log.Debug("no sshkey provided")
+		log.Debug("no SSHKey provided")
 		return nil
 	}
 	auth, err := gitssh.NewPublicKeys("git", []byte(g.SSHKey), "")

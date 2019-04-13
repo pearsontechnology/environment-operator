@@ -141,7 +141,7 @@ func (s ServiceMap) AddHPA(hpa autoscale_v2beta1.HorizontalPodAutoscaler) {
 	biteservice.HPA.MinReplicas = *hpa.Spec.MinReplicas
 	biteservice.HPA.MaxReplicas = hpa.Spec.MaxReplicas
 
-	if hpa.Spec.Metrics[0].Type == "Resource" {
+	if hpa.Spec.Metrics[0].Type == "Gist" {
 		if hpa.Spec.Metrics[0].Resource.Name == "cpu" {
 			biteservice.HPA.Metric.Name = "cpu"
 		}

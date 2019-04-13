@@ -7,7 +7,7 @@ import (
 
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 // Tests to see that YAML documents unmarshal correctly
