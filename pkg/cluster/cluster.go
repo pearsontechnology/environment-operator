@@ -66,7 +66,7 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 			continue
 		}
 
-		resources := bitesize.Gists{}
+		gists := bitesize.Gists{}
 		// Load configmaps for the service
 		for _, vol := range service.Volumes {
 			if vol.IsConfigMapVolume() {
@@ -75,7 +75,7 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 					log.Warnf("could not find import source for the configmap volume %s", vol.Name)
 					continue
 				}
-				resources = append(resources, *res)
+				gists = append(gists, *res)
 			}
 		}
 
@@ -96,18 +96,18 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 		}
 		// TODO: load jobs and cronjobs
 
-		err = cluster.ApplyService(&service, &resources, newEnvironment.Namespace)
+		err = cluster.ApplyService(&service, &gists, newEnvironment.Namespace)
 	}
 	return err
 }
 
 // ApplyService applies a single service to the namespace
-func (cluster *Cluster) ApplyService(service *bitesize.Service, imports *bitesize.Gists, namespace string) error {
+func (cluster *Cluster) ApplyService(service *bitesize.Service, gists *bitesize.Gists, namespace string) error {
 	var err error
 	mapper := &translator.KubeMapper{
 		BiteService: service,
 		Namespace:   namespace,
-		Imports:     imports,
+		Gists:       gists,
 	}
 
 	client := &k8s.Client{

@@ -23,7 +23,7 @@ import (
 // KubeMapper maps BitesizeService object to Kubernetes objects
 type KubeMapper struct {
 	BiteService *bitesize.Service
-	Imports     *bitesize.Gists
+	Gists       *bitesize.Gists
 	Namespace   string
 	Config      struct {
 		Project        string
@@ -104,14 +104,14 @@ func (w *KubeMapper) HeadlessService() (*v1.Service, error) {
 	return retval, nil
 }
 
-// ConfigMaps returns a list of configmaps defined in the service
+// ConfigMaps returns a list of ConfigMaps defined in the service
 // definition
 func (w *KubeMapper) ConfigMaps() ([]v1.ConfigMap, error) {
 	var retval []v1.ConfigMap
 
 	for _, vol := range w.BiteService.Volumes {
 		if vol.IsConfigMapVolume() {
-			c := w.Imports.FindByName(vol.Name, bitesize.TypeConfigMap)
+			c := w.Gists.FindByName(vol.Name, bitesize.TypeConfigMap)
 			if c != nil {
 				retval = append(retval, c.ConfigMap)
 			}
@@ -134,12 +134,12 @@ func (w *KubeMapper) ConfigMaps() ([]v1.ConfigMap, error) {
 	return retval, nil
 }
 
-// PersistentVolumeClaims returns a list of claims for a biteservice
+// PersistentVolumeClaims returns a list of claims for a BiteService
 func (w *KubeMapper) PersistentVolumeClaims() ([]v1.PersistentVolumeClaim, error) {
 	var retval []v1.PersistentVolumeClaim
 
 	for _, vol := range w.BiteService.Volumes {
-		//Create a PVC only if the volume is not coming from a secret or configmap
+		//Create a PVC only if the volume is not coming from a secret or ConfigMap
 		if vol.IsSecretVolume() || vol.IsConfigMapVolume() {
 			continue
 		}
@@ -183,7 +183,7 @@ func (w *KubeMapper) PersistentVolumeClaims() ([]v1.PersistentVolumeClaim, error
 	return retval, nil
 }
 
-// Deployment extracts Kubernetes object from Bitesize definition
+// Deployment extracts Kubernetes object from BiteSize definition
 func (w *KubeMapper) Deployment() (*v1beta1_ext.Deployment, error) {
 	if w.BiteService.IsBlueGreenParentDeployment() {
 		return nil, nil
@@ -295,7 +295,6 @@ func (w *KubeMapper) HPA() (*autoscale_v2beta1.HorizontalPodAutoscaler, error) {
 }
 
 func (w *KubeMapper) getMetricSpec() (m []autoscale_v2beta1.MetricSpec) {
-	//	var retval []autoscale_v2beta1.MetricSpec
 	if w.BiteService.HPA.Metric.Name == "cpu" || w.BiteService.HPA.Metric.Name == "memory" {
 		if w.BiteService.HPA.Metric.Name == "cpu" && w.BiteService.HPA.Metric.TargetAverageUtilization != 0 {
 			m = append(m, autoscale_v2beta1.MetricSpec{
@@ -716,7 +715,7 @@ func (w *KubeMapper) volumeSource(vol bitesize.Volume) v1.VolumeSource {
 
 }
 
-// Ingress extracts Kubernetes object from Bitesize definition
+// Ingress extracts Kubernetes object from BiteSize definition
 func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 	labels := map[string]string{
 		"creator":     "pipeline",
@@ -784,7 +783,7 @@ func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 	return retval, nil
 }
 
-// CustomResourceDefinition extracts Kubernetes object from Bitesize definition
+// CustomResourceDefinition extracts Kubernetes object from BiteSize definition
 func (w *KubeMapper) CustomResourceDefinition() (*ext.PrsnExternalResource, error) {
 	retval := &ext.PrsnExternalResource{
 		TypeMeta: metav1.TypeMeta{
