@@ -39,14 +39,14 @@ func Client() (*Cluster, error) {
 func (cluster *Cluster) ApplyIfChanged(newConfig *bitesize.Environment) error {
 	var err error
 	if newConfig == nil {
-		return errors.New("Could not compare against config (nil)")
+		return errors.New("could not compare against config (nil)")
 	}
 
-	log.Debugf("Loading namespaces: %s", newConfig.Namespace)
+	log.Debugf("loading namespaces: %s", newConfig.Namespace)
 	currentConfig, err := cluster.LoadEnvironment(newConfig.Namespace)
 
 	if err != nil {
-		log.Errorf("Error while loading environment: %s", err.Error())
+		log.Errorf("error while loading environment: %s", err.Error())
 		return err
 	}
 	if diff.Compare(*newConfig, *currentConfig) {
@@ -65,17 +65,33 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 		if !shouldDeployOnChange(currentEnvironment, newEnvironment, service.Name) {
 			continue
 		}
-		err = cluster.ApplyService(&service, newEnvironment.Namespace)
+
+		resources := bitesize.Gists{}
+		// Load configmaps for the service
+		for _, vol := range service.Volumes {
+			if vol.IsConfigMapVolume() {
+				res := newEnvironment.Gists.FindByName(vol.Name, bitesize.TypeConfigMap)
+				if res == nil {
+					log.Warnf("could not find import source for the configmap volume %s", vol.Name)
+					continue
+				}
+				resources = append(resources, *res)
+			}
+		}
+		// TODO: load jobs and cronjobs
+
+		err = cluster.ApplyService(&service, &resources, newEnvironment.Namespace)
 	}
 	return err
 }
 
 // ApplyService applies a single service to the namespace
-func (cluster *Cluster) ApplyService(service *bitesize.Service, namespace string) error {
+func (cluster *Cluster) ApplyService(service *bitesize.Service, imports *bitesize.Gists, namespace string) error {
 	var err error
 	mapper := &translator.KubeMapper{
 		BiteService: service,
 		Namespace:   namespace,
+		Imports:     imports,
 	}
 
 	client := &k8s.Client{
@@ -85,23 +101,25 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, namespace string
 	}
 
 	if service.Type == "" {
-		log.Debugf("Applying pvcs for Service %s ", service.Name)
+		log.Debugf("applying pvcs for service %s ", service.Name)
 		pvc, _ := mapper.PersistentVolumeClaims()
 		for _, claim := range pvc {
+			log.Debugf("pvc: %s", claim.Name)
 			if err = client.PVC().Apply(&claim); err != nil {
 				log.Error(err)
 			}
 		}
 
-		log.Debugf("Applying configmaps for Service %s ", service.Name)
+		log.Debugf("applying configmaps for service %s ", service.Name)
 		cMaps, _ := mapper.ConfigMaps()
 		for _, c := range cMaps {
+			log.Debugf("configmap: %s", c.Name)
 			if err = client.ConfigMap().Apply(&c); err != nil {
 				log.Error(err)
 			}
 		}
 
-		log.Debugf("Applying Deployment for Service %s", service.Name)
+		log.Debugf("applying deployment for service %s", service.Name)
 		deployment, err := mapper.Deployment()
 		if err != nil {
 			log.Error(err)
@@ -115,7 +133,7 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, namespace string
 		svc, _ := mapper.Service()
 		if err = client.Service().Apply(svc); err != nil {
 			log.Error(err)
-			log.Debugf("Service +%v", svc)
+			log.Debugf("service +%v", svc)
 		}
 
 		hpa, _ := mapper.HPA()
@@ -135,7 +153,7 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, namespace string
 		if err = client.CustomResourceDefinition(crd.Kind).Apply(crd); err != nil {
 			log.Error(err)
 		} else {
-			log.Infof("Successfully updated CRD resource: %s", crd.Name)
+			log.Infof("successfully updated CRD resource: %s", crd.Name)
 		}
 	}
 	return err
@@ -186,13 +204,13 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 
 	ns, err := client.Ns().Get()
 	if err != nil {
-		return nil, fmt.Errorf("Error while retrieving namespace: %s", err.Error())
+		return nil, fmt.Errorf("error while retrieving namespace: %s", err.Error())
 	}
 	environmentName := ns.ObjectMeta.Labels["environment"]
 
 	services, err := client.Service().List()
 	if err != nil {
-		log.Errorf("Error loading kubernetes services: %s", err.Error())
+		log.Errorf("error loading kubernetes services: %s", err.Error())
 	}
 	for _, service := range services {
 		serviceMap.AddService(service)
@@ -200,7 +218,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 
 	deployments, err := client.Deployment().List()
 	if err != nil {
-		log.Errorf("Error loading kubernetes deployments: %s", err.Error())
+		log.Errorf("error loading kubernetes deployments: %s", err.Error())
 	}
 	for _, deployment := range deployments {
 		serviceMap.AddDeployment(deployment)
@@ -208,7 +226,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 
 	hpas, err := client.HorizontalPodAutoscaler().List()
 	if err != nil {
-		log.Errorf("Error loading kubernetes hpas: %s", err.Error())
+		log.Errorf("error loading kubernetes hpas: %s", err.Error())
 	}
 	for _, hpa := range hpas {
 		serviceMap.AddHPA(hpa)
@@ -216,7 +234,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 
 	ingresses, err := client.Ingress().List()
 	if err != nil {
-		log.Errorf("Error loading kubernetes ingresses: %s", err.Error())
+		log.Errorf("error loading kubernetes ingresses: %s", err.Error())
 	}
 
 	for _, ingress := range ingresses {
@@ -229,7 +247,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 		serviceMap.AddVolumeClaim(claim)
 	}
 
-	for _, supported := range k8_extensions.SupportedThirdPartyResources {
+	for _, supported := range k8_extensions.SupportedCustomResources {
 		crds, _ := client.CustomResourceDefinition(supported).List()
 		for _, crd := range crds {
 			serviceMap.AddCustomResourceDefinition(crd)
@@ -237,18 +255,18 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 	}
 
 	// Handle imported resources
-	resourceMap := new(ResourceMap)
+	gistMap := GistMap{}
 
 	configmaps, _ := client.ConfigMap().List()
 	for _, config := range configmaps {
-		resourceMap.AddConfigMap(config)
+		gistMap.AddConfigMap(config)
 	}
 
 	bitesizeConfig := bitesize.Environment{
 		Name:      environmentName,
 		Namespace: namespace,
 		Services:  serviceMap.Services(),
-		Imports:   resourceMap.Resources(),
+		Gists:     gistMap.Gists(),
 	}
 
 	return &bitesizeConfig, nil
@@ -263,12 +281,18 @@ func shouldDeployOnChange(currentEnvironment, newEnvironment *bitesize.Environme
 	currentService := currentEnvironment.Services.FindByName(serviceName)
 	updatedService := newEnvironment.Services.FindByName(serviceName)
 
+	if currentService != nil && currentService.HPA.MinReplicas != 0 {
+		if currentService.Status.DesiredReplicas != updatedService.Status.DesiredReplicas {
+			return false
+		}
+	}
+
 	if updatedService == nil {
 		return true
 	}
 
 	if updatedService.IsBlueGreenParentDeployment() {
-		log.Debugf("Should deploy blue/green service %s", serviceName)
+		log.Debugf("should deploy blue/green service %s", serviceName)
 		return true
 	}
 

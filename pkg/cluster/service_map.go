@@ -110,6 +110,7 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 	biteservice.HealthCheck = healthCheck(deployment)
 	biteservice.LivenessProbe = livenessProbe(deployment)
 	biteservice.ReadinessProbe = readinessProbe(deployment)
+	biteservice.Volumes = append(biteservice.Volumes, volumes(deployment)...)
 
 	for _, cmd := range deployment.Spec.Template.Spec.Containers[0].Command {
 		biteservice.Commands = append(biteservice.Commands, string(cmd))
@@ -120,6 +121,7 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 	} else {
 		biteservice.Annotations = map[string]string{}
 	}
+
 	biteservice.Status = bitesize.ServiceStatus{
 
 		AvailableReplicas: int(deployment.Status.AvailableReplicas),
@@ -127,6 +129,7 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 		CurrentReplicas:   int(deployment.Status.UpdatedReplicas),
 		DeployedAt:        deployment.CreationTimestamp.String(),
 	}
+
 }
 
 // AddHPA adds Kubernetes HPA to biteservice
@@ -138,7 +141,7 @@ func (s ServiceMap) AddHPA(hpa autoscale_v2beta1.HorizontalPodAutoscaler) {
 	biteservice.HPA.MinReplicas = *hpa.Spec.MinReplicas
 	biteservice.HPA.MaxReplicas = hpa.Spec.MaxReplicas
 
-	if hpa.Spec.Metrics[0].Type == "Resource" {
+	if hpa.Spec.Metrics[0].Type == "Gist" {
 		if hpa.Spec.Metrics[0].Resource.Name == "cpu" {
 			biteservice.HPA.Metric.Name = "cpu"
 		}

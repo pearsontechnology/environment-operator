@@ -8,7 +8,7 @@ import (
 // Config contains environment variables used to configure the app
 type Config struct {
 	LogLevel          string `envconfig:"LOG_LEVEL"`
-	UseAuth           bool   `envconfig:"USE_AUTH" default:"true"`
+	UseAuth           bool   `envconfig:"USE_AUTH" default:"false"`
 	GitRepo           string `envconfig:"GIT_REMOTE_REPOSITORY"`
 	GitBranch         string `envconfig:"GIT_BRANCH" default:"master"`
 	GitKey            string `envconfig:"GIT_PRIVATE_KEY"`

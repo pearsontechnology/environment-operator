@@ -70,7 +70,7 @@ func main() {
 		gitConfiguration, err := bitesize.LoadEnvironmentFromConfig(config.Env)
 
 		if err != nil {
-			log.Errorf("Error while loading environment config: %s", err.Error())
+			log.Errorf("error while loading environment config: %s", err.Error())
 		} else {
 			client.ApplyIfChanged(gitConfiguration)
 			reap.Cleanup(gitConfiguration)

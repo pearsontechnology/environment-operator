@@ -60,9 +60,9 @@ func NewAuthClient() (*AuthClient, error) {
 
 }
 
-// Authenticate parse the jwt token provideded as parameter to authenticate
-// if the token is in jwt claims and request is comming from authenticated groups
-// the fuction will return true
+// Authenticate parse the jwt token provided as parameter to authenticate
+// if the token is in jwt claims and request is comingß from authenticated groups
+// the function will return true
 func (a *AuthClient) Authenticate(token string) bool {
 	if a.Token != "" {
 		return a.Token == token
@@ -70,18 +70,18 @@ func (a *AuthClient) Authenticate(token string) bool {
 
 	jwt, err := jose.ParseJWT(token)
 	if err != nil {
-		log.Errorf("Error parsing JWT: %s", err.Error())
+		log.Errorf("error parsing JWT: %s", err.Error())
 		return false
 	}
 
 	if err = a.Client.VerifyJWT(jwt); err != nil {
-		log.Errorf("Error verifying JWT: %s", err.Error())
+		log.Errorf("error verifying JWT: %s", err.Error())
 		return false
 	}
 
 	claims, err := jwt.Claims()
 	if err != nil {
-		log.Errorf("Error getting claims from JWT: %s", err.Error())
+		log.Errorf("error getting claims from JWT: %s", err.Error())
 		return false
 	}
 
@@ -89,7 +89,7 @@ func (a *AuthClient) Authenticate(token string) bool {
 
 	groups := claims["groups"].([]interface{})
 	if len(groups) == 0 {
-		log.Errorf("Error getting groups from JWT")
+		log.Error("error getting groups from JWT")
 		return false
 	}
 

@@ -51,9 +51,6 @@ func (s ConfigMapGenerator) validate() error {
 	if len(s.Name) == 0 {
 		return fmt.Errorf("name must be specified")
 	}
-	if len(s.FileSources) > 0 {
-		return fmt.Errorf("from-env-file cannot be combined with from-file or from-literal")
-	}
 	return nil
 }
 
@@ -175,7 +172,7 @@ func addKeyFromLiteralToConfigMap(configMap *v1.ConfigMap, keyName, data string)
 		return fmt.Errorf("%q is not a valid key name for a ConfigMap: %s", keyName, strings.Join(errs, ";"))
 	}
 	if _, entryExists := configMap.Data[keyName]; entryExists {
-		return fmt.Errorf("cannot add key %s, another key by that name already exists: %v.", keyName, configMap.Data)
+		return fmt.Errorf("cannot add key %s, another key by that name already exists: %v", keyName, configMap.Data)
 	}
 	configMap.Data[keyName] = data
 	return nil

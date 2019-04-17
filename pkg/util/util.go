@@ -5,19 +5,6 @@ import (
 	"os"
 )
 
-// func trimBlueGreenFromName(orig string) string {
-// 	return strings.TrimSuffix(strings.TrimSuffix(orig, "-blue"), "-green")
-// }
-//
-// func trimBlueGreenFromHost(orig string) string {
-// 	split := strings.Split(orig, ".")
-// 	split[0] = trimBlueGreenFromName(split[0])
-// 	return strings.Join(split, ".")
-// }
-// func collectHealthCheck(probe *v1.Probe) *bitesize.HealthCheck {
-// 	return &bitesize.HealthCheck{}
-// }
-
 // Registry returns docker registry setting
 func Registry() string {
 	return os.Getenv("DOCKER_REGISTRY")
@@ -31,11 +18,6 @@ func RegistrySecrets() string {
 func Project() string {
 	return os.Getenv("PROJECT")
 }
-
-// ApplicationImage returns full image name given bitesize.Service object
-// func ApplicationImage(svc *bitesize.Service) (string, error) {
-// 	return Image(svc.Application, svc.Version), nil
-// }
 
 // Image returns full  app image given app and version
 func Image(app, version string) string {
