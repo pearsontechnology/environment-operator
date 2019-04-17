@@ -117,6 +117,20 @@ func (w *KubeMapper) ConfigMaps() ([]v1.ConfigMap, error) {
 			}
 		}
 	}
+
+	if w.BiteService.InitContainers != nil {
+		for _, container := range *w.BiteService.InitContainers {
+			for _, vol := range container.Volumes {
+				if vol.IsConfigMapVolume() {
+					c := w.Imports.FindByName(vol.Name, bitesize.TypeConfigMap)
+					if c != nil {
+						retval = append(retval, c.ConfigMap)
+					}
+				}
+			}
+		}
+	}
+
 	return retval, nil
 }
 
@@ -329,16 +343,21 @@ func (w *KubeMapper) initContainers() ([]v1.Container, error) {
 
 	for _, container := range *w.BiteService.InitContainers {
 		evars, err := w.initEnvVars(container)
+		if err != nil {
+			return nil, err
+		}
 
+		mounts, err := w.initVolumeMounts(container)
 		if err != nil {
 			return nil, err
 		}
 
 		con := v1.Container{
-			Name:    container.Name,
-			Image:   "",
-			Env:     evars,
-			Command: container.Command,
+			Name:         container.Name,
+			Image:        "",
+			Env:          evars,
+			Command:      container.Command,
+			VolumeMounts: mounts,
 		}
 
 		if container.Version != "" {
@@ -597,6 +616,26 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 	return retval, err
 }
 
+func (w *KubeMapper) initVolumeMounts(container bitesize.Container) ([]v1.VolumeMount, error) {
+	var retval []v1.VolumeMount
+
+	if w.BiteService.IsBlueGreenParentDeployment() {
+		return retval, nil
+	}
+
+	for _, v := range container.Volumes {
+		if v.Name == "" || v.Path == "" {
+			return nil, fmt.Errorf("volume must have both name and path set")
+		}
+		vol := v1.VolumeMount{
+			Name:      v.Name,
+			MountPath: v.Path,
+		}
+		retval = append(retval, vol)
+	}
+	return retval, nil
+}
+
 func (w *KubeMapper) volumeMounts() ([]v1.VolumeMount, error) {
 	var retval []v1.VolumeMount
 
@@ -626,6 +665,19 @@ func (w *KubeMapper) volumes() ([]v1.Volume, error) {
 		}
 		retval = append(retval, vol)
 	}
+
+	if w.BiteService.InitContainers != nil {
+		for _, container := range *w.BiteService.InitContainers {
+			for _, v := range container.Volumes {
+				vol := v1.Volume{
+					Name:         v.Name,
+					VolumeSource: w.volumeSource(v),
+				}
+				retval = append(retval, vol)
+			}
+		}
+	}
+
 	return retval, nil
 }
 

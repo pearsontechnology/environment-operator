@@ -78,6 +78,22 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 				resources = append(resources, *res)
 			}
 		}
+
+		// Load configmaps for the init containers
+		if service.InitContainers != nil {
+			for _, containers := range *service.InitContainers {
+				for _, vol := range containers.Volumes {
+					if vol.IsConfigMapVolume() {
+						res := newEnvironment.Gists.FindByName(vol.Name, bitesize.TypeConfigMap)
+						if res == nil {
+							log.Warnf("could not find import source for the configmap volume %s", vol.Name)
+							continue
+						}
+						resources = append(resources, *res)
+					}
+				}
+			}
+		}
 		// TODO: load jobs and cronjobs
 
 		err = cluster.ApplyService(&service, &resources, newEnvironment.Namespace)
