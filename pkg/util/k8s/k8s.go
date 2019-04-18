@@ -1,7 +1,7 @@
 package k8s
 
 import (
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -90,6 +90,11 @@ func (c *Client) HorizontalPodAutoscaler() *HorizontalPodAutoscaler {
 	return &HorizontalPodAutoscaler{Interface: c.Interface, Namespace: c.Namespace}
 }
 
+// ConfigMap builds ConfigMap client
+func (c *Client) ConfigMap() *ConfigMap {
+	return &ConfigMap{Interface: c.Interface, Namespace: c.Namespace}
+}
+
 // Secret builds Secrets client
 func (c *Client) Secret() *Secret {
 	return &Secret{Interface: c.Interface, Namespace: c.Namespace}
@@ -118,6 +123,11 @@ func (c *Client) StatefulSet() *StatefulSet {
 // Ns builds Ingress client
 func (c *Client) Ns() *Namespace {
 	return &Namespace{Interface: c.Interface, Namespace: c.Namespace}
+}
+
+// ConfigMap builds ConfigMap client
+func (c *Client) Job() *Job {
+	return &Job{Interface: c.Interface, Namespace: c.Namespace}
 }
 
 // CustomResourceDefinition builds CRD client

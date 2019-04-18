@@ -5,9 +5,10 @@ import (
 	"path/filepath"
 	"sort"
 
-	validator "gopkg.in/validator.v2"
-
 	"github.com/pearsontechnology/environment-operator/pkg/config"
+	"github.com/pearsontechnology/environment-operator/pkg/git"
+
+	"gopkg.in/validator.v2"
 )
 
 // Environment represents full managed environment,
@@ -20,8 +21,11 @@ type Environment struct {
 	Deployment *DeploymentSettings `yaml:"deployment,omitempty"`
 	Services   Services            `yaml:"services"`
 	Tests      []Test              `yaml:"tests,omitempty"`
-	// XXX        map[string]interface{} `yaml:",inline"`
+	Gists      Gists               `yaml:"gists,omitempty"`
+	Repo       GistsRepository     `yaml:"gists_repository,omitempty"`
 }
+
+var gitClient *git.Git
 
 // Environments is a custom type to implement sort.Interface
 type Environments []Environment
@@ -71,11 +75,31 @@ func LoadEnvironment(path, envName string) (*Environment, error) {
 	}
 	for _, env := range e.Environments {
 		if env.Name == envName {
+			// Environment name found check for git configs
+			rootPath := config.Env.GitLocalPath
+			if len(env.Repo.Remote) > 0 {
+				gitClient, err = git.EnvGitClient(env.Repo.Remote, env.Repo.Branch, env.Namespace, env.Name)
+				if err != nil {
+					return nil, err
+				}
+				if err := gitClient.Refresh(); err != nil {
+					return nil, fmt.Errorf("git client information: \n RemotePath=%s \n LocalPath=%s \n Branch=%s \n SSHkey= \n %s", gitClient.RemotePath, gitClient.LocalPath, gitClient.BranchName, gitClient.SSHKey)
+				}
+				rootPath = gitClient.LocalPath
+			}
+			// load imported resources
+			for k, im := range env.Gists {
+				err := LoadResource(&im, env.Namespace, rootPath)
+				if err != nil {
+					return nil, fmt.Errorf("unable to load Gist type %s, in paths %s,%v %s", im.Type, im.Path, im.Files, err.Error())
+				}
+				env.Gists[k] = im
+			}
 			env.Services = loadServices(env)
 			return &env, nil
 		}
 	}
-	return nil, fmt.Errorf("Environment %s not found in %s", envName, path)
+	return nil, fmt.Errorf("environment %s not found in %s", envName, path)
 }
 
 func loadServices(env Environment) Services {

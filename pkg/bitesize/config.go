@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	validator "gopkg.in/validator.v2"
-	yaml "gopkg.in/yaml.v2"
-	v1 "k8s.io/api/core/v1"
+	"gopkg.in/validator.v2"
+	"gopkg.in/yaml.v2"
+	"k8s.io/api/core/v1"
 )
 
 // EnvironmentsBitesize is a 1:1 mapping to environments.bitesize file
 type EnvironmentsBitesize struct {
 	Project      string       `yaml:"project"`
 	Environments Environments `yaml:"environments"`
-	// XXX          map[string]interface{} `yaml:",inline"`
 }
 
 // DeploymentSettings represent "deployment" block in environments.bitesize
@@ -74,7 +73,6 @@ type Test struct {
 	Repository string              `yaml:"repository"`
 	Branch     string              `yaml:"branch"`
 	Commands   []map[string]string `yaml:"commands"`
-	// XXX        map[string]interface{} `yaml:",inline"`
 }
 
 // HealthCheck maps to LivenessProbe in Kubernetes
@@ -149,12 +147,41 @@ type Annotation struct {
 
 // Volume represents volume & it's mount
 type Volume struct {
-	Name         string `yaml:"name"`
-	Path         string `yaml:"path"`
-	Modes        string `yaml:"modes" validate:"volume_modes"`
-	Size         string `yaml:"size"`
-	Type         string `yaml:"type"`
+	// Name of the referent.
+	Name string `yaml:"name"`
+	// Path
+	Path  string `yaml:"path"`
+	Modes string `yaml:"modes" validate:"volume_modes"`
+	Size  string `yaml:"size"`
+	Type  string `yaml:"type"`
+	// If unspecified, each key-value pair in the Data field of the referenced
+	// ConfigMap will be projected into the volume as a file whose name is the
+	// key and content is the value. If specified, the listed keys will be
+	// projected into the specified paths, and unlisted keys will not be
+	// present. If a key is specified which is not present in the ConfigMap,
+	// the volume setup will error unless it is marked optional. Paths must be
+	// relative and may not contain the '..' path or start with '..'.
+	// +optional
+	Items []KeyToPath `yaml:"items"`
+	// volume provisioning types accepted 'dynamic' and 'manual'
 	provisioning string `yaml:"provisioning" validate:"volume_provisioning"`
+}
+
+// KeyToPath Maps a string key to a path within a volume.
+type KeyToPath struct {
+	// The key to project.
+	Key string `yaml:"key"`
+	// The relative path of the file to map the key to.
+	// May not be an absolute path.
+	// May not contain the path element '..'.
+	// May not start with the string '..'.
+	Path string `yaml:"path"`
+	// Optional: mode bits to use on this file, must be a value between 0
+	// and 0777. If not specified, the volume defaultMode will be used.
+	// This might be in conflict with other options that affect the file
+	// mode, like fsGroup, and the result can be other mode bits set.
+	// +optional
+	Mode *int32 `yaml:"mode,omitempty"`
 }
 
 func init() {
@@ -172,7 +199,8 @@ func (e *HealthCheck) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	*e = *ee
 
-	// if err = validator.Validate(e); err != nil {
+	// TODO: Validate
+	//  if err = validator.Validate(e); err != nil {
 	// 	return fmt.Errorf("health_check.%s", err.Error())
 	// }
 	return nil
@@ -226,14 +254,3 @@ func LoadFromFile(path string) (*EnvironmentsBitesize, error) {
 	}
 	return LoadFromString(string(contents))
 }
-
-// func checkOverflow(m map[string]interface{}, ctx string) error {
-// 	if len(m) > 0 {
-// 		var keys []string
-// 		for k := range m {
-// 			keys = append(keys, k)
-// 		}
-// 		return fmt.Errorf("%s: unknown fields (%s)", ctx, strings.Join(keys, ", "))
-// 	}
-// 	return nil
-// }

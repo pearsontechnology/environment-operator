@@ -25,11 +25,10 @@ echo "**************************************************************************
 echo "***************** Building Source *********************************************************"
 echo "*******************************************************************************************"
 
-BUILD_IMAGE="golang:1.10-alpine"
+BUILD_IMAGE="golang:1.12-alpine"
 
 docker run --rm -v "$(pwd)":/go/src/github.com/pearsontechnology/environment-operator \
 	-w /go/src/github.com/pearsontechnology/environment-operator \
-	-e CGO_ENABLED=1 \
 	${BUILD_IMAGE} \
     go build -v -o ${bin_dir}/environment-operator ./cmd/operator/main.go
 
