@@ -34,11 +34,13 @@ func (r *Reaper) Cleanup(cfg *bitesize.Environment) error {
 
 		if configService == nil {
 			log.Infof("REAPER: found orphan service %s, deleting.", service.Name)
-			err := r.deleteService(service)
-			log.Error(err)
+			if err := r.deleteService(service); err != nil {
+				log.Errorf("REAPER: delete orphan service %s failed with %s", service.Name ,err.Error())
+			}
 		} else if configService.IsBlueGreenParentDeployment() {
-			err := r.destroyDeployment(service.Name)
-			log.Error(err)
+			if err := r.destroyDeployment(service.Name); err != nil {
+				log.Errorf("REAPER: delete orphan deployment %s failed with %s", service.Name ,err.Error())
+			}
 		}
 
 		// delete ingresses that were removed from the service config
@@ -68,6 +70,9 @@ func (r *Reaper) deleteService(svc bitesize.Service) error {
 	}
 
 	for _, volume := range svc.Volumes {
+		if volume.IsConfigMapVolume() || volume.IsSecretVolume() {
+			continue
+		}
 		if err := r.destroyPersistentVolume(volume.Name); err != nil {
 			log.Errorf("REAPER: failed to destroy persistent volume: %s",err.Error())
 		}
