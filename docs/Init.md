@@ -11,6 +11,8 @@ If an Init Container fails for a Pod, Kubernetes restarts the Pod repeatedly unt
 
 **Example environments.bitesize**
 
+This will be the simplest configuration to set up init containers.
+
 ```
 project: sample-app
 environments:
@@ -39,4 +41,57 @@ environments:
               - pwd
 ```
 
-Please note that these are the only features currently available, users won't be able to use other features just yet.
+**Example extended environments.bitesize file**
+
+This is how to add sercrets, env and configMaps for init containers.
+
+```
+project: sample-app
+environments:
+  - name: dev
+    namespace: sample-app
+    gists:
+     - name: "application-v1"
+       path: "application-v1.bitesize"
+       type: configmap
+     - name: "application-v2"
+       path: "application-v1.bitesize"
+       type: configmap
+    deployment:
+      method: rolling-upgrade
+    services:
+      - name: api
+        version: 1
+        ssl: false
+        port: 8080
+        application: api
+        volumes:
+          - name: application-v2
+            path: "/etc/config/application-v2.config"
+            type: configmap
+        limits:
+          memory: 2048Mi
+        replicas: 1
+        init_containers:
+          - application: init_api_1
+            name: init1
+            version: 1
+            volumes:
+              - name: application-v1
+                path: "/etc/config/application-v1.config"
+                type: configmap
+            command:
+              - ls
+          - application: init_api_2
+            name: init2
+            version: 1
+            command:
+              - pwd
+            env: 
+              - name: sample1
+                value: sample1-value
+              - secret: sample2
+                value: sample2-value
+              - name: sample3
+                pod_field: metadata.name
+```

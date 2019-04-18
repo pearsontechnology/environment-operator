@@ -117,6 +117,20 @@ func (w *KubeMapper) ConfigMaps() ([]v1.ConfigMap, error) {
 			}
 		}
 	}
+
+	if w.BiteService.InitContainers != nil {
+		for _, container := range *w.BiteService.InitContainers {
+			for _, vol := range container.Volumes {
+				if vol.IsConfigMapVolume() {
+					c := w.Gists.FindByName(vol.Name, bitesize.TypeConfigMap)
+					if c != nil {
+						retval = append(retval, c.ConfigMap)
+					}
+				}
+			}
+		}
+	}
+
 	return retval, nil
 }
 
@@ -327,10 +341,22 @@ func (w *KubeMapper) initContainers() ([]v1.Container, error) {
 	}
 
 	for _, container := range *w.BiteService.InitContainers {
+		evars, err := w.initEnvVars(container)
+		if err != nil {
+			return nil, err
+		}
+
+		mounts, err := w.initVolumeMounts(container)
+		if err != nil {
+			return nil, err
+		}
+
 		con := v1.Container{
-			Name:    container.Name,
-			Image:   "",
-			Command: container.Command,
+			Name:         container.Name,
+			Image:        "",
+			Env:          evars,
+			Command:      container.Command,
+			VolumeMounts: mounts,
 		}
 
 		if container.Version != "" {
@@ -457,6 +483,72 @@ func (w *KubeMapper) readinessProbe() (*v1.Probe, error) {
 	return convertProbeType(probe), nil
 }
 
+func (w *KubeMapper) initEnvVars(container bitesize.Container) ([]v1.EnvVar, error) {
+	var retval []v1.EnvVar
+	var err error
+	//Create in cluster rest client to be utilized for secrets processing
+	client, _ := k8s.ClientForNamespace(config.Env.Namespace)
+
+	for _, e := range container.EnvVars {
+		var evar v1.EnvVar
+		switch {
+		case e.Secret != "":
+			kv := strings.Split(e.Value, "/")
+			secretName := ""
+			secretDataKey := ""
+
+			if len(kv) == 2 {
+				secretName = kv[0]
+				secretDataKey = kv[1]
+			} else {
+				secretName = kv[0]
+				secretDataKey = secretName
+			}
+
+			if !client.Secret().Exists(secretName) {
+				log.Debugf("Unable to find Secret %s", secretName)
+				err = fmt.Errorf("Unable to find secret [%s] in namespace [%s] when processing envvars for init containers [%s]", secretName, config.Env.Namespace, w.BiteService.Name)
+			}
+
+			evar = v1.EnvVar{
+				Name: e.Secret,
+				ValueFrom: &v1.EnvVarSource{
+					SecretKeyRef: &v1.SecretKeySelector{
+						LocalObjectReference: v1.LocalObjectReference{
+							Name: secretName,
+						},
+						Key: secretDataKey,
+					},
+				},
+			}
+		case e.Value != "":
+			evar = v1.EnvVar{
+				Name:  e.Name,
+				Value: e.Value,
+			}
+		case e.PodField != "":
+			evar = v1.EnvVar{
+				Name: e.Name,
+				ValueFrom: &v1.EnvVarSource{
+					FieldRef: &v1.ObjectFieldSelector{
+						FieldPath: e.PodField,
+					},
+				},
+			}
+		}
+		retval = append(retval, evar)
+	}
+
+	if w.BiteService.IsBlueGreenChildDeployment() {
+		evar := v1.EnvVar{
+			Name:  "POD_DEPLOYMENT_COLOUR",
+			Value: w.BiteService.Deployment.BlueGreen.DeploymentColour.String(),
+		}
+		retval = append(retval, evar)
+	}
+	return retval, err
+}
+
 func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 	var retval []v1.EnvVar
 	var err error
@@ -523,6 +615,26 @@ func (w *KubeMapper) envVars() ([]v1.EnvVar, error) {
 	return retval, err
 }
 
+func (w *KubeMapper) initVolumeMounts(container bitesize.Container) ([]v1.VolumeMount, error) {
+	var retval []v1.VolumeMount
+
+	if w.BiteService.IsBlueGreenParentDeployment() {
+		return retval, nil
+	}
+
+	for _, v := range container.Volumes {
+		if v.Name == "" || v.Path == "" {
+			return nil, fmt.Errorf("volume must have both name and path set")
+		}
+		vol := v1.VolumeMount{
+			Name:      v.Name,
+			MountPath: v.Path,
+		}
+		retval = append(retval, vol)
+	}
+	return retval, nil
+}
+
 func (w *KubeMapper) volumeMounts() ([]v1.VolumeMount, error) {
 	var retval []v1.VolumeMount
 
@@ -552,6 +664,19 @@ func (w *KubeMapper) volumes() ([]v1.Volume, error) {
 		}
 		retval = append(retval, vol)
 	}
+
+	if w.BiteService.InitContainers != nil {
+		for _, container := range *w.BiteService.InitContainers {
+			for _, v := range container.Volumes {
+				vol := v1.Volume{
+					Name:         v.Name,
+					VolumeSource: w.volumeSource(v),
+				}
+				retval = append(retval, vol)
+			}
+		}
+	}
+
 	return retval, nil
 }
 

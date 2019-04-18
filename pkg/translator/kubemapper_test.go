@@ -173,6 +173,10 @@ func TestInitContainers(t *testing.T) {
 			Name:        "nginx",
 			Version:     "1.15.10-1~stretch",
 			Application: "nginx_init",
+			EnvVars: []bitesize.EnvVar{
+				{Name: "test1", Value: "test1"},
+				{Name: "testpodfield", PodField: "metadata.namespace"},
+			},
 		},
 	}
 
@@ -180,6 +184,10 @@ func TestInitContainers(t *testing.T) {
 
 	if d.Spec.Template.Spec.InitContainers[0].Name != "nginx" {
 		t.Errorf("Wrong name for the init container %s", d.Spec.Template.Spec.InitContainers[0].Image)
+	}
+
+	if d.Spec.Template.Spec.InitContainers[0].Env[0].Name != "test1" {
+		t.Errorf("Wrong name for the init container env %s", d.Spec.Template.Spec.InitContainers[0].Env[0].Name)
 	}
 }
 

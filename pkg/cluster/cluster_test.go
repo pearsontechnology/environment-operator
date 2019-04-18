@@ -549,9 +549,9 @@ func TestInitContainers(t *testing.T) {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
 
-	cluster.ApplyEnvironment(e1, e1)
-
 	e2, err := cluster.LoadEnvironment("environment-dev")
+
+	cluster.ApplyEnvironment(e1, e2)
 
 	if err != nil {
 		t.Fatalf("Unexpected err: %s", err.Error())
