@@ -5,13 +5,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// SupportedThirdPartyResources contains all supported TPRs on bitesize
+// SupportedCustomResources contains all supported TPRs on bitesize
 // cluster.
-var SupportedThirdPartyResources = []string{
+var SupportedCustomResources = []string{
 	"mongo", "mysql", "cassandra", "redis", "zookeeper", "kafka", "postgres", "neptune", "sns", "mks", "docdb", "cb", "sqs",
 }
 
-// PrsnExternalResource represents ThirdpartyResources mapped from
+// PrsnExternalResource represents CustomResources mapped from
 // kubernetes to externally running services (e.g. RDS, cassandra, mongo etc.)
 type PrsnExternalResource struct {
 	metav1.TypeMeta   `json:",inline"`

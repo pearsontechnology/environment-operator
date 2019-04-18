@@ -11,7 +11,15 @@ var Deploys = prometheus.NewCounterVec(
 	},
 	[]string{"status"},
 )
+var ConfigMapDeploys = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "eo_configmap_deploys_total",
+		Help: "ConfigMap deploy requests received from clients.",
+	},
+	[]string{"status"},
+)
 
 func init() {
 	prometheus.MustRegister(Deploys)
+	prometheus.MustRegister(ConfigMapDeploys)
 }

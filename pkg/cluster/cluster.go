@@ -39,14 +39,14 @@ func Client() (*Cluster, error) {
 func (cluster *Cluster) ApplyIfChanged(newConfig *bitesize.Environment) error {
 	var err error
 	if newConfig == nil {
-		return errors.New("Could not compare against config (nil)")
+		return errors.New("could not compare against config (nil)")
 	}
 
-	log.Debugf("Loading namespaces: %s", newConfig.Namespace)
+	log.Debugf("loading namespaces: %s", newConfig.Namespace)
 	currentConfig, err := cluster.LoadEnvironment(newConfig.Namespace)
 
 	if err != nil {
-		log.Errorf("Error while loading environment: %s", err.Error())
+		log.Errorf("error while loading environment: %s", err.Error())
 		return err
 	}
 	if diff.Compare(*newConfig, *currentConfig) {
@@ -65,17 +65,33 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 		if !shouldDeployOnChange(currentEnvironment, newEnvironment, service.Name) {
 			continue
 		}
-		err = cluster.ApplyService(&service, newEnvironment.Namespace)
+
+		gists := bitesize.Gists{}
+		// Load configmaps for the service
+		for _, vol := range service.Volumes {
+			if vol.IsConfigMapVolume() {
+				res := newEnvironment.Gists.FindByName(vol.Name, bitesize.TypeConfigMap)
+				if res == nil {
+					log.Warnf("could not find import source for the configmap volume %s", vol.Name)
+					continue
+				}
+				gists = append(gists, *res)
+			}
+		}
+		// TODO: load jobs and cronjobs
+
+		err = cluster.ApplyService(&service, &gists, newEnvironment.Namespace)
 	}
 	return err
 }
 
 // ApplyService applies a single service to the namespace
-func (cluster *Cluster) ApplyService(service *bitesize.Service, namespace string) error {
+func (cluster *Cluster) ApplyService(service *bitesize.Service, gists *bitesize.Gists, namespace string) error {
 	var err error
 	mapper := &translator.KubeMapper{
 		BiteService: service,
 		Namespace:   namespace,
+		Gists:       gists,
 	}
 
 	client := &k8s.Client{
@@ -85,55 +101,39 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, namespace string
 	}
 
 	if service.Type == "" {
-
-		if service.DatabaseType == "mongo" {
-			log.Debugf("Applying Stateful set for Mongo DB Service: %s", service.Name)
-
-			secret, _ := mapper.MongoInternalSecret()
-
-			//Only apply the secret if it doesnt exist. Changing this secret would cause a deployed mongo
-			//cluster from being able to communicate between replicas.  Need a way to update this secret
-			// and redploy the mongo statefulset. For now, just protect against changing the secret
-			// via environment operator
-			if !client.Secret().Exists(secret.Name) {
-				if err = client.Secret().Apply(secret); err != nil {
-					log.Error(err)
-				}
-			}
-
-			statefulset, _ := mapper.MongoStatefulSet()
-			if err = client.StatefulSet().Apply(statefulset); err != nil {
+		log.Debugf("applying pvcs for service %s ", service.Name)
+		pvc, _ := mapper.PersistentVolumeClaims()
+		for _, claim := range pvc {
+			log.Debugf("pvc: %s", claim.Name)
+			if err = client.PVC().Apply(&claim); err != nil {
 				log.Error(err)
 			}
+		}
 
-			svc, _ := mapper.HeadlessService()
-			if err = client.Service().Apply(svc); err != nil {
+		log.Debugf("applying configmaps for service %s ", service.Name)
+		cMaps, _ := mapper.ConfigMaps()
+		for _, c := range cMaps {
+			log.Debugf("configmap: %s", c.Name)
+			if err = client.ConfigMap().Apply(&c); err != nil {
 				log.Error(err)
 			}
+		}
 
-		} else { //Only apply a Deployment and PVCs if this is not a DB service. The DB Statefulset creates its own PVCs
-			log.Debugf("Applying Deployment for Service %s", service.Name)
-			deployment, err := mapper.Deployment()
-			if err != nil {
-				log.Error(err)
-				return err
-			}
-			if err = client.Deployment().Apply(deployment); err != nil {
-				log.Error(err)
-			}
+		log.Debugf("applying deployment for service %s", service.Name)
+		deployment, err := mapper.Deployment()
+		if err != nil {
+			log.Error(err)
+			return err
+		}
 
-			pvc, _ := mapper.PersistentVolumeClaims()
-			for _, claim := range pvc {
-				if err = client.PVC().Apply(&claim); err != nil {
-					log.Error(err)
-				}
-			}
+		if err = client.Deployment().Apply(deployment); err != nil {
+			log.Error(err)
+		}
 
-			svc, _ := mapper.Service()
-			if err = client.Service().Apply(svc); err != nil {
-				log.Error(err)
-				log.Debugf("Service +%v", svc)
-			}
+		svc, _ := mapper.Service()
+		if err = client.Service().Apply(svc); err != nil {
+			log.Error(err)
+			log.Debugf("service +%v", svc)
 		}
 
 		hpa, _ := mapper.HPA()
@@ -153,7 +153,7 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, namespace string
 		if err = client.CustomResourceDefinition(crd.Kind).Apply(crd); err != nil {
 			log.Error(err)
 		} else {
-			log.Infof("Successfully updated CRD resource: %s", crd.Name)
+			log.Infof("successfully updated CRD resource: %s", crd.Name)
 		}
 	}
 	return err
@@ -204,13 +204,13 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 
 	ns, err := client.Ns().Get()
 	if err != nil {
-		return nil, fmt.Errorf("Error while retrieving namespace: %s", err.Error())
+		return nil, fmt.Errorf("error while retrieving namespace: %s", err.Error())
 	}
 	environmentName := ns.ObjectMeta.Labels["environment"]
 
 	services, err := client.Service().List()
 	if err != nil {
-		log.Errorf("Error loading kubernetes services: %s", err.Error())
+		log.Errorf("error loading kubernetes services: %s", err.Error())
 	}
 	for _, service := range services {
 		serviceMap.AddService(service)
@@ -218,7 +218,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 
 	deployments, err := client.Deployment().List()
 	if err != nil {
-		log.Errorf("Error loading kubernetes deployments: %s", err.Error())
+		log.Errorf("error loading kubernetes deployments: %s", err.Error())
 	}
 	for _, deployment := range deployments {
 		serviceMap.AddDeployment(deployment)
@@ -226,7 +226,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 
 	hpas, err := client.HorizontalPodAutoscaler().List()
 	if err != nil {
-		log.Errorf("Error loading kubernetes hpas: %s", err.Error())
+		log.Errorf("error loading kubernetes hpas: %s", err.Error())
 	}
 	for _, hpa := range hpas {
 		serviceMap.AddHPA(hpa)
@@ -234,20 +234,11 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 
 	ingresses, err := client.Ingress().List()
 	if err != nil {
-		log.Errorf("Error loading kubernetes ingresses: %s", err.Error())
+		log.Errorf("error loading kubernetes ingresses: %s", err.Error())
 	}
 
 	for _, ingress := range ingresses {
 		serviceMap.AddIngress(ingress)
-	}
-
-	statefulsets, err := client.StatefulSet().List()
-	if err != nil {
-		log.Errorf("Error loading kubernetes statefulsets : %s", err.Error())
-	}
-
-	for _, statefulset := range statefulsets {
-		serviceMap.AddMongoStatefulSet(statefulset)
 	}
 
 	// we'll need the same for tprs
@@ -256,17 +247,26 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 		serviceMap.AddVolumeClaim(claim)
 	}
 
-	for _, supported := range k8_extensions.SupportedThirdPartyResources {
+	for _, supported := range k8_extensions.SupportedCustomResources {
 		crds, _ := client.CustomResourceDefinition(supported).List()
 		for _, crd := range crds {
 			serviceMap.AddCustomResourceDefinition(crd)
 		}
 	}
 
+	// Handle imported resources
+	gistMap := GistMap{}
+
+	configmaps, _ := client.ConfigMap().List()
+	for _, config := range configmaps {
+		gistMap.AddConfigMap(config)
+	}
+
 	bitesizeConfig := bitesize.Environment{
 		Name:      environmentName,
 		Namespace: namespace,
 		Services:  serviceMap.Services(),
+		Gists:     gistMap.Gists(),
 	}
 
 	return &bitesizeConfig, nil
@@ -281,12 +281,18 @@ func shouldDeployOnChange(currentEnvironment, newEnvironment *bitesize.Environme
 	currentService := currentEnvironment.Services.FindByName(serviceName)
 	updatedService := newEnvironment.Services.FindByName(serviceName)
 
+	if currentService != nil && currentService.HPA.MinReplicas != 0 {
+		if currentService.Status.DesiredReplicas != updatedService.Status.DesiredReplicas {
+			return false
+		}
+	}
+
 	if updatedService == nil {
 		return true
 	}
 
 	if updatedService.IsBlueGreenParentDeployment() {
-		log.Debugf("Should deploy blue/green service %s", serviceName)
+		log.Debugf("should deploy blue/green service %s", serviceName)
 		return true
 	}
 

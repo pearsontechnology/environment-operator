@@ -18,7 +18,7 @@ fi
 IMAGE_TAG=${IMAGE_TAG:-$(git rev-parse HEAD)}
 FULL_IMAGE="${IMAGE}:${IMAGE_TAG}"
 
-BUILD_IMAGE="golang:1.10-alpine"
+BUILD_IMAGE="golang:1.12-alpine"
 
 bin_dir="_output/bin"
 mkdir -p ${bin_dir} || true
@@ -31,9 +31,8 @@ echo "**************************************************************"
 
  docker run --rm -v "$(pwd)":/go/src/github.com/pearsontechnology/environment-operator \
     -w /go/src/github.com/pearsontechnology/environment-operator \
-    -e CGO_ENABLED=1 \
     ${BUILD_IMAGE} \
-    /bin/sh -c "apk update && apk add git && go test -v ./..."
+    /bin/sh -c "apk update && apk add git gcc musl-dev && go test -v ./..."
 
 echo "**************************************************************"
 echo "***************** Building Source ****************************"
@@ -41,7 +40,6 @@ echo "**************************************************************"
 
  docker run --rm -v "$(pwd)":/go/src/github.com/pearsontechnology/environment-operator \
   	-w /go/src/github.com/pearsontechnology/environment-operator \
-  	-e CGO_ENABLED=1 \
  	${BUILD_IMAGE} \
     go build -v -o ${bin_dir}/environment-operator ./cmd/operator/main.go
 #    /bin/sh -c  "apk update && apk add build-base && go build -v -o ${bin_dir}/environment-operator ./cmd/operator/main.go"
