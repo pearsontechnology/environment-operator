@@ -122,7 +122,7 @@ func (w *KubeMapper) ConfigMaps() ([]v1.ConfigMap, error) {
 		for _, container := range *w.BiteService.InitContainers {
 			for _, vol := range container.Volumes {
 				if vol.IsConfigMapVolume() {
-					c := w.Imports.FindByName(vol.Name, bitesize.TypeConfigMap)
+					c := w.Gists.FindByName(vol.Name, bitesize.TypeConfigMap)
 					if c != nil {
 						retval = append(retval, c.ConfigMap)
 					}

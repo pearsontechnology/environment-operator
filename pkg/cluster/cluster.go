@@ -89,7 +89,7 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 							log.Warnf("could not find import source for the configmap volume %s", vol.Name)
 							continue
 						}
-						resources = append(resources, *res)
+						gists = append(gists, *res)
 					}
 				}
 			}
