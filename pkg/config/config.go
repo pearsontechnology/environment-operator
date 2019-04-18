@@ -7,7 +7,7 @@ import (
 
 // Config contains environment variables used to configure the app
 type Config struct {
-	LogLevel          string `envconfig:"LOG_LEVEL"`
+  LogLevel          string `envconfig:"LOG_LEVEL"default:"info"`
 	UseAuth           bool   `envconfig:"USE_AUTH" default:"false"`
 	GitRepo           string `envconfig:"GIT_REMOTE_REPOSITORY"`
 	GitBranch         string `envconfig:"GIT_BRANCH" default:"master"`
@@ -55,7 +55,9 @@ func init() {
 		log.Fatal("Please choose either Gitkey or GitToken but not both")
 	}
 
-	if Env.LogLevel == "debug" {
-		log.SetLevel(log.DebugLevel)
+	logLevel, err := log.ParseLevel(Env.LogLevel)
+	if err != nil {
+		log.Fatalf("Can't set loglevel \"%s\": %s", Env.LogLevel, err.Error())
 	}
+	log.SetLevel(logLevel)
 }
