@@ -13,7 +13,19 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
  #### Added
   * Ability to set LOG_LEVEL to trace
 
-### **[0.0.30 ] 2019-03-05 [RELEASED]**
+### **[1.1.0] 2019-04-12 [RELEASED]**
+ #### Added
+  * ConfigMap support for init containers [BITE-5131](https://agile-jira.pearson.com/browse/BITE-5131)
+
+### **[1.0.0] 2019-04-12 [RELEASED]**
+ #### Added
+  * ConfigMap support [BITE-5048](https://agile-jira.pearson.com/browse/BITE-5048)
+  * Updated libraries
+  * Updated golang to 1.12
+  * Fixed a bug where Git try to pull change when there are no updates available
+  * Stable releases
+
+### **[0.0.30] 2019-04-05 [RELEASED]**
  #### Added
   * Option to use github/bitbucket token in place of sshkeys for authentication
   * **NOTE** Default authentication is still based on sshkeys

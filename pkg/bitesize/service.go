@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/pearsontechnology/environment-operator/pkg/config"
-	validator "gopkg.in/validator.v2"
+	"gopkg.in/validator.v2"
 )
 
 // Service represents a single service and it's configuration,
@@ -43,7 +43,6 @@ type Service struct {
 	DatabaseType    string                  `yaml:"database_type,omitempty" validate:"regexp=^(mongo)*$"`
 	GracePeriod     *int64                  `yaml:"graceperiod,omitempty"`
 	ResourceVersion string                  `yaml:"resourceVersion,omitempty"`
-	// XXX          map[string]interface{} `yaml:",inline"`
 }
 
 // ServiceStatus represents cluster service's status metrics
@@ -364,6 +363,7 @@ func unmarshalExternalURL(unmarshal func(interface{}) error) ([]string, error) {
 	return urls, nil
 }
 
+// UnmarshalYAML will unmarshal yaml volume definitions to Volume struct
 func (v *Volume) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	vv := &Volume{
 		Modes:        "ReadWriteOnce",
@@ -380,6 +380,8 @@ func (v *Volume) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// HasManualProvisioning check weather the provisioning manual
+// if manual returns true
 func (v *Volume) HasManualProvisioning() bool {
 	if v.provisioning == "manual" {
 		return true
@@ -390,6 +392,15 @@ func (v *Volume) HasManualProvisioning() bool {
 // IsSecretVolume returns true if volume is secret
 func (v *Volume) IsSecretVolume() bool {
 	if strings.ToLower(v.Type) == "secret" {
+		return true
+	}
+	return false
+}
+
+// IsConfigMapVolume is check for volume type defined and
+// if the type is configmap it will return true.
+func (v *Volume) IsConfigMapVolume() bool {
+	if strings.ToLower(v.Type) == "configmap" {
 		return true
 	}
 	return false

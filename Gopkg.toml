@@ -27,7 +27,7 @@
 
 [[constraint]]
   name = "github.com/Sirupsen/logrus"
-  version = "1.0.6"
+  version = "1.4.1"
 
 [[constraint]]
   branch = "master"
@@ -39,7 +39,7 @@
 
 [[constraint]]
   name = "github.com/gorilla/mux"
-  version = "1.6.2"
+  version = "1.7.1"
 
 [[constraint]]
   name = "github.com/kelseyhightower/envconfig"
@@ -59,7 +59,7 @@
 
 [[constraint]]
   name = "gopkg.in/src-d/go-git.v4"
-  version = "4.7.0"
+  version = "4.10.0"
 
 [[constraint]]
   branch = "v2"
@@ -67,7 +67,7 @@
 
 [[constraint]]
   name = "gopkg.in/yaml.v2"
-  version = "2.2.1"
+  version = "2.2.2"
 
 [[constraint]]
   branch = "release-1.10"

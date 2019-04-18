@@ -68,15 +68,21 @@ func main() {
 	}
 
 	for {
-		gitClient.Refresh()
+		if err := gitClient.Refresh(); err != nil {
+			log.Errorf("git client refresh failed with %s", err.Error())
+		}
 		gitConfiguration, err := bitesize.LoadEnvironmentFromConfig(config.Env)
 		log.Tracef("gitConfiguration: %#v", gitConfiguration)
 
 		if err != nil {
-			log.Errorf("Error while loading environment config: %s", err.Error())
+			log.Errorf("error while loading environment config: %s", err.Error())
 		} else {
-			client.ApplyIfChanged(gitConfiguration)
-			reap.Cleanup(gitConfiguration)
+			if err := client.ApplyIfChanged(gitConfiguration); err != nil {
+				log.Errorf("error when applying changes: %s", err.Error())
+			}
+			if err := reap.Cleanup(gitConfiguration); err != nil {
+				log.Errorf("error reaper failed: %s", err.Error())
+			}
 		}
 		log.Tracef("Sleeping: %d ms", sleepDuration)
 		time.Sleep(sleepDuration)
