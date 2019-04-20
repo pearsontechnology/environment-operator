@@ -298,9 +298,11 @@ func shouldDeployOnChange(currentEnvironment, newEnvironment *bitesize.Environme
 	updatedService := newEnvironment.Services.FindByName(serviceName)
 
 	if currentService != nil && currentService.HPA.MinReplicas != 0 {
-		if currentService.Status.DesiredReplicas != updatedService.Status.DesiredReplicas {
-			return false
-		}
+		return false
+	}
+
+	if updatedService != nil && updatedService.HPA.MinReplicas != 0 {
+		return false
 	}
 
 	if updatedService == nil {
