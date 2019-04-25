@@ -1,5 +1,9 @@
 package git
 
+import (
+	gogit "gopkg.in/src-d/go-git.v4"
+)
+
 // Pull performs git pull for remote path
 func (g *Git) Pull() error {
 	tree, err := g.Repository.Worktree()
@@ -8,5 +12,11 @@ func (g *Git) Pull() error {
 		return err
 	}
 
-	return tree.Pull(g.pullOptions())
+	err = tree.Pull(g.pullOptions())
+
+	if err != gogit.NoErrAlreadyUpToDate {
+		return nil
+	}
+
+	return err
 }

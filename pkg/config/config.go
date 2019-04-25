@@ -7,13 +7,16 @@ import (
 
 // Config contains environment variables used to configure the app
 type Config struct {
-	LogLevel          string `envconfig:"LOG_LEVEL"`
-	UseAuth           bool   `envconfig:"USE_AUTH" default:true`
+  LogLevel          string `envconfig:"LOG_LEVEL"default:"info"`
+	UseAuth           bool   `envconfig:"USE_AUTH" default:"false"`
 	GitRepo           string `envconfig:"GIT_REMOTE_REPOSITORY"`
 	GitBranch         string `envconfig:"GIT_BRANCH" default:"master"`
 	GitKey            string `envconfig:"GIT_PRIVATE_KEY"`
 	GitKeyPath        string `envconfig:"GIT_PRIVATE_KEY_PATH" default:"/etc/git/key"`
+	GitUser           string `envconfig:"GIT_USER"`
+	GitToken          string `envconfig:"GIT_TOKEN"`
 	GitLocalPath      string `envconfig:"GIT_LOCAL_PATH" default:"/tmp/repository"`
+	GitRootPath       string `envconfig:"GIT_ROOT_PATH" default:"/tmp/"`
 	EnvName           string `envconfig:"ENVIRONMENT_NAME"`
 	EnvFile           string `envconfig:"BITESIZE_FILE"`
 	Namespace         string `envconfig:"NAMESPACE"`
@@ -30,12 +33,15 @@ type Config struct {
 	LimitMaxMemory     int    `envconfig:"LIMITS_MAX_MEMORY" default:"8192"`       //8Gib
 	LimitDefaultCPU    string `envconfig:"LIMITS_DEFAULT_CPU" default:"1000m"`     //1 Core
 	LimitDefaultMemory string `envconfig:"LIMITS_DEFAULT_MEMORY" default:"2048Mi"` //2Gib
+	RequestsDefaultCPU string `envconfig:"REQUESTS_DEFAULT_CPU" default:"100m"`
 
 	TokenFile string `envconfig:"AUTH_TOKEN_FILE"`
 
 	Debug string `envconfig:"DEBUG"`
 }
 
+// Env parses and exports configuration for
+// operator
 var Env Config
 
 func init() {
@@ -44,7 +50,14 @@ func init() {
 		log.Fatal(err.Error())
 	}
 
-	if Env.LogLevel == "debug" {
-		log.SetLevel(log.DebugLevel)
+	// Ensure only a single type of auth is used.
+	if Env.GitKey != "" && Env.GitToken != "" {
+		log.Fatal("Please choose either Gitkey or GitToken but not both")
 	}
+
+	logLevel, err := log.ParseLevel(Env.LogLevel)
+	if err != nil {
+		log.Fatalf("Can't set loglevel \"%s\": %s", Env.LogLevel, err.Error())
+	}
+	log.SetLevel(logLevel)
 }

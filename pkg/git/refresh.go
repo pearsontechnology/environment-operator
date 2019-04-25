@@ -9,14 +9,14 @@ func (g *Git) Refresh() error {
 
 	//TODO update to return the repo status and stop from comparing if there are no new changes.
 	if err != nil {
-		log.Errorf("Error while checking for updates: %s", err.Error())
+		log.Errorf("error while checking for updates: %s", err.Error())
 		return err
 	}
 
 	if ok {
-		log.Infof("Updates in repository: %s", g.RemotePath)
+		log.Infof("updates in repository: %s", g.RemotePath)
 		if err := g.Pull(); err != nil {
-			log.Errorf("Error while pulling the changes from repository: %s", err)
+			log.Errorf("error while pulling the changes from repository: %s", err)
 			return err
 		}
 	}

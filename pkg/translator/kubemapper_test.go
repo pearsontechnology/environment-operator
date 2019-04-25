@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -165,7 +165,34 @@ func BuildKubeMapper() *KubeMapper {
 	return m
 }
 
+func TestInitContainers(t *testing.T) {
+	w := BuildKubeMapper()
+
+	w.BiteService.InitContainers = &[]bitesize.Container{
+		bitesize.Container{
+			Name:        "nginx",
+			Version:     "1.15.10-1~stretch",
+			Application: "nginx_init",
+			EnvVars: []bitesize.EnvVar{
+				{Name: "test1", Value: "test1"},
+				{Name: "testpodfield", PodField: "metadata.namespace"},
+			},
+		},
+	}
+
+	d, _ := w.Deployment()
+
+	if d.Spec.Template.Spec.InitContainers[0].Name != "nginx" {
+		t.Errorf("Wrong name for the init container %s", d.Spec.Template.Spec.InitContainers[0].Image)
+	}
+
+	if d.Spec.Template.Spec.InitContainers[0].Env[0].Name != "test1" {
+		t.Errorf("Wrong name for the init container env %s", d.Spec.Template.Spec.InitContainers[0].Env[0].Name)
+	}
+}
+
 func TestTranslatorHPA(t *testing.T) {
+
 	w := BuildKubeMapper()
 	w.BiteService.HPA.MinReplicas = 1
 	w.BiteService.HPA.MaxReplicas = 6
@@ -180,6 +207,15 @@ func TestTranslatorHPA(t *testing.T) {
 		t.Errorf("Wrong HPA max replicas value: %+v, expected %+v", h.Spec.MaxReplicas, w.BiteService.HPA.MaxReplicas)
 	} else if *h.Spec.Metrics[0].Resource.TargetAverageUtilization != w.BiteService.HPA.Metric.TargetAverageUtilization {
 		t.Errorf("Wrong HPA CPU target Average value: %+v, expected %+v", *h.Spec.Metrics[0].Resource.TargetAverageUtilization, w.BiteService.HPA.Metric.TargetAverageUtilization)
+	}
+
+	w.BiteService.HPA.Metric.TargetAverageValue = "10m"
+	w.BiteService.HPA.Metric.Name = "custom_metric"
+	h, _ = w.HPA()
+	targetAverageValue, _ := resource.ParseQuantity(w.BiteService.HPA.Metric.TargetAverageValue)
+
+	if h.Spec.Metrics[0].Pods.TargetAverageValue != targetAverageValue {
+		t.Errorf("Wrong HPA CPU target Average value: %+v, expected %+v", h.Spec.Metrics[0].Pods.TargetAverageValue, w.BiteService.HPA.Metric.TargetAverageValue)
 	}
 }
 

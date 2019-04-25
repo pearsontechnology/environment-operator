@@ -13,15 +13,23 @@ import (
 type EnvironmentsBitesize struct {
 	Project      string       `yaml:"project"`
 	Environments Environments `yaml:"environments"`
-	// XXX          map[string]interface{} `yaml:",inline"`
 }
 
 // DeploymentSettings represent "deployment" block in environments.bitesize
 type DeploymentSettings struct {
-	Method string `yaml:"method,omitempty" validate:"regexp=^(bluegreen|rolling-upgrade)*$"`
-	Mode   string `yaml:"mode,omitempty" validate:"regexp=^(manual|auto)*$"`
-	Active string `yaml:"active,omitempty" validate:"regexp=^(blue|green)*$"`
+	Method     string              `yaml:"method,omitempty" validate:"regexp=^(bluegreen|rolling-upgrade)*$"`
+	Mode       string              `yaml:"mode,omitempty" validate:"regexp=^(manual|auto)*$"`
+	BlueGreen  *BlueGreenSettings  `yaml:"-"`
+	CustomURLs map[string][]string `yaml:"custom_urls,omitempty"`
 	// XXX    map[string]interface{} `yaml:",inline"`
+}
+
+// BlueGreenSettings is a collection of internal bluegreen settings
+// used as a various helpers in deployment
+type BlueGreenSettings struct {
+	Active           *BlueGreenServiceSet // used in "parent" service to determine which environment is active
+	DeploymentColour *BlueGreenServiceSet // used in "child" blue/green service to indicate it's colour
+	ActiveFlag       bool                 // used in "child" blue/green service to indicate whethen this environment is currently active
 }
 
 // HorizontalPodAutoscaler maps to HPA in kubernetes
@@ -29,6 +37,16 @@ type HorizontalPodAutoscaler struct {
 	MinReplicas int32  `yaml:"min_replicas"`
 	MaxReplicas int32  `yaml:"max_replicas"`
 	Metric      Metric `yaml:"metric"`
+}
+
+// Container maps a single application container that you want to run within a pod
+type Container struct {
+	Application string   `yaml:"application,omitempty"`
+	Name        string   `yaml:"name" validate:"nonzero"`
+	Version     string   `yaml:"version,omitempty"`
+	EnvVars     []EnvVar `yaml:"env,omitempty"`
+	Command     []string `yaml:"command"`
+	Volumes     []Volume `yaml:"volumes,omitempty"`
 }
 
 // ContainerRequests maps to requests in kubernetes
@@ -43,7 +61,7 @@ type ContainerLimits struct {
 	Memory string `yaml:"memory"`
 }
 
-// Metrics maps to HPA targets in kubernetes
+// Metric maps to HPA targets in kubernetes
 type Metric struct {
 	Name                     string `yaml:"name"`
 	TargetAverageValue       string `yaml:"target_average_value,omitempty"`
@@ -57,7 +75,6 @@ type Test struct {
 	Repository string              `yaml:"repository"`
 	Branch     string              `yaml:"branch"`
 	Commands   []map[string]string `yaml:"commands"`
-	// XXX        map[string]interface{} `yaml:",inline"`
 }
 
 // HealthCheck maps to LivenessProbe in Kubernetes
@@ -132,12 +149,41 @@ type Annotation struct {
 
 // Volume represents volume & it's mount
 type Volume struct {
-	Name         string `yaml:"name"`
-	Path         string `yaml:"path"`
-	Modes        string `yaml:"modes" validate:"volume_modes"`
-	Size         string `yaml:"size"`
-	Type         string `yaml:"type"`
+	// Name of the referent.
+	Name string `yaml:"name"`
+	// Path
+	Path  string `yaml:"path"`
+	Modes string `yaml:"modes" validate:"volume_modes"`
+	Size  string `yaml:"size"`
+	Type  string `yaml:"type"`
+	// If unspecified, each key-value pair in the Data field of the referenced
+	// ConfigMap will be projected into the volume as a file whose name is the
+	// key and content is the value. If specified, the listed keys will be
+	// projected into the specified paths, and unlisted keys will not be
+	// present. If a key is specified which is not present in the ConfigMap,
+	// the volume setup will error unless it is marked optional. Paths must be
+	// relative and may not contain the '..' path or start with '..'.
+	// +optional
+	Items []KeyToPath `yaml:"items"`
+	// volume provisioning types accepted 'dynamic' and 'manual'
 	provisioning string `yaml:"provisioning" validate:"volume_provisioning"`
+}
+
+// KeyToPath Maps a string key to a path within a volume.
+type KeyToPath struct {
+	// The key to project.
+	Key string `yaml:"key"`
+	// The relative path of the file to map the key to.
+	// May not be an absolute path.
+	// May not contain the path element '..'.
+	// May not start with the string '..'.
+	Path string `yaml:"path"`
+	// Optional: mode bits to use on this file, must be a value between 0
+	// and 0777. If not specified, the volume defaultMode will be used.
+	// This might be in conflict with other options that affect the file
+	// mode, like fsGroup, and the result can be other mode bits set.
+	// +optional
+	Mode *int32 `yaml:"mode,omitempty"`
 }
 
 func init() {
@@ -155,7 +201,8 @@ func (e *HealthCheck) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	*e = *ee
 
-	// if err = validator.Validate(e); err != nil {
+	// TODO: Validate
+	//  if err = validator.Validate(e); err != nil {
 	// 	return fmt.Errorf("health_check.%s", err.Error())
 	// }
 	return nil
@@ -164,13 +211,26 @@ func (e *HealthCheck) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // UnmarshalYAML implements the yaml.Unmarshaler interface for DeploymentSettings.
 func (e *DeploymentSettings) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var err error
-	ee := &DeploymentSettings{}
+	var a struct {
+		Active *BlueGreenServiceSet `yaml:"active,omitempty"`
+	}
+
+	ee := &DeploymentSettings{Method: "rolling-upgrade"}
 	type plain DeploymentSettings
 	if err = unmarshal((*plain)(ee)); err != nil {
 		return fmt.Errorf("deployment.%s", err.Error())
 	}
 
+	if err := unmarshal(&a); err != nil {
+		return fmt.Errorf("deployment.%s", err.Error())
+	}
+
 	*e = *ee
+
+	if a.Active != nil {
+		e.BlueGreen = &BlueGreenSettings{Active: a.Active}
+	}
+
 	if err = validator.Validate(e); err != nil {
 		return fmt.Errorf("deployment.%s", err.Error())
 	}
@@ -196,14 +256,3 @@ func LoadFromFile(path string) (*EnvironmentsBitesize, error) {
 	}
 	return LoadFromString(string(contents))
 }
-
-// func checkOverflow(m map[string]interface{}, ctx string) error {
-// 	if len(m) > 0 {
-// 		var keys []string
-// 		for k := range m {
-// 			keys = append(keys, k)
-// 		}
-// 		return fmt.Errorf("%s: unknown fields (%s)", ctx, strings.Join(keys, ", "))
-// 	}
-// 	return nil
-// }

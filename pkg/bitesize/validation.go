@@ -101,6 +101,14 @@ func validHPA(hpa interface{}, param string) error {
 				if metric.TargetAverageUtilization != 0 && metric.TargetAverageUtilization < 75 {
 					return fmt.Errorf("hpa %+v CPU Utilization invalid; thresholds lower than 75%% not allowed", hpa)
 				}
+				if metric.TargetAverageUtilization != 0 && metric.TargetAverageUtilization > 100 {
+					return fmt.Errorf("hpa %+v memory Utilization invalid; thresholds greater than 100%% not allowed", hpa)
+				}
+				if metric.Name != "cpu" && metric.Name != "memory" {
+					if metric.TargetAverageUtilization != 0 {
+						return fmt.Errorf("hpa %+v target Average Utilization does not exist for custom metrics", hpa)
+					}
+				}
 			}
 		}
 	}

@@ -81,6 +81,14 @@ func TestValidHPA(t *testing.T) {
 			fmt.Errorf("hpa %+v CPU Utilization invalid; thresholds lower than 75%% not allowed", HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 2, Metric: Metric{Name: "cpu", TargetAverageUtilization: 74}}),
 		},
 		{
+			HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 2, Metric: Metric{Name: "memory", TargetAverageUtilization: 120}},
+			fmt.Errorf("hpa %+v memory Utilization invalid; thresholds greater than 100%% not allowed", HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 2, Metric: Metric{Name: "memory", TargetAverageUtilization: 120}}),
+		},
+		{
+			HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 2, Metric: Metric{Name: "custom_metric", TargetAverageUtilization: 80}},
+			fmt.Errorf("hpa %+v target Average Utilization does not exist for custom metrics", HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 2, Metric: Metric{Name: "custom_metric", TargetAverageUtilization: 80}}),
+		},
+		{
 			HorizontalPodAutoscaler{MinReplicas: 1, MaxReplicas: 2, Metric: Metric{Name: "cpu", TargetAverageUtilization: 75}},
 			nil,
 		},

@@ -3,3 +3,4 @@ _output
 *-secret.yaml
 .idea/*
 *.iml
+*.vscode

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/pearsontechnology/environment-operator/pkg/config"
@@ -11,23 +12,30 @@ import (
 	gogit "gopkg.in/src-d/go-git.v4"
 	gitconfig "gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport"
+	githttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+
 	gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
-// Git represents repository object and wraps git2go calls
+// Git represents repository object and wraps go-git calls
 type Git struct {
 	SSHKey     string
 	LocalPath  string
 	RemotePath string
 	BranchName string
 	Repository *gogit.Repository
+	GitToken   string
+	GitUser    string
 }
 
+// Client initializes a git repo under a temp directory
+// and attaches a remote
 func Client() *Git {
 	var repository *gogit.Repository
 	var err error
 
-	if _, err := os.Stat(config.Env.GitLocalPath); os.IsNotExist(err) {
+	if _, err = os.Stat(config.Env.GitLocalPath); os.IsNotExist(err) {
 		repository, err = gogit.PlainInit(config.Env.GitLocalPath, false)
 		if err != nil {
 			log.Errorf("could not init local repository %s: %s", config.Env.GitLocalPath, err.Error())
@@ -46,31 +54,133 @@ func Client() *Git {
 		}
 	}
 
-	return &Git{
+	git := Git{
 		LocalPath:  config.Env.GitLocalPath,
 		RemotePath: config.Env.GitRepo,
 		BranchName: config.Env.GitBranch,
+		Repository: repository,
+		SSHKey:     config.Env.GitKey,
+	}
+
+	if len(config.Env.GitToken) > 0 {
+		log.Debug("using Git token")
+		git.GitToken = config.Env.GitToken
+		git.GitUser = config.Env.GitUser
+		git.SSHKey = "" // just to make sure we set it empty, config.Env.GitKey default is ""
+	}
+	return &git
+}
+
+// EnvGitClient is git client for environment
+func EnvGitClient(repo string, branch string, namespace string, env string) (*Git, error) {
+
+	localPath := path.Join(config.Env.GitRootPath, namespace, env)
+
+	var repository *gogit.Repository
+
+	repository, err := gogit.PlainOpen(localPath)
+
+	if err == gogit.ErrRepositoryNotExists {
+		log.Debugf("environment %s repository does not exist initializing a new empty repository", env)
+		repository, err = gogit.PlainInit(localPath, false)
+		if err != nil {
+			return nil, fmt.Errorf("could not init local repository %s: %s", localPath, err.Error())
+		}
+	}
+
+	remote, err := repository.Remote("origin")
+	if err == gogit.ErrRemoteNotFound {
+		log.Debugf("remote not found, generating new origin")
+		remote, err = repository.CreateRemote(&gitconfig.RemoteConfig{
+			Name: "origin",
+			URLs: []string{repo},
+		})
+		if err != nil {
+			log.Errorf("could not attach to origin %s: %s", repo, err.Error())
+		}
+	}
+
+	// remote has been changed re-init repo
+	if remote == nil || remote.Config() == nil || remote.Config().URLs[0] != repo {
+		log.Debugf("remote has been changed, re-initializing repository %s", repo)
+		err := os.RemoveAll(localPath)
+		if err != nil {
+			log.Errorf("EnvGitClient re-init remove failed: %s", err.Error())
+		}
+		repository, err = gogit.PlainInit(localPath, false)
+		if err != nil {
+			return nil, fmt.Errorf("could not init local repository %s: %s", localPath, err.Error())
+		}
+		remote, err = repository.CreateRemote(&gitconfig.RemoteConfig{
+			Name: "origin",
+			URLs: []string{repo},
+		})
+		if err != nil {
+			log.Errorf("could not attach to origin %s: %s", repo, err.Error())
+		}
+	}
+
+	return &Git{
+		LocalPath:  localPath,
+		RemotePath: remote.Config().URLs[0],
+		BranchName: branch,
 		SSHKey:     config.Env.GitKey,
 		Repository: repository,
-	}
+	}, nil
 }
 
+// Setup options for git pull
 func (g *Git) pullOptions() *gogit.PullOptions {
 	branch := fmt.Sprintf("refs/heads/%s", g.BranchName)
-	return &gogit.PullOptions{
+	// Return options with token auth if enabled
+	log.Debug("performing git pull")
+	opt := gogit.PullOptions{
 		ReferenceName: plumbing.ReferenceName(branch),
-		Auth:          g.sshKeys(),
 	}
+
+	if config.Env.UseAuth {
+		opt.Auth =  g.auth()
+	}
+
+	return &opt
 }
 
+// Setup options for fetch. This will also be used
+// for recording changes to git repo
 func (g *Git) fetchOptions() *gogit.FetchOptions {
-	return &gogit.FetchOptions{
-		Auth: g.sshKeys(),
+	//Return options with token auth if enabled
+	log.Debug("performing git fetch")
+	opt := gogit.FetchOptions{}
+
+	if config.Env.UseAuth {
+		opt.Auth =  g.auth()
 	}
+
+	return &opt
 }
 
+// Auth returns AuthMethod object based on
+// authentication mechanism chosen
+func (g *Git) auth() transport.AuthMethod {
+
+	if g.GitToken != "" {
+		log.Debug("using gittoken")
+		log.Debug(g.GitUser)
+		return &githttp.BasicAuth{
+			Username: g.GitUser,
+			Password: g.GitToken,
+		}
+	}
+	log.Debug("using sshauth")
+	return g.sshKeys()
+}
+
+// sshKeys returns public keys based on
+// provided private keys
 func (g *Git) sshKeys() *gitssh.PublicKeys {
+
 	if g.SSHKey == "" {
+		log.Debug("no SSHKey provided")
 		return nil
 	}
 	auth, err := gitssh.NewPublicKeys("git", []byte(g.SSHKey), "")

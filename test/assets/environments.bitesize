@@ -180,8 +180,58 @@ environments:
       index_instance_type: "r4.xlarge"
       index_node_count: "1"
       index_data_size: 512
+- name: environment11
+  namespace: environment11
+  services:
+  - name: customservice
+    external_url:
+    - www.my.external_url
+    - www.another.url
+    deployment:
+      method: bluegreen
+      active: green
 - name: environment12
   namespace: environment-sqs
   services:
   - type: sqs
     name: sqs_queue_name
+- name: environment13
+  namespace: environment-dev
+  gists_repository:
+    remote: "https://github.com/pearsontechnology/environment-operator.git"
+    branch: BITE-5048
+  gists:
+     - name: "application-v1"
+       path: "test/assets/k8s/application-v1.bitesize"
+       type: configmap
+     - name: "application-v2"
+       path: "test/assets/k8s/application-v1.bitesize"
+       type: configmap
+  services:
+  - name: init_svc
+    volumes:
+      - name: application-v2
+        path: "/etc/config/application-v2.config"
+        type: configmap
+    init_containers:
+      - application: init_1
+        name: init1
+        version: 1
+        command:
+          - sample1
+        volumes:
+          - name: application-v1
+            path: "/etc/config/application-v1.config"
+            type: configmap
+      - application: init_2
+        name: init2
+        version: 1
+        command:
+          - sample2
+        env: 
+          - name: sample1
+            value: sample1-value
+          - secret: sample2
+            value: sample2-value
+          - name: sample3
+            pod_field: sample3-value

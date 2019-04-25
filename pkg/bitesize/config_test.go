@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v2"
 )
 
 func TestEnvironmentsBitesize(t *testing.T) {
@@ -23,6 +25,32 @@ func TestEnvironmentsBitesize(t *testing.T) {
 	t.Run("config from client", func(t *testing.T) {
 		t.Run("random test", testRandomClient)
 	})
+}
+
+func TestDeploymentSettings(t *testing.T) {
+	settings := &DeploymentSettings{}
+	str := `  
+  method: bluegreen
+  active: blue
+  custom_urls:
+    blue:
+    - www.some-url.com
+    green:
+    - one.url
+    - two.url
+  `
+	if err := yaml.Unmarshal([]byte(str), settings); err != nil {
+		t.Fatalf("could not unmarshal yaml: %s", err.Error())
+	}
+	if settings.BlueGreen == nil {
+		t.Fatalf("unexpected unmarshal error, missing BlueGreen: %+v", settings)
+	}
+	if *settings.BlueGreen.Active != BlueService {
+		t.Errorf("unexpected active environment: %s, expected blue", settings.BlueGreen.Active)
+	}
+	if len(settings.CustomURLs["blue"]) != 1 {
+		t.Errorf("unexpected amount of custom urls: %d", len(settings.CustomURLs["blue"]))
+	}
 }
 
 func testSingleName(t *testing.T) {
@@ -175,7 +203,7 @@ func testInvalidConfig(t *testing.T) {
         services:
         - name: Service1
       `,
-			"environment.deployment.Active: regular expression mismatch",
+			"environment.deployment.blue_green: invalid type red",
 			"invalid deployment active",
 		},
 		{

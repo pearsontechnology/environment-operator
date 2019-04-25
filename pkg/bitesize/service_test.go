@@ -7,7 +7,7 @@ import (
 
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 // Tests to see that YAML documents unmarshal correctly
@@ -21,6 +21,11 @@ func TestUnmarshalPorts(t *testing.T) {
 func TestFindByName(t *testing.T) {
 	t.Run("find existing service", testFindByNameExist)
 	t.Run("find non-existing service", testFindByNameNotFound)
+}
+
+func TestIsBlueGreenParentDeployment(t *testing.T) {
+	t.Run("blue green deployment method", testBlueGreenDeploymentMethod)
+	t.Run("rolling upgrade deployment method", testRollingUpgradeMethod)
 }
 
 func testPortsString(t *testing.T) {
@@ -53,6 +58,30 @@ func testPortsOverPort(t *testing.T) {
 
 	if len(svc.Ports) != 2 {
 		t.Errorf("Unexpected ports: %v", svc.Ports)
+	}
+
+}
+
+func testBlueGreenDeploymentMethod(t *testing.T) {
+	svc := &Service{
+		Name: "test-service",
+		Deployment: &DeploymentSettings{
+			Method: "bluegreen",
+		},
+	}
+
+	if !svc.IsBlueGreenParentDeployment() {
+		t.Error("Expected bluegreen to be true, got false")
+	}
+}
+
+func testRollingUpgradeMethod(t *testing.T) {
+	svc := &Service{
+		Name: "test-service",
+	}
+
+	if svc.IsBlueGreenParentDeployment() {
+		t.Error("Expected bluegreen to be false, got true")
 	}
 
 }
