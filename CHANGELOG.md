@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.1.1] 2019-04-26 [RELEASED]**
+ #### Added
+  * Ability to set LOG_LEVEL to trace
+
 ### **[1.1.0] 2019-04-12 [RELEASED]**
  #### Added
   * ConfigMap support for init containers [BITE-5131](https://agile-jira.pearson.com/browse/BITE-5131)
