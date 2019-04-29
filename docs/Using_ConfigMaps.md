@@ -165,7 +165,7 @@ Before getting started environment operator need to configured with following en
 
 `GISTS_USER` - Git user if the authentication is token based, Overrides `GIT_USER` environment variable
 `GISTS_TOKEN` - Git token if the authentication is token based, Overrides `GIT_TOKEN` environment variable
-`GISTS_PRIVATE_KEY` - Git private key secret name if the authentication method is key based, Overrides G`IT_PRIVATE_KEY` environment variable
+`GISTS_PRIVATE_KEY` - Git private key secret name if the authentication method is key based, Overrides `GIT_PRIVATE_KEY` environment variable
 
 
 ```yaml
