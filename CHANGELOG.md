@@ -10,7 +10,7 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Security** for any security changes or fixes for vulnerabilities.
 
 
-### **[1.2.0] 2019-04-12 [RELEASED]**
+### **[1.2.0] 2019-04-29 [RELEASED]**
  #### Added
   * Bug fix - Reaper doesn't remove old configs if number of configmaps are 1
   * USE_AUTH environment variable default to true (previous default)
