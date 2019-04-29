@@ -49,7 +49,8 @@ func Compare(config1, config2 bitesize.Environment) bool {
 				continue
 			}
 			if serviceDiff := compareConfig.Compare(d.ActiveDeploymentName(), s.ActiveDeploymentName()); serviceDiff != "" {
-				log.Debugf("change detected for blue/green service %s - %s", s.Name, serviceDiff)
+				log.Debugf("change detected for blue/green service %s", s.Name)
+				log.Tracef("changes: %v", serviceDiff)
 				addServiceChange(s.Name, serviceDiff)
 				continue
 			}
@@ -63,7 +64,8 @@ func Compare(config1, config2 bitesize.Environment) bool {
 			}
 
 			if serviceDiff := compareConfig.Compare(d, s); serviceDiff != "" {
-				log.Debugf("change detected for service %s - %s", s.Name, serviceDiff)
+				log.Debugf("change detected for service %s", s.Name)
+				log.Tracef("changes: %v", serviceDiff)
 				addServiceChange(s.Name, serviceDiff)
 			}
 		}
