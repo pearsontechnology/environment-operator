@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+
+	"github.com/pearsontechnology/environment-operator/pkg/config"
 )
 
 func TestExistingEnvironment(t *testing.T) {
@@ -71,6 +73,7 @@ func TestEnvironmentBlueGreenLoading(t *testing.T) {
 }
 
 func TestEnvironmentImportConfigMap(t *testing.T) {
+	config.Env.UseAuth = false
 
 	e, err := LoadEnvironment("../../test/assets/environments3.bitesize", "environment1")
 

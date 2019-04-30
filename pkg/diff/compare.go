@@ -49,7 +49,8 @@ func Compare(desiredCfg, existingCfg bitesize.Environment) bool {
 				continue
 			}
 			if serviceDiff := compareConfig.Compare(existingCfgSvc.ActiveDeploymentName(), desiredCfgSvc.ActiveDeploymentName()); serviceDiff != "" {
-				log.Debugf("Change detected for blue/green service %s - %s", desiredCfgSvc.Name, serviceDiff)
+				log.Debugf("change detected for blue/green service %s", desiredCfgSvc.Name)
+				log.Tracef("changes: %v", serviceDiff)
 				addServiceChange(desiredCfgSvc.Name, serviceDiff)
 				continue
 			}
@@ -63,7 +64,8 @@ func Compare(desiredCfg, existingCfg bitesize.Environment) bool {
 			}
 
 			if serviceDiff := compareConfig.Compare(existingCfgSvc, desiredCfgSvc); serviceDiff != "" {
-				log.Debugf("Change detected for service %s - %s", desiredCfgSvc.Name, serviceDiff)
+				log.Debugf("change detected for service %s", desiredCfgSvc.Name)
+				log.Tracef("changes: %v", serviceDiff)
 				addServiceChange(desiredCfgSvc.Name, serviceDiff)
 			}
 		}
