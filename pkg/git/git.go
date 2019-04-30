@@ -120,13 +120,39 @@ func EnvGitClient(repo string, branch string, namespace string, env string) (*Gi
 		}
 	}
 
-	return &Git{
+	// if gists ssh key
+	key := config.Env.GitKey
+	token := config.Env.GitToken
+	user := config.Env.GitUser
+
+	// fallback to git configuration
+	if len(config.Env.GistsKey) > 0 {
+		key = config.Env.GistsKey
+	}
+
+	if len(config.Env.GistsToken) > 0 {
+		token = config.Env.GistsToken
+	}
+
+	if len(config.Env.GistsUser) > 0 {
+		token = config.Env.GistsUser
+	}
+
+	git := Git{
 		LocalPath:  localPath,
 		RemotePath: remote.Config().URLs[0],
 		BranchName: branch,
-		SSHKey:     config.Env.GitKey,
+		SSHKey:     key,
 		Repository: repository,
-	}, nil
+	}
+
+	if len(token) > 0 {
+		log.Debug("using Git token")
+		git.GitToken = token
+		git.GitUser = user
+		git.SSHKey = "" // just to make sure we set it empty, config.Env.GitKey default is ""
+	}
+	return &git, nil
 }
 
 // Setup options for git pull
@@ -139,7 +165,7 @@ func (g *Git) pullOptions() *gogit.PullOptions {
 	}
 
 	if config.Env.UseAuth {
-		opt.Auth =  g.auth()
+		opt.Auth = g.auth()
 	}
 
 	return &opt
@@ -153,7 +179,7 @@ func (g *Git) fetchOptions() *gogit.FetchOptions {
 	opt := gogit.FetchOptions{}
 
 	if config.Env.UseAuth {
-		opt.Auth =  g.auth()
+		opt.Auth = g.auth()
 	}
 
 	return &opt

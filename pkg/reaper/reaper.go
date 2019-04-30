@@ -34,11 +34,13 @@ func (r *Reaper) Cleanup(cfg *bitesize.Environment) error {
 
 		if configService == nil {
 			log.Infof("REAPER: found orphan service %s, deleting.", service.Name)
-			err := r.deleteService(service)
-			log.Error(err)
+			if err := r.deleteService(service); err != nil {
+				log.Errorf("REAPER: delete orphan service %s failed with %s", service.Name, err.Error())
+			}
 		} else if configService.IsBlueGreenParentDeployment() {
-			err := r.destroyDeployment(service.Name)
-			log.Error(err)
+			if err := r.destroyDeployment(service.Name); err != nil {
+				log.Errorf("REAPER: delete orphan deployment %s failed with %s", service.Name, err.Error())
+			}
 		}
 
 		// delete ingresses that were removed from the service config
@@ -60,16 +62,19 @@ func (r *Reaper) deleteService(svc bitesize.Service) error {
 	}
 
 	if err := r.destroyDeployment(svc.Name); err != nil {
-		log.Errorf("REAPER: failed to destroy deployment: %s",err.Error())
+		log.Errorf("REAPER: failed to destroy deployment: %s", err.Error())
 	}
 
 	if err := r.destroyService(svc.Name); err != nil {
-		log.Errorf("REAPER: failed to destroy service failed: %s",err.Error())
+		log.Errorf("REAPER: failed to destroy service failed: %s", err.Error())
 	}
 
 	for _, volume := range svc.Volumes {
+		if volume.IsConfigMapVolume() || volume.IsSecretVolume() {
+			continue
+		}
 		if err := r.destroyPersistentVolume(volume.Name); err != nil {
-			log.Errorf("REAPER: failed to destroy persistent volume: %s",err.Error())
+			log.Errorf("REAPER: failed to destroy persistent volume: %s", err.Error())
 		}
 	}
 
@@ -165,20 +170,18 @@ func (r *Reaper) CleanupIngress(configSvc, clusterSvc *bitesize.Service) {
 
 // CleanupGists deletes all gist types imported, if the corresponding gist is removed from the config
 func (r *Reaper) CleanupGists(configRes bitesize.Gists, clusterRes bitesize.Gists) {
-	if configRes != nil {
-		for _, res := range clusterRes {
-			found := false
-			for _, cfgRes := range configRes {
-				if res.Name == cfgRes.Name {
-					found = true
-				}
+	for _, res := range clusterRes {
+		found := false
+		for _, cfgRes := range configRes {
+			if res.Name == cfgRes.Name {
+				found = true
 			}
-			if !found {
-				log.Infof("REAPER: Found orphan resource %s, type %s deleting.", res.Name, res.Type)
-				err := r.destroyResource(res.Name, res.Type)
-				if err != nil {
-					log.Error(err)
-				}
+		}
+		if !found {
+			log.Infof("REAPER: Found orphan resource %s, type %s deleting.", res.Name, res.Type)
+			err := r.destroyResource(res.Name, res.Type)
+			if err != nil {
+				log.Error(err)
 			}
 		}
 	}

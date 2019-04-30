@@ -9,6 +9,17 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.2.0] 2019-04-29 [RELEASED]**
+ #### Added
+  * Bug fix - Reaper doesn't remove old configs if number of configmaps are 1
+  * USE_AUTH environment variable default to true (previous default)
+  * Introduce new env variables for env git client (documented)
+    * `GISTS_USER`
+    * `GISTS_TOKEN`
+    * `GISTS_PRIVATE_KEY`
+  * Update ConfigMap tests to match new defaults
+  * Upate ConfigMap docs
+
 ### **[1.1.1] 2019-04-26 [RELEASED]**
  #### Added
   * Ability to set LOG_LEVEL to trace

@@ -199,7 +199,7 @@ environments:
   namespace: environment-dev
   gists_repository:
     remote: "https://github.com/pearsontechnology/environment-operator.git"
-    branch: BITE-5048
+    branch: master
   gists:
      - name: "application-v1"
        path: "test/assets/k8s/application-v1.bitesize"

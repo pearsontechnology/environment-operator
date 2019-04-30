@@ -158,3 +158,38 @@ environments:
          - key: "application-blue.properties"
            path: "application-green.config"
 ```
+
+#### Using an external repository for application config
+
+Before getting started environment operator need to configured with following envionment variables
+
+`GISTS_USER` - Git user if the authentication is token based, Overrides `GIT_USER` environment variable
+`GISTS_TOKEN` - Git token if the authentication is token based, Overrides `GIT_TOKEN` environment variable
+`GISTS_PRIVATE_KEY` - Git private key secret name if the authentication method is key based, Overrides `GIT_PRIVATE_KEY` environment variable
+
+
+```yaml
+project: my-project
+environments:
+- name: my-env
+  namespace: my-env
+  gists_repository:
+    remote: "https://github.com/pearsontechnology/sample-app-config.git"
+    branch: v1.1.0
+  gists:
+     - name: "application-v3"
+       files:
+          - "k8s/application-blue.properties"
+          - "k8s/application-blue.properties"
+       type: configmap
+  services:
+  - name: my-service
+    volumes:
+      - name: application-v3
+        path: "/etc/config"
+        item:
+         - key: "application-blue.properties"
+           path: "application-blue.config"
+         - key: "application-blue.properties"
+           path: "application-green.config"
+```

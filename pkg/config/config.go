@@ -7,16 +7,22 @@ import (
 
 // Config contains environment variables used to configure the app
 type Config struct {
-  LogLevel          string `envconfig:"LOG_LEVEL"default:"info"`
-	UseAuth           bool   `envconfig:"USE_AUTH" default:"false"`
-	GitRepo           string `envconfig:"GIT_REMOTE_REPOSITORY"`
-	GitBranch         string `envconfig:"GIT_BRANCH" default:"master"`
-	GitKey            string `envconfig:"GIT_PRIVATE_KEY"`
-	GitKeyPath        string `envconfig:"GIT_PRIVATE_KEY_PATH" default:"/etc/git/key"`
-	GitUser           string `envconfig:"GIT_USER"`
-	GitToken          string `envconfig:"GIT_TOKEN"`
-	GitLocalPath      string `envconfig:"GIT_LOCAL_PATH" default:"/tmp/repository"`
-	GitRootPath       string `envconfig:"GIT_ROOT_PATH" default:"/tmp/"`
+	LogLevel     string `envconfig:"LOG_LEVEL" default:"info"`
+	UseAuth      bool   `envconfig:"USE_AUTH" default:"true"`
+	GitRepo      string `envconfig:"GIT_REMOTE_REPOSITORY"`
+	GitBranch    string `envconfig:"GIT_BRANCH" default:"master"`
+	GitKey       string `envconfig:"GIT_PRIVATE_KEY"`
+	GitKeyPath   string `envconfig:"GIT_PRIVATE_KEY_PATH" default:"/etc/git/key"`
+	GitUser      string `envconfig:"GIT_USER"`
+	GitToken     string `envconfig:"GIT_TOKEN"`
+	GitLocalPath string `envconfig:"GIT_LOCAL_PATH" default:"/tmp/repository"`
+	GitRootPath  string `envconfig:"GIT_ROOT_PATH" default:"/tmp/"`
+
+	//Gists
+	GistsUser  string `envconfig:"GISTS_USER"`
+	GistsToken string `envconfig:"GISTS_TOKEN"`
+	GistsKey   string `envconfig:"GISTS_PRIVATE_KEY"`
+
 	EnvName           string `envconfig:"ENVIRONMENT_NAME"`
 	EnvFile           string `envconfig:"BITESIZE_FILE"`
 	Namespace         string `envconfig:"NAMESPACE"`

@@ -6,6 +6,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
+	"github.com/pearsontechnology/environment-operator/pkg/config"
 	"github.com/pearsontechnology/environment-operator/pkg/diff"
 	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
@@ -544,6 +545,7 @@ func TestInitContainers(t *testing.T) {
 		CRDClient: crdcli,
 	}
 
+	config.Env.UseAuth = false // setting auth disabled
 	e1, err := bitesize.LoadEnvironment("../../test/assets/environments.bitesize", "environment13")
 	if err != nil {
 		t.Fatalf("Unexpected err: %s", err.Error())
