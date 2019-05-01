@@ -49,9 +49,23 @@ func (r *Reaper) Cleanup(cfg *bitesize.Environment) error {
 // the bitesize service from the cluster
 func (r *Reaper) deleteService(svc bitesize.Service) error {
 
-	r.destroyIngress(svc.Name)
-	r.destroyDeployment(svc.Name)
-	r.destroyService(svc.Name)
+	if err := r.destroyIngress(svc.Name); err != nil {
+		log.Errorf("REAPER: failed to destroy ingress: %s", err.Error())
+	}
+
+	if err := r.destroyDeployment(svc.Name); err != nil {
+		log.Errorf("REAPER: failed to destroy deployment: %s", err.Error())
+	}
+
+	if err := r.destroyService(svc.Name); err != nil {
+		log.Errorf("REAPER: failed to destroy service failed: %s", err.Error())
+	}
+
+	if err := r.destroyHPA(svc.Name); err != nil {
+		log.Errorf("REAPER: failed to destroy HPA failed: %s", err.Error())
+	}
+
+
 	for _, volume := range svc.Volumes {
 		r.destroyPersistentVolume(volume.Name)
 	}
@@ -83,6 +97,14 @@ func (r *Reaper) destroyDeployment(name string) error {
 
 func (r *Reaper) destroyService(name string) error {
 	client := k8s.Service{
+		Interface: r.Wrapper.Interface,
+		Namespace: r.Namespace,
+	}
+	return client.Destroy(name)
+}
+
+func (r *Reaper) destroyHPA(name string) error {
+	client := k8s.HorizontalPodAutoscaler{
 		Interface: r.Wrapper.Interface,
 		Namespace: r.Namespace,
 	}
