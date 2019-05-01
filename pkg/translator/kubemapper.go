@@ -191,7 +191,8 @@ func (w *KubeMapper) MongoInternalSecret() (*v1.Secret, error) {
 
 // MongoStatefulSet extracts Mongo as Kubernetes object from Bitesize definition
 func (w *KubeMapper) MongoStatefulSet() (*v1beta2_apps.StatefulSet, error) {
-	replicas := int32(w.BiteService.Replicas)
+	replicas := w.BiteService.Replicas
+	//	replicas := int32(w.BiteService.Replicas)
 	imagePullSecrets, err := w.imagePullSecrets()
 	if err != nil {
 		return nil, err
@@ -226,7 +227,7 @@ func (w *KubeMapper) MongoStatefulSet() (*v1beta2_apps.StatefulSet, error) {
 		},
 		Spec: v1beta2_apps.StatefulSetSpec{
 			ServiceName: w.BiteService.Name,
-			Replicas:    &replicas,
+			Replicas:    replicas,
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      w.BiteService.Name,
@@ -321,7 +322,12 @@ func (w *KubeMapper) Deployment() (*v1beta1_ext.Deployment, error) {
 	if w.BiteService.IsBlueGreenParentDeployment() {
 		return nil, nil
 	}
-	replicas := int32(w.BiteService.Replicas)
+	replicas := w.BiteService.Replicas
+
+	if w.BiteService.HPA.MinReplicas != 0 {
+		replicas = nil
+	}
+
 	container, err := w.container()
 	if err != nil {
 		return nil, err
@@ -348,7 +354,7 @@ func (w *KubeMapper) Deployment() (*v1beta1_ext.Deployment, error) {
 			},
 		},
 		Spec: v1beta1_ext.DeploymentSpec{
-			Replicas: &replicas,
+			Replicas: replicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"creator": "pipeline",
