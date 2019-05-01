@@ -52,6 +52,7 @@ func (r *Reaper) deleteService(svc bitesize.Service) error {
 	r.destroyIngress(svc.Name)
 	r.destroyDeployment(svc.Name)
 	r.destroyService(svc.Name)
+	r.destroyHPA(svc.Name)
 	for _, volume := range svc.Volumes {
 		r.destroyPersistentVolume(volume.Name)
 	}
@@ -83,6 +84,14 @@ func (r *Reaper) destroyDeployment(name string) error {
 
 func (r *Reaper) destroyService(name string) error {
 	client := k8s.Service{
+		Interface: r.Wrapper.Interface,
+		Namespace: r.Namespace,
+	}
+	return client.Destroy(name)
+}
+
+func (r *Reaper) destroyHPA(name string) error {
+	client := k8s.HorizontalPodAutoscaler{
 		Interface: r.Wrapper.Interface,
 		Namespace: r.Namespace,
 	}
