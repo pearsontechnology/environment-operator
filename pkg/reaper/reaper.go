@@ -45,6 +45,8 @@ func (r *Reaper) Cleanup(cfg *bitesize.Environment) error {
 
 		// delete ingresses that were removed from the service config
 		r.CleanupIngress(cfg.Services.FindByName(service.Name), &service)
+		// delete HPA objects  that were removed from the service config
+		r.CleanupHPA(cfg.Services.FindByName(service.Name), &service)
 	}
 
 	// cleanup all resources that were removed from the service config
@@ -67,6 +69,10 @@ func (r *Reaper) deleteService(svc bitesize.Service) error {
 
 	if err := r.destroyService(svc.Name); err != nil {
 		log.Errorf("REAPER: failed to destroy service failed: %s", err.Error())
+	}
+
+	if err := r.destroyHPA(svc.Name); err != nil {
+		log.Errorf("REAPER: failed to destroy HPA failed: %s", err.Error())
 	}
 
 	for _, volume := range svc.Volumes {
@@ -108,6 +114,14 @@ func (r *Reaper) destroyDeployment(name string) error {
 
 func (r *Reaper) destroyService(name string) error {
 	client := k8s.Service{
+		Interface: r.Wrapper.Interface,
+		Namespace: r.Namespace,
+	}
+	return client.Destroy(name)
+}
+
+func (r *Reaper) destroyHPA(name string) error {
+	client := k8s.HorizontalPodAutoscaler{
 		Interface: r.Wrapper.Interface,
 		Namespace: r.Namespace,
 	}
@@ -165,6 +179,14 @@ func (r *Reaper) CleanupIngress(configSvc, clusterSvc *bitesize.Service) {
 		if err != nil {
 			log.Error(err)
 		}
+	}
+}
+
+// CleanupHPA deletes HPA object if HPA config is removed from the service config
+func (r *Reaper) CleanupHPA(configSvc, clusterSvc *bitesize.Service) {
+	if configSvc != nil && configSvc.HPA.MinReplicas == 0 && clusterSvc.HPA.MinReplicas != 0 {
+		log.Infof("REAPER: deleting hpa %s because it was removed from the service config", clusterSvc.Name)
+		r.destroyHPA(clusterSvc.Name)
 	}
 }
 
