@@ -9,7 +9,34 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
-### **[0.0.30 ] 2019-03-05 [RELEASED]**
+### **[1.2.0] 2019-04-29 [RELEASED]**
+ #### Added
+  * Bug fix - Reaper doesn't remove old configs if number of configmaps are 1
+  * USE_AUTH environment variable default to true (previous default)
+  * Introduce new env variables for env git client (documented)
+    * `GISTS_USER`
+    * `GISTS_TOKEN`
+    * `GISTS_PRIVATE_KEY`
+  * Update ConfigMap tests to match new defaults
+  * Upate ConfigMap docs
+
+### **[1.1.1] 2019-04-26 [RELEASED]**
+ #### Added
+  * Ability to set LOG_LEVEL to trace
+
+### **[1.1.0] 2019-04-12 [RELEASED]**
+ #### Added
+  * ConfigMap support for init containers [BITE-5131](https://agile-jira.pearson.com/browse/BITE-5131)
+
+### **[1.0.0] 2019-04-12 [RELEASED]**
+ #### Added
+  * ConfigMap support [BITE-5048](https://agile-jira.pearson.com/browse/BITE-5048)
+  * Updated libraries
+  * Updated golang to 1.12
+  * Fixed a bug where Git try to pull change when there are no updates available
+  * Stable releases
+
+### **[0.0.30] 2019-04-05 [RELEASED]**
  #### Added
   * Option to use github/bitbucket token in place of sshkeys for authentication
   * **NOTE** Default authentication is still based on sshkeys

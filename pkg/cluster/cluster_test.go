@@ -11,7 +11,6 @@ import (
 	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	fakecrd "github.com/pearsontechnology/environment-operator/pkg/util/k8s/fake"
-	v1beta2_apps "k8s.io/api/apps/v1beta2"
 	autoscale_v2beta1 "k8s.io/api/autoscaling/v2beta1"
 	v1 "k8s.io/api/core/v1"
 	v1beta1_ext "k8s.io/api/extensions/v1beta1"
@@ -546,14 +545,15 @@ func TestInitContainers(t *testing.T) {
 		CRDClient: crdcli,
 	}
 
+	config.Env.UseAuth = false // setting auth disabled
 	e1, err := bitesize.LoadEnvironment("../../test/assets/environments.bitesize", "environment13")
 	if err != nil {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
 
-	cluster.ApplyEnvironment(e1, e1)
-
 	e2, err := cluster.LoadEnvironment("environment-dev")
+
+	cluster.ApplyEnvironment(e1, e2)
 
 	if err != nil {
 		t.Fatalf("Unexpected err: %s", err.Error())
@@ -715,167 +715,4 @@ func TestApplyExistingHPA(t *testing.T) {
 }
 func loadEmptyCRDs() *fakerest.RESTClient {
 	return fakecrd.CRDClient()
-}
-
-func TestApplyMongoStatefulSet(t *testing.T) {
-	crdcli := loadEmptyCRDs()
-	cpulimit, _ := resource.ParseQuantity(config.Env.LimitDefaultCPU)
-	memlimit, _ := resource.ParseQuantity(config.Env.LimitDefaultMemory)
-	cpurequests, _ := resource.ParseQuantity(config.Env.RequestsDefaultCPU)
-
-	client := fake.NewSimpleClientset(
-		&v1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "environment-mongo",
-				Labels: map[string]string{
-					"environment": "environment-mongo",
-				},
-			},
-		},
-		&v1beta2_apps.StatefulSet{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "mongo",
-				Namespace: "environment-mongo",
-				Labels: map[string]string{
-					"creator":     "pipeline",
-					"name":        "hpaservice",
-					"application": "some-app",
-					"version":     "3.4",
-				},
-				Annotations: map[string]string{
-					"deployment.kubernetes.io/revision": "1",
-				},
-			},
-			Status: v1beta2_apps.StatefulSetStatus{
-				Replicas: 1,
-			},
-			Spec: v1beta2_apps.StatefulSetSpec{
-				ServiceName: "mongo",
-				Replicas:    &[]int32{3}[0],
-				Template: v1.PodTemplateSpec{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "mongo",
-						Namespace: "test",
-						Labels: map[string]string{
-							"creator":     "pipeline",
-							"name":        "mongo",
-							"application": "some-app",
-							"version":     "3.4",
-							"role":        "mongo",
-						},
-						Annotations: map[string]string{
-							"existing_annotation": "exist",
-						},
-					},
-					Spec: v1.PodSpec{
-						TerminationGracePeriodSeconds: &[]int64{10}[0],
-						Containers: []v1.Container{
-							{
-								VolumeMounts: []v1.VolumeMount{
-									{
-										Name:      "mongo-persistent-storage",
-										MountPath: "/data/db",
-										ReadOnly:  true,
-									},
-									{
-										Name:      "secrets-volume",
-										MountPath: "/etc/secrets-volume",
-										ReadOnly:  true,
-									},
-								},
-								Resources: v1.ResourceRequirements{
-									Requests: v1.ResourceList{
-										"cpu": cpurequests,
-									},
-									Limits: v1.ResourceList{
-										"cpu":    cpulimit,
-										"memory": memlimit,
-									},
-								},
-							},
-						},
-						Volumes: []v1.Volume{
-							{
-								Name: "test",
-								VolumeSource: v1.VolumeSource{
-									PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
-										ClaimName: "test",
-									},
-								},
-							},
-							{
-								Name: "secrets-volume",
-								VolumeSource: v1.VolumeSource{
-									Secret: &v1.SecretVolumeSource{
-										SecretName:  "shared-bootstrap-data",
-										DefaultMode: &[]int32{256}[0],
-									},
-								},
-							},
-						},
-					},
-				},
-				VolumeClaimTemplates: []v1.PersistentVolumeClaim{
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name:      "mongo-persistent-storage",
-							Namespace: "environment-mongo",
-							Annotations: map[string]string{
-								"volume.beta.kubernetes.io/storage-class": "aws-ebs",
-							},
-							Labels: map[string]string{
-								"creator":    "pipeline",
-								"deployment": "mongo",
-								"mount_path": "/data/db",
-								"size":       "10G",
-								"type":       "ebs",
-							},
-						},
-						Spec: v1.PersistentVolumeClaimSpec{
-							AccessModes: []v1.PersistentVolumeAccessMode{v1.ReadWriteOnce},
-							Resources: v1.ResourceRequirements{
-								Requests: v1.ResourceList{
-									v1.ResourceName(v1.ResourceStorage): resource.MustParse("10G"),
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		&v1.Service{
-			ObjectMeta: validMeta("environment-mongo", "mongo"),
-			Spec: v1.ServiceSpec{
-				Ports: []v1.ServicePort{
-					{
-						Name:     "tcp-port-27017",
-						Protocol: "TCP",
-						Port:     27017,
-					},
-				},
-			},
-		},
-	)
-
-	cluster := Cluster{
-		Interface: client,
-		CRDClient: crdcli,
-	}
-
-	e1, err := bitesize.LoadEnvironment("../../test/assets/environments.bitesize", "environment4")
-	if err != nil {
-		t.Fatalf("Unexpected err: %s", err.Error())
-	}
-
-	cluster.ApplyEnvironment(e1, e1)
-
-	e2, err := cluster.LoadEnvironment("environment-mongo")
-
-	if err != nil {
-		t.Fatalf("Unexpected err: %s", err.Error())
-	}
-
-	if diff.Compare(*e1, *e2) {
-		t.Errorf("Expected loaded environments to be equal, yet diff is: %s", diff.Changes())
-	}
 }

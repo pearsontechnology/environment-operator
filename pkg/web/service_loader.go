@@ -45,3 +45,20 @@ func loadServiceFromCluster(name string) (bitesize.Service, error) {
 	}
 	return *s, nil
 }
+
+func loadConfigMapsFromConfig() (*bitesize.Gists, error) {
+	gitClient := git.Client()
+	gitClient.Refresh()
+
+	environment, err := bitesize.LoadEnvironmentFromConfig(config.Env)
+	if err != nil {
+		return nil, fmt.Errorf("Could not load env: %s", err.Error())
+	}
+
+	res := environment.Gists.FindByType(bitesize.TypeConfigMap)
+	if res == nil {
+		log.Warnf("Imported Resources: %v", res)
+		return nil, fmt.Errorf("ConfigMaps not found")
+	}
+	return &res, nil
+}

@@ -196,17 +196,42 @@ environments:
   - type: sqs
     name: sqs_queue_name
 - name: environment13
-  namespace: environment-init
+  namespace: environment-dev
+  gists_repository:
+    remote: "https://github.com/pearsontechnology/environment-operator.git"
+    branch: master
+  gists:
+     - name: "application-v1"
+       path: "test/assets/k8s/application-v1.bitesize"
+       type: configmap
+     - name: "application-v2"
+       path: "test/assets/k8s/application-v1.bitesize"
+       type: configmap
   services:
   - name: init_svc
+    volumes:
+      - name: application-v2
+        path: "/etc/config/application-v2.config"
+        type: configmap
     init_containers:
-          - application: init_1
-            name: init1
-            version: 1
-            command:
-              - sample1
-          - application: init_2
-            name: init2
-            version: 1
-            command:
-              - sample2
+      - application: init_1
+        name: init1
+        version: 1
+        command:
+          - sample1
+        volumes:
+          - name: application-v1
+            path: "/etc/config/application-v1.config"
+            type: configmap
+      - application: init_2
+        name: init2
+        version: 1
+        command:
+          - sample2
+        env: 
+          - name: sample1
+            value: sample1-value
+          - secret: sample2
+            value: sample2-value
+          - name: sample3
+            pod_field: sample3-value

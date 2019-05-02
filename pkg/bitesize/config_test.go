@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 func TestEnvironmentsBitesize(t *testing.T) {

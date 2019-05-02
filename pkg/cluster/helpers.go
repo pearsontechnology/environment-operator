@@ -4,13 +4,12 @@ import (
 	"strings"
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
-	v1beta2_apps "k8s.io/api/apps/v1beta2"
-	v1 "k8s.io/api/core/v1"
-	v1beta1_ext "k8s.io/api/extensions/v1beta1"
+	"k8s.io/api/core/v1"
+	v1beta1ext "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func envVars(deployment v1beta1_ext.Deployment) []bitesize.EnvVar {
+func envVars(deployment v1beta1ext.Deployment) []bitesize.EnvVar {
 	var retval []bitesize.EnvVar
 	for _, e := range deployment.Spec.Template.Spec.Containers[0].Env {
 		var v bitesize.EnvVar
@@ -45,31 +44,7 @@ func isReservedEnvVar(e v1.EnvVar) bool {
 	return false
 }
 
-func envVarsStatefulset(statefulset v1beta2_apps.StatefulSet) []bitesize.EnvVar {
-	var retval []bitesize.EnvVar
-	for _, e := range statefulset.Spec.Template.Spec.Containers[0].Env {
-		var v bitesize.EnvVar
-
-		if isReservedEnvVar(e) {
-			continue
-		}
-
-		if e.ValueFrom != nil && e.ValueFrom.SecretKeyRef != nil {
-			v = bitesize.EnvVar{
-				Value:  e.ValueFrom.SecretKeyRef.Key,
-				Secret: e.Name,
-			}
-		} else {
-			v = bitesize.EnvVar{
-				Name:  e.Name,
-				Value: e.Value,
-			}
-		}
-		retval = append(retval, v)
-	}
-	return retval
-}
-func healthCheck(deployment v1beta1_ext.Deployment) *bitesize.HealthCheck {
+func healthCheck(deployment v1beta1ext.Deployment) *bitesize.HealthCheck {
 	var retval *bitesize.HealthCheck
 
 	probe := deployment.Spec.Template.Spec.Containers[0].LivenessProbe
@@ -139,32 +114,18 @@ func convertProbeType(probe *v1.Probe) *bitesize.Probe {
 	return retval
 }
 
-func livenessProbe(deployment v1beta1_ext.Deployment) *bitesize.Probe {
+func livenessProbe(deployment v1beta1ext.Deployment) *bitesize.Probe {
 	probe := deployment.Spec.Template.Spec.Containers[0].LivenessProbe
 
 	return convertProbeType(probe)
 }
 
-func readinessProbe(deployment v1beta1_ext.Deployment) *bitesize.Probe {
+func readinessProbe(deployment v1beta1ext.Deployment) *bitesize.Probe {
 	probe := deployment.Spec.Template.Spec.Containers[0].ReadinessProbe
 
 	return convertProbeType(probe)
 }
 
-func healthCheckStatefulset(statefulset v1beta2_apps.StatefulSet) *bitesize.HealthCheck {
-	var retval *bitesize.HealthCheck
-
-	probe := statefulset.Spec.Template.Spec.Containers[0].LivenessProbe
-	if probe != nil && probe.Exec != nil {
-
-		retval = &bitesize.HealthCheck{
-			Command:      probe.Exec.Command,
-			InitialDelay: int(probe.InitialDelaySeconds),
-			Timeout:      int(probe.TimeoutSeconds),
-		}
-	}
-	return retval
-}
 func getLabel(metadata metav1.ObjectMeta, label string) string {
 	labels := metadata.GetLabels()
 	return labels[label]
@@ -177,7 +138,7 @@ func getAnnotation(metadata metav1.ObjectMeta, annotation string) string {
 
 func getAccessModesAsString(modes []v1.PersistentVolumeAccessMode) string {
 
-	modesStr := []string{}
+	var modesStr []string
 	if containsAccessMode(modes, v1.ReadWriteOnce) {
 		modesStr = append(modesStr, "ReadWriteOnce")
 	}
@@ -197,4 +158,38 @@ func containsAccessMode(modes []v1.PersistentVolumeAccessMode, mode v1.Persisten
 		}
 	}
 	return false
+}
+
+func volumes(deployment v1beta1ext.Deployment) []bitesize.Volume {
+	//TODO: implement other volume types
+	var volumes []bitesize.Volume
+
+	volumeMounts := deployment.Spec.Template.Spec.Containers[0].VolumeMounts
+	// add ConfigMap volumes to diff
+	for _, v := range deployment.Spec.Template.Spec.Volumes {
+		// if ConfigMap volume
+		if v.VolumeSource.ConfigMap != nil {
+			vol := bitesize.Volume{
+				Name:  v.Name,
+				Type:  bitesize.TypeConfigMap,
+				Modes: "ReadWriteOnce",
+			}
+			// find the mount path for the volume
+			for _, mount := range volumeMounts {
+				if mount.Name == v.Name {
+					vol.Path = mount.MountPath
+				}
+			}
+			// generate items if any
+			for _, it := range v.ConfigMap.Items {
+				vol.Items = append(vol.Items, bitesize.KeyToPath{
+					Key:  it.Key,
+					Path: it.Path,
+					Mode: it.Mode,
+				})
+			}
+			volumes = append(volumes, vol)
+		}
+	}
+	return volumes
 }

@@ -56,19 +56,26 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 	client, err := cluster.Client()
 
 	if err != nil {
-		log.Errorf("Error creating kubernetes client: %s", err.Error())
+		log.Errorf("error creating kubernetes client: %s", err.Error())
 	}
 
 	d, err := ParseDeployRequest(r.Body)
 	if err != nil {
-		log.Errorf("Could not parse request body: %s", err.Error())
+		log.Errorf("could not parse request body: %s", err.Error())
 		http.Error(w, fmt.Sprintf("Bad Request: Unable to parse request body: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 
 	service, err := loadServiceFromConfig(d.Name)
 	if err != nil {
-		log.Errorf("Error getting deployment %s: %s", d.Name, err.Error())
+		log.Errorf("error getting deployment %s: %s", d.Name, err.Error())
+		http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	configmaps, err := loadConfigMapsFromConfig()
+	if err != nil {
+		log.Errorf("error getting ConfigMaps %s: %s", d.Name, err.Error())
 		http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
@@ -76,7 +83,7 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 	if service.IsBlueGreenParentDeployment() {
 		service, err = loadServiceFromConfig(service.InactiveDeploymentName())
 		if err != nil {
-			log.Errorf("Error getting deployment %s: %s", d.Name, err.Error())
+			log.Errorf("error getting deployment %s: %s", d.Name, err.Error())
 			http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
 			return
 		}
@@ -85,8 +92,8 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 	service.Version = d.Version
 	service.Application = d.Application
 
-	if err := client.ApplyService(service, config.Env.Namespace); err != nil {
-		log.Errorf("Error updating deployment %s: %s", d.Name, err.Error())
+	if err := client.ApplyService(service, configmaps, config.Env.Namespace); err != nil {
+		log.Errorf("error updating deployment %s: %s", d.Name, err.Error())
 		http.Error(w, fmt.Sprintf("Bad Request: %s", err.Error()), http.StatusBadRequest)
 		metrics.Deploys.With(prometheus.Labels{"status": "failed"}).Inc()
 		return
@@ -98,20 +105,23 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(status)
+	err = json.NewEncoder(w).Encode(status)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func getStatus(w http.ResponseWriter, r *http.Request) {
 
 	client, err := cluster.Client()
 	if err != nil {
-		log.Errorf("Error getting cluster client: %s", err.Error())
+		log.Errorf("error getting cluster client: %s", err.Error())
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	}
 
 	e, err := client.LoadEnvironment(config.Env.Namespace)
 	if err != nil {
-		log.Errorf("Error getting cluster client: %s", err.Error())
+		log.Errorf("error getting cluster client: %s", err.Error())
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	}
 
@@ -132,8 +142,10 @@ func getStatus(w http.ResponseWriter, r *http.Request) {
 		status := statusForService(svc)
 		s.Services = append(s.Services, status)
 	}
-	json.NewEncoder(w).Encode(s)
-
+	err = json.NewEncoder(w).Encode(s)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func getPodStatus(w http.ResponseWriter, r *http.Request) {
@@ -169,7 +181,10 @@ func getPodStatus(w http.ResponseWriter, r *http.Request) {
 		Pods: deployedPods,
 	}
 
-	json.NewEncoder(w).Encode(statusPods)
+	err = json.NewEncoder(w).Encode(statusPods)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func getServiceStatus(w http.ResponseWriter, r *http.Request) {
@@ -193,7 +208,10 @@ func getServiceStatus(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	status := statusForService(svc)
-	json.NewEncoder(w).Encode(status)
+	err = json.NewEncoder(w).Encode(status)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func statusForService(svc bitesize.Service) StatusService {

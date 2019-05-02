@@ -3,6 +3,7 @@ package bitesize
 import (
 	"encoding/json"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"strings"
 )
 
@@ -64,8 +65,14 @@ func BlueGreenURLForKind(url string, kind BlueGreenServiceSet) string {
 // set to rollingupgrade and a name suffixed with either -blue or -green
 func copyBlueGreenService(svc Service, kind BlueGreenServiceSet) Service {
 	retval := Service{}
-	byt, _ := json.Marshal(svc)
-	json.Unmarshal(byt, &retval)
+	byt, err := json.Marshal(svc)
+	if err != nil {
+		log.Errorf("copy blue green service marshal error: %s", err.Error())
+	}
+	err = json.Unmarshal(byt, &retval)
+	if err != nil {
+		log.Errorf("copy blue green service unmarshal error: %s", err.Error())
+	}
 
 	retval.Name = fmt.Sprintf("%s-%s", svc.Name, kind)
 

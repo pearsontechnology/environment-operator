@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+
+	"github.com/pearsontechnology/environment-operator/pkg/config"
 )
 
 func TestExistingEnvironment(t *testing.T) {
@@ -67,5 +69,20 @@ func TestEnvironmentBlueGreenLoading(t *testing.T) {
 
 	if len(e.Services) != 3 {
 		t.Errorf("Unexpected environment count: expected 3, got %d", len(e.Services))
+	}
+}
+
+func TestEnvironmentImportConfigMap(t *testing.T) {
+	config.Env.UseAuth = false
+
+	e, err := LoadEnvironment("../../test/assets/environments3.bitesize", "environment1")
+
+	// fails on travis because .git in travis
+	if err != nil {
+		t.Errorf("Unexpected error loading environment: %s", err.Error())
+	}
+
+	if len(e.Gists) != 3 {
+		t.Errorf("Unexpected count of import. Expected 3, got: %d", len(e.Gists))
 	}
 }
