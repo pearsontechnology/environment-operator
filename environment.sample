@@ -21,12 +21,6 @@ environments:
       - name: back
         port: 80
         replicas: 1
-        hpa:
-          min_replicas: 1
-          max_replicas: 5
-          metric:
-            name: cpu
-            target_average_utilization: 75
         env:
           - name: APP_PORT
             value: 80
