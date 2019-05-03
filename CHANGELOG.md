@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.2.1] 2019-05-03 [RELEASED]**
+ #### Fixed
+  * Fixed a bug where reaper doesn't remove old HPA config
+
 ### **[1.2.0] 2019-04-29 [RELEASED]**
  #### Added
   * Bug fix - Reaper doesn't remove old configs if number of configmaps are 1
