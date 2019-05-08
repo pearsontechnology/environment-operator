@@ -665,18 +665,6 @@ func (w *KubeMapper) volumes() ([]v1.Volume, error) {
 		retval = append(retval, vol)
 	}
 
-	if w.BiteService.InitContainers != nil {
-		for _, container := range *w.BiteService.InitContainers {
-			for _, v := range container.Volumes {
-				vol := v1.Volume{
-					Name:         v.Name,
-					VolumeSource: w.volumeSource(v),
-				}
-				retval = append(retval, vol)
-			}
-		}
-	}
-
 	return retval, nil
 }
 
