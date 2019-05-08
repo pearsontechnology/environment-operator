@@ -113,6 +113,79 @@ func TestQuantitiesWithDiffUnits(t *testing.T) {
 	}
 }
 
+func TestBlueGreenExternalUrls(t *testing.T) {
+	var saTests = []struct {
+		versionA []string
+		versionB []string
+		expected bool
+	}{
+		{
+			[]string{"www.a.com"},
+			[]string{"www.b.com"},
+			true,
+		},
+		{
+			[]string{"www.a.com"},
+			[]string{"www.a.com"},
+			false,
+		},
+		{
+			[]string{"www.a.com"},
+			[]string{},
+			true,
+		},
+		{
+			[]string{},
+			[]string{"www.a.com"},
+			true,
+		},
+		{
+			[]string{"www.a.com", "www.b.com"},
+			[]string{"www.a.com"},
+			true,
+		},
+		{
+			[]string{"www.a.com", "www.b.com"},
+			[]string{"www.a.com", "www.b.com"},
+			false,
+		},
+	}
+
+	for _, tst := range saTests {
+		a := bitesize.Environment{
+			Name: "e",
+			Services: []bitesize.Service{
+				{
+					Name:        "a",
+					ExternalURL: tst.versionA,
+					Deployment: &bitesize.DeploymentSettings{
+						Method: "bluegreen",
+					},
+				},
+			},
+		}
+		b := bitesize.Environment{
+			Name: "e",
+			Services: []bitesize.Service{
+				{
+					Name:        "a",
+					ExternalURL: tst.versionB,
+					Deployment: &bitesize.DeploymentSettings{
+						Method: "bluegreen",
+					},
+				},
+			},
+		}
+
+		if Compare(a, b) != tst.expected {
+			t.Errorf(
+				"Unexpected external url compare(%q, %q), should be %t, got %t \n%+v",
+				tst.versionA, tst.versionB, tst.expected, Compare(a, b), Changes(),
+			)
+		}
+	}
+}
+
 func TestDiffVersionsSame(t *testing.T) {
 	var saTests = []struct {
 		versionA string
