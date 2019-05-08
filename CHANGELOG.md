@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.2.2] 2019-05-08 [RELEASED]**
+ #### Fixed
+  * Fixed volume mount issue with init containers [BITE-5404](https://agile-jira.pearson.com/browse/BITE-5404)
+
 ### **[1.2.1] 2019-05-03 [RELEASED]**
  #### Fixed
   * Fixed a bug where reaper doesn't remove old HPA config
