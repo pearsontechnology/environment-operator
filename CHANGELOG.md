@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.2.3] 2019-05-09 [RELEASED]**
+ #### Fixed
+  * Fixed a bug with blue/green deployments where external URL change was not reflected correctly
+
 ### **[1.2.2] 2019-05-08 [RELEASED]**
  #### Fixed
   * Fixed volume mount issue with init containers [BITE-5404](https://agile-jira.pearson.com/browse/BITE-5404)
@@ -21,7 +25,7 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
  #### Added
   * Bug fix - Reaper doesn't remove old configs if number of configmaps are 1
   * USE_AUTH environment variable default to true (previous default)
-  * Introduce new env variables for env git client (documented)
+
     * `GISTS_USER`
     * `GISTS_TOKEN`
     * `GISTS_PRIVATE_KEY`
