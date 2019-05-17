@@ -235,3 +235,11 @@ environments:
             value: sample2-value
           - name: sample3
             pod_field: sample3-value
+- name: environment14
+  namespace: environment-s3
+  services:
+  - type: s3
+    name: s3_bucket_name
+	options:
+	  bucket_region: "us-east-2"
+	  bucket_encryption: "aes-256"
