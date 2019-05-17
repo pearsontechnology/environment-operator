@@ -240,6 +240,6 @@ environments:
   services:
   - type: s3
     name: s3_bucket_name
-	options:
-	  bucket_region: "us-east-2"
-	  bucket_encryption: "aes-256"
+    options:
+      bucket_region: "us-east-2"
+      bucket_encryption: "aes-256"
