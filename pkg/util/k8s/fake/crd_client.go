@@ -142,6 +142,8 @@ func kindFromElem(e string) string {
 		return "Cb"
 	case "sqses":
 		return "Sqs"
+	case "s3s":
+		return "S3"
 	default:
 		return "None"
 	}
