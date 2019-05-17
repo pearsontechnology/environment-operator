@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.2.4] 2019-05-17 [RELEASED]**
+ #### Added
+  * Added S3 Support [ODY-120](https://agile-jira.pearson.com/browse/ODY-120)
+
 ### **[1.2.3] 2019-05-09 [RELEASED]**
  #### Fixed
   * Fixed a bug with blue/green deployments where external URL change was not reflected correctly
