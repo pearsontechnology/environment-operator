@@ -422,6 +422,7 @@ func convertProbeType(probe *bitesize.Probe) *v1.Probe {
 			InitialDelaySeconds: probe.InitialDelaySeconds,
 			SuccessThreshold:    probe.SuccessThreshold,
 			TimeoutSeconds:      probe.TimeoutSeconds,
+			PeriodSeconds:       probe.PeriodSeconds,
 		}
 
 		if probe.HTTPGet != nil {
