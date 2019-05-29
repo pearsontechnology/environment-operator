@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.2.5] 2019-05-29 [RELEASED]**
+ #### Fixed
+  * Fixed probe "period_seconds" not applied to deployment [BITE-5587](https://agile-jira.pearson.com/browse/BITE-5587)
+
 ### **[1.2.4] 2019-05-17 [RELEASED]**
  #### Added
   * Added S3 Support [ODY-120](https://agile-jira.pearson.com/browse/ODY-120)

@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	v1beta1ext "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -68,6 +68,7 @@ func convertProbeType(probe *v1.Probe) *bitesize.Probe {
 			InitialDelaySeconds: probe.InitialDelaySeconds,
 			SuccessThreshold:    probe.SuccessThreshold,
 			TimeoutSeconds:      probe.TimeoutSeconds,
+			PeriodSeconds:       probe.PeriodSeconds,
 		}
 
 		if probe.HTTPGet != nil {

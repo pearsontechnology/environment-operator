@@ -104,6 +104,9 @@ func TestReadinessProbe(t *testing.T) {
 								},
 								InitialDelaySeconds: 3,
 								PeriodSeconds:       3,
+								SuccessThreshold:    5,
+								TimeoutSeconds:      6,
+								FailureThreshold:    7,
 							},
 						},
 					},
@@ -113,9 +116,31 @@ func TestReadinessProbe(t *testing.T) {
 	}
 
 	r := readinessProbe(deployment)
+
 	if r.TCPSocket.Port != 8080 {
 		t.Errorf("Unexpected value for port %d", r.TCPSocket.Port)
 	}
+
+	if r.PeriodSeconds != 3 {
+		t.Errorf("Unexpected value for period seconds %d", r.PeriodSeconds)
+	}
+
+	if r.InitialDelaySeconds != 3 {
+		t.Errorf("Unexpected value for initial delay seconds %d", r.InitialDelaySeconds)
+	}
+
+	if r.SuccessThreshold != 5 {
+		t.Errorf("Unexpected value for success threshold %d", r.SuccessThreshold)
+	}
+
+	if r.TimeoutSeconds != 6 {
+		t.Errorf("Unexpected value for timeout seconds %d", r.TimeoutSeconds)
+	}
+
+	if r.FailureThreshold != 7 {
+		t.Errorf("Unexpected value for failure threshold %d", r.FailureThreshold)
+	}
+
 }
 
 func TestGetAccessModesAsString(t *testing.T) {
@@ -129,15 +154,15 @@ func TestGetAccessModesAsString(t *testing.T) {
 }
 
 func TestReservedEnvVar(t *testing.T) {
-	var tests = []struct{
-		name string
+	var tests = []struct {
+		name     string
 		expected bool
-	} {
+	}{
 		{"POD_DEPLOYMENT_COLOUR", true},
 		{"SOMEVAR", false},
 	}
 
-	for _,satest := range tests {
+	for _, satest := range tests {
 		e := v1.EnvVar{Name: satest.name, Value: ""}
 		if isReservedEnvVar(e) != satest.expected {
 			t.Errorf("unexpected result. expected %v got %v", satest.expected, isReservedEnvVar(e))
