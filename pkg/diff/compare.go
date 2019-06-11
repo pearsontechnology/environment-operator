@@ -140,6 +140,86 @@ func alignServices(desiredCfg, currentCfg *bitesize.Service) {
 		desiredCfg.Replicas = currentCfg.Replicas
 	}
 
+	if desiredCfg.LivenessProbe != nil {
+		if desiredCfg.LivenessProbe.InitialDelaySeconds == 0 {
+			desiredCfg.LivenessProbe.InitialDelaySeconds = currentCfg.LivenessProbe.InitialDelaySeconds
+		}
+
+		if desiredCfg.LivenessProbe.TimeoutSeconds == 0 {
+			desiredCfg.LivenessProbe.TimeoutSeconds = currentCfg.LivenessProbe.TimeoutSeconds
+		}
+
+		if desiredCfg.LivenessProbe.PeriodSeconds == 0 {
+			desiredCfg.LivenessProbe.PeriodSeconds = currentCfg.LivenessProbe.PeriodSeconds
+		}
+
+		if desiredCfg.LivenessProbe.SuccessThreshold == 0 {
+			desiredCfg.LivenessProbe.SuccessThreshold = currentCfg.LivenessProbe.SuccessThreshold
+		}
+
+		if desiredCfg.LivenessProbe.FailureThreshold == 0 {
+			desiredCfg.LivenessProbe.FailureThreshold = currentCfg.LivenessProbe.FailureThreshold
+		}
+
+		if desiredCfg.LivenessProbe.HTTPGet != nil {
+			if len(desiredCfg.LivenessProbe.HTTPGet.Path) == 0 {
+				desiredCfg.LivenessProbe.HTTPGet.Path = currentCfg.LivenessProbe.HTTPGet.Path
+			}
+
+			if len(desiredCfg.LivenessProbe.HTTPGet.Host) == 0 {
+				desiredCfg.LivenessProbe.HTTPGet.Host = currentCfg.LivenessProbe.HTTPGet.Host
+			}
+
+			if len(desiredCfg.LivenessProbe.HTTPGet.Scheme) == 0 {
+				desiredCfg.LivenessProbe.HTTPGet.Scheme = currentCfg.LivenessProbe.HTTPGet.Scheme
+			}
+
+			if len(desiredCfg.LivenessProbe.HTTPGet.HTTPHeaders) == 0 {
+				desiredCfg.LivenessProbe.HTTPGet.HTTPHeaders = currentCfg.LivenessProbe.HTTPGet.HTTPHeaders
+			}
+		}
+	}
+
+	if desiredCfg.ReadinessProbe != nil {
+		if desiredCfg.ReadinessProbe.InitialDelaySeconds == 0 {
+			desiredCfg.ReadinessProbe.InitialDelaySeconds = currentCfg.ReadinessProbe.InitialDelaySeconds
+		}
+
+		if desiredCfg.ReadinessProbe.TimeoutSeconds == 0 {
+			desiredCfg.ReadinessProbe.TimeoutSeconds = currentCfg.ReadinessProbe.TimeoutSeconds
+		}
+
+		if desiredCfg.ReadinessProbe.PeriodSeconds == 0 {
+			desiredCfg.ReadinessProbe.PeriodSeconds = currentCfg.ReadinessProbe.PeriodSeconds
+		}
+
+		if desiredCfg.ReadinessProbe.SuccessThreshold == 0 {
+			desiredCfg.ReadinessProbe.SuccessThreshold = currentCfg.ReadinessProbe.SuccessThreshold
+		}
+
+		if desiredCfg.ReadinessProbe.FailureThreshold == 0 {
+			desiredCfg.ReadinessProbe.FailureThreshold = currentCfg.ReadinessProbe.FailureThreshold
+		}
+
+		if desiredCfg.ReadinessProbe.HTTPGet != nil {
+			if len(desiredCfg.ReadinessProbe.HTTPGet.Path) == 0 {
+				desiredCfg.ReadinessProbe.HTTPGet.Path = currentCfg.ReadinessProbe.HTTPGet.Path
+			}
+
+			if len(desiredCfg.ReadinessProbe.HTTPGet.Host) == 0 {
+				desiredCfg.ReadinessProbe.HTTPGet.Host = currentCfg.ReadinessProbe.HTTPGet.Host
+			}
+
+			if len(desiredCfg.ReadinessProbe.HTTPGet.Scheme) == 0 {
+				desiredCfg.ReadinessProbe.HTTPGet.Scheme = currentCfg.ReadinessProbe.HTTPGet.Scheme
+			}
+
+			if len(desiredCfg.ReadinessProbe.HTTPGet.HTTPHeaders) == 0 {
+				desiredCfg.ReadinessProbe.HTTPGet.HTTPHeaders = currentCfg.ReadinessProbe.HTTPGet.HTTPHeaders
+			}
+		}
+	}
+
 	if currentCfg.Version == "" {
 		// If no deployment yet, ignore annotations. They only apply onto
 		// deployment object.
