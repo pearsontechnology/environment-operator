@@ -73,7 +73,7 @@ func Compare(desiredCfg, existingCfg bitesize.Environment) bool {
 
 			if serviceDiff := compareConfig.Compare(existingCfgSvc, desiredCfgSvc); serviceDiff != "" {
 				log.Debugf("change detected for service %s", desiredCfgSvc.Name)
-				log.Tracef("changes: %v", serviceDiff)
+				log.Debugf("changes: %v", serviceDiff)
 				addServiceChange(desiredCfgSvc.Name, serviceDiff)
 			}
 		}
@@ -140,7 +140,7 @@ func alignServices(desiredCfg, currentCfg *bitesize.Service) {
 		desiredCfg.Replicas = currentCfg.Replicas
 	}
 
-	if desiredCfg.LivenessProbe != nil {
+	if desiredCfg.LivenessProbe != nil && currentCfg.LivenessProbe != nil {
 		if desiredCfg.LivenessProbe.InitialDelaySeconds == 0 {
 			desiredCfg.LivenessProbe.InitialDelaySeconds = currentCfg.LivenessProbe.InitialDelaySeconds
 		}
@@ -161,7 +161,7 @@ func alignServices(desiredCfg, currentCfg *bitesize.Service) {
 			desiredCfg.LivenessProbe.FailureThreshold = currentCfg.LivenessProbe.FailureThreshold
 		}
 
-		if desiredCfg.LivenessProbe.HTTPGet != nil {
+		if desiredCfg.LivenessProbe.HTTPGet != nil && currentCfg.LivenessProbe.HTTPGet != nil {
 			if len(desiredCfg.LivenessProbe.HTTPGet.Path) == 0 {
 				desiredCfg.LivenessProbe.HTTPGet.Path = currentCfg.LivenessProbe.HTTPGet.Path
 			}
@@ -180,7 +180,7 @@ func alignServices(desiredCfg, currentCfg *bitesize.Service) {
 		}
 	}
 
-	if desiredCfg.ReadinessProbe != nil {
+	if desiredCfg.ReadinessProbe != nil && currentCfg.ReadinessProbe != nil {
 		if desiredCfg.ReadinessProbe.InitialDelaySeconds == 0 {
 			desiredCfg.ReadinessProbe.InitialDelaySeconds = currentCfg.ReadinessProbe.InitialDelaySeconds
 		}
@@ -201,7 +201,7 @@ func alignServices(desiredCfg, currentCfg *bitesize.Service) {
 			desiredCfg.ReadinessProbe.FailureThreshold = currentCfg.ReadinessProbe.FailureThreshold
 		}
 
-		if desiredCfg.ReadinessProbe.HTTPGet != nil {
+		if desiredCfg.ReadinessProbe.HTTPGet != nil && currentCfg.ReadinessProbe.HTTPGet != nil {
 			if len(desiredCfg.ReadinessProbe.HTTPGet.Path) == 0 {
 				desiredCfg.ReadinessProbe.HTTPGet.Path = currentCfg.ReadinessProbe.HTTPGet.Path
 			}
