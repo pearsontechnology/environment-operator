@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.2.7] 2019-06-12 [RELEASED]**
+ #### Fixed
+  * Fixed nil pointer issue on new deployments [BITE-5627](https://agile-jira.pearson.com/browse/BITE-5627)
+
 ### **[1.2.6] 2019-06-11 [RELEASED]**
  #### Fixed
   * Fixed changes not getting reflected when HPA is active  [BITE-5627](https://agile-jira.pearson.com/browse/BITE-5627)
