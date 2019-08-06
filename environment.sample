@@ -8,8 +8,7 @@ environments:
     services:
       - name: front
         external_url: front.sample-app.domain
-        ssl: false
-        port: 80
+        ssl: true
         env:
           - name: APP_PORT
             value: 80
