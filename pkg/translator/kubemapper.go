@@ -737,7 +737,7 @@ func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 		},
 		Spec: v1beta1_ext.IngressSpec{
 			Rules: []v1beta1_ext.IngressRule{},
-			TLS: []v1beta1_ext.IngressTLS{},
+			TLS:   []v1beta1_ext.IngressTLS{},
 		},
 	}
 
@@ -759,6 +759,10 @@ func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 			},
 		}
 
+		tls := v1beta1_ext.IngressTLS{
+			Hosts:      []string{url},
+			SecretName: w.BiteService.Name,
+		}
 		// Override backend
 		if w.BiteService.Backend != "" {
 			rule.IngressRuleValue.HTTP.Paths[0].Backend.ServiceName = w.BiteService.Backend
@@ -767,7 +771,7 @@ func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 			rule.IngressRuleValue.HTTP.Paths[0].Backend.ServicePort = intstr.FromInt(w.BiteService.BackendPort)
 		}
 		retval.Spec.Rules = append(retval.Spec.Rules, rule)
-		retval.Spec.TLS = nil
+		retval.Spec.TLS = append(retval.Spec.TLS, tls)
 
 	}
 
