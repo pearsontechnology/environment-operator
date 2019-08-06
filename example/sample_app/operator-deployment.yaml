@@ -34,7 +34,7 @@ spec:
         - name: GIT_REMOTE_REPOSITORY
           value: git@github.com:pearsontechnology/environment-operator.git
         - name: GIT_BRANCH
-          value: BITE-3572
+          value: tls
         - name: GIT_PRIVATE_KEY
           valueFrom:
             secretKeyRef:
@@ -57,7 +57,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
-        image: pearsontechnology/environment-operator:dev
+        image: pearsontechnology/environment-operator:tls
         imagePullPolicy: Always
         name: environment-operator
         ports:
