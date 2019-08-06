@@ -737,6 +737,7 @@ func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 		},
 		Spec: v1beta1_ext.IngressSpec{
 			Rules: []v1beta1_ext.IngressRule{},
+			TLS: []v1beta1_ext.IngressTLS{},
 		},
 	}
 
@@ -766,6 +767,7 @@ func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 			rule.IngressRuleValue.HTTP.Paths[0].Backend.ServicePort = intstr.FromInt(w.BiteService.BackendPort)
 		}
 		retval.Spec.Rules = append(retval.Spec.Rules, rule)
+		retval.Spec.TLS = nil
 
 	}
 
