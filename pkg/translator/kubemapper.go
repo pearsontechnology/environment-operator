@@ -758,6 +758,16 @@ func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 			},
 		}
 
+		if w.BiteService.Ssl == "true" {
+			tls := v1beta1_ext.IngressTLS{
+				Hosts:      []string{url},
+				SecretName: w.BiteService.Name,
+			}
+			retval.Spec.TLS = []v1beta1_ext.IngressTLS{tls}
+		} else {
+			retval.Spec.TLS = nil
+		}
+
 		// Override backend
 		if w.BiteService.Backend != "" {
 			rule.IngressRuleValue.HTTP.Paths[0].Backend.ServiceName = w.BiteService.Backend
