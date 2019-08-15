@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.2.8] 2019-08-15 [RELEASED]**
+ #### Added
+  * Add TLS support for Ingress when `ssl: true` [BITE-5954](https://agile-jira.pearson.com/browse/BITE-5954)
+
 ### **[1.2.7] 2019-06-12 [RELEASED]**
  #### Fixed
   * Fixed nil pointer issue on new deployments [BITE-5627](https://agile-jira.pearson.com/browse/BITE-5627)
