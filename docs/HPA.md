@@ -23,8 +23,8 @@ environments:
         hpa:
           min_replicas: 1
           max_replicas: 5
-	  metric:
-	    name: cpu
+          metric:
+            name: cpu
             target_average_utilization: 80
         env:
           - name: API_PORT
@@ -58,8 +58,8 @@ environments:
         hpa:
           min_replicas: 1
           max_replicas: 5
-	  metric:
-	    name: memory
+          metric:
+            name: memory
             target_average_utilization: 80
         env:
           - name: API_PORT
@@ -140,7 +140,7 @@ environments:
 
 Next ensure your metrics are available in prometheus. You can do that by going to the Prometheus UI and run a simple query like this:
 ```
-{kubernetes_namespace!=""}		
+{kubernetes_namespace!=""}
 ```
 or from the cli you can run something like this:
 ```bash
@@ -191,7 +191,7 @@ curl -k https://prometheus.acme.com/api/v1/query?query='\{kubernetes_namespace!=
       ],
     }
   }  
-}	
+}
 ```
 
 You should see your defined metrics in the UI or in the metric `__name__` field in the curl output above.

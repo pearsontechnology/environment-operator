@@ -7,6 +7,7 @@ import (
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	v1 "k8s.io/api/core/v1"
+	v1beta1_ext "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -32,6 +33,35 @@ func TestTranslatorIngressLabels(t *testing.T) {
 	t.Run("httpsBackend label", testTranslatorIngressHTTPSBackend)
 	t.Run("httpsOnly label", testTranslatorIngressHTTPSOnly)
 	t.Run("httpsOnly label", testTranslatorIngressHTTP2)
+}
+
+
+func TestTranslatorIngressTLS(t *testing.T) {
+	w := BuildKubeMapper()
+	w.BiteService.ExternalURL = []string{"www.test.com"}
+
+	w.BiteService.Ssl = "true"
+	ingress, _ := w.Ingress()
+
+	tls := v1beta1_ext.IngressTLS{
+		Hosts:      w.BiteService.ExternalURL,
+		SecretName: w.BiteService.Name,
+	}
+
+	if ingress.Spec.TLS == nil || len(ingress.Spec.TLS) == 0 {
+		t.Errorf("TLS config doesn't exist")
+	}
+
+	if !reflect.DeepEqual(ingress.Spec.TLS[0] ,  tls) {
+		t.Errorf("Unexpected hosts in ingress TLS section %v", ingress.Spec.TLS)
+	}
+
+	w.BiteService.Ssl = "false"
+	ingress, _ = w.Ingress()
+
+	if ingress.Spec.TLS != nil {
+		t.Errorf("TLS config shouldn't exist")
+	}
 }
 
 func testTranslatorIngressSSl(t *testing.T) {
