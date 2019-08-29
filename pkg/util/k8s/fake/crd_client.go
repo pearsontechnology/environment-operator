@@ -134,8 +134,8 @@ func kindFromElem(e string) string {
 		return "Sns"
 	case "neptunes":
 		return "Neptune"
-	case "mkses":
-		return "Mks"
+	case "msks":
+		return "Msk"
 	case "docdbs":
 		return "Docdb"
 	case "cbs":
