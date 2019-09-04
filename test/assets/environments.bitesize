@@ -151,11 +151,16 @@ environments:
         - db_name: "db04"
           db_instance_class: "db.r4.large"
 - name: environment8
-  namespace: environment-mks
+  namespace: environment-msk
   services:
-  - type: mks
-    name: mks
-    version : 1.0
+  - type: msk
+    name: msk
+    options:
+      instance_type: "kafka.m5.large"
+      node_count: 1
+      volume_size_gb: 100
+      version: "1.1.1"
+      monitoring_level: "PER_TOPIC_PER_BROKER"
 - name: environment9
   namespace: environment-docdb
   services:
