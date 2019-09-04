@@ -8,7 +8,7 @@ import (
 // SupportedCustomResources contains all supported TPRs on bitesize
 // cluster.
 var SupportedCustomResources = []string{
-	"mongo", "mysql", "cassandra", "redis", "zookeeper", "kafka", "postgres", "neptune", "sns", "mks", "docdb", "cb", "sqs", "s3",
+	"mongo", "mysql", "cassandra", "redis", "zookeeper", "kafka", "postgres", "neptune", "sns", "msk", "docdb", "cb", "sqs", "s3",
 }
 
 // PrsnExternalResource represents CustomResources mapped from
