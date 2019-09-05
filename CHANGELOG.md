@@ -9,7 +9,7 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
-### **[1.2.9] [UNRELEASED]**
+### **[1.2.9] 2019-09-05 [RELEASED]**
  #### Fixed
   * replace AWS MSK "Mks" -> "Msks". [BITE-5517](https://agile-jira.pearson.com/browse/BITE-5517)
 
