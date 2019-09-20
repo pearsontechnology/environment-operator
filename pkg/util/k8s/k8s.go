@@ -29,7 +29,7 @@ func ClientForNamespace(ns string) (*Client, error) {
 		return nil, err
 	}
 
-	restcli, err := CRDClient()
+	restcli, err := CRDClient(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -38,40 +38,25 @@ func ClientForNamespace(ns string) (*Client, error) {
 }
 
 // CRDClient returns rest.RESTClient for CustomResourceDefinitions
-func CRDClient() (*rest.RESTClient, error) {
+func CRDClient(groupVersion *schema.GroupVersion) (*rest.RESTClient, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return nil, err
 	}
+
 	config.GroupVersion = &schema.GroupVersion{
 		Group:   "prsn.io",
 		Version: "v1",
 	}
+
+	if groupVersion != nil {
+		config.GroupVersion = groupVersion
+	}
+
 	config.APIPath = "/apis"
 	config.ContentType = runtime.ContentTypeJSON
 	config.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
 
-	// TPR request/response debug stuff below.
-	//
-	// config.CAFile = ""
-	// config.CAData = []byte{}
-	// config.CertFile = ""
-	// config.CertData = []byte{}
-	//
-	// config.Transport = &loghttp.Transport{
-	// 	LogResponse: func(resp *http.Response) {
-	// 		dump, err := httputil.DumpResponse(resp, true)
-	// 		if err != nil {
-	// 			log.Fatal(err)
-	// 		}
-
-	// log.Debugf("RESPONSE: %q", dump)
-	// log.Debugf("[%p] %d %s", resp.Request, resp.StatusCode, resp.Request.URL)
-	// },
-	// Transport: &http.Transport{
-	// TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	// },
-	// }
 	return rest.RESTClientFor(config)
 }
 
@@ -132,6 +117,7 @@ func (c *Client) Job() *Job {
 
 // CustomResourceDefinition builds CRD client
 func (c *Client) CustomResourceDefinition(kind string) *CustomResourceDefinition {
+
 	return &CustomResourceDefinition{
 		Interface: c.CRDClient,
 		Namespace: c.Namespace,
