@@ -13,7 +13,7 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
  #### Added
   * Enable dynamic API versions for CRDs [BITE-6010](https://agile-jira.pearson.com/browse/BITE-6010)
 
-### **[1.2.9] [UNRELEASED]**
+### **[1.2.9] 2019-09-05 [RELEASED]**
  #### Fixed
   * replace AWS MSK "Mks" -> "Msks". [BITE-5517](https://agile-jira.pearson.com/browse/BITE-5517)
 
