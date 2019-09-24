@@ -3,6 +3,8 @@ package cluster
 import (
 	"errors"
 	"fmt"
+	"os"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
@@ -10,6 +12,7 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"github.com/pearsontechnology/environment-operator/pkg/translator"
 	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -25,7 +28,7 @@ func Client() (*Cluster, error) {
 		return nil, err
 	}
 
-	crdcli, err := k8s.CRDClient()
+	crdcli, err := k8s.CRDClient(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -166,6 +169,16 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, gists *bitesize.
 
 	} else {
 		crd, _ := mapper.CustomResourceDefinition()
+
+		client.CRDClient, err = k8s.CRDClient(&schema.GroupVersion{
+			Group:   strings.Split(crd.TypeMeta.APIVersion, "/")[0],
+			Version: strings.Split(crd.TypeMeta.APIVersion, "/")[1],
+		})
+
+		if err != nil {
+			log.Fatalf("Error creating kubernetes client: %s", err.Error())
+		}
+
 		if err = client.CustomResourceDefinition(crd.Kind).Apply(crd); err != nil {
 			log.Error(err)
 		} else {
@@ -263,10 +276,25 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 		serviceMap.AddVolumeClaim(claim)
 	}
 
-	for _, supported := range k8_extensions.SupportedCustomResources {
-		crds, _ := client.CustomResourceDefinition(supported).List()
-		for _, crd := range crds {
-			serviceMap.AddCustomResourceDefinition(crd)
+	for _, apis := range k8_extensions.SupportedCustomResourceAPIVersions {
+		// This will ensure that CRDClient creation won't happen during the unit tests.
+		host, port := os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT")
+		if len(host) != 0 && len(port) != 0 {
+			client.CRDClient, err = k8s.CRDClient(&schema.GroupVersion{
+				Group:   strings.Split(apis, "/")[0],
+				Version: strings.Split(apis, "/")[1],
+			})
+
+			if err != nil {
+				log.Fatalf("Error creating kubernetes client: %s", err.Error())
+			}
+		}
+
+		for _, supported := range k8_extensions.SupportedCustomResources {
+			crds, _ := client.CustomResourceDefinition(supported).List()
+			for _, crd := range crds {
+				serviceMap.AddCustomResourceDefinition(crd)
+			}
 		}
 	}
 
