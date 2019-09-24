@@ -787,7 +787,7 @@ func (w *KubeMapper) CustomResourceDefinition() (*ext.PrsnExternalResource, erro
 	retval := &ext.PrsnExternalResource{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       strings.Title(w.BiteService.Type),
-			APIVersion: "prsn.io/v1",
+			APIVersion: getAPIVersion(w.BiteService.Options),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
@@ -799,12 +799,25 @@ func (w *KubeMapper) CustomResourceDefinition() (*ext.PrsnExternalResource, erro
 			ResourceVersion: w.BiteService.ResourceVersion,
 		},
 		Spec: ext.PrsnExternalResourceSpec{
-			Version: w.BiteService.Version,
-			Options: w.BiteService.Options,
+			Version:         w.BiteService.Version,
+			Options:         w.BiteService.Options,
+			TargetNamespace: w.BiteService.TargetNamespace,
+			Chart:           w.BiteService.Chart,
+			Repo:            w.BiteService.Repo,
+			Set:             w.BiteService.Set,
+			ValuesContent:   w.BiteService.ValuesContent,
+			Ignore:          w.BiteService.Ignore,
 		},
 	}
 
 	return retval, nil
+}
+
+func getAPIVersion(options map[string]interface{}) string {
+	if options != nil && options["api_version"] != nil {
+		return options["api_version"].(string)
+	}
+	return "prsn.io/v1"
 }
 
 func getAccessModesFromString(modes string) []v1.PersistentVolumeAccessMode {

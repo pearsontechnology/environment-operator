@@ -188,6 +188,13 @@ func (s ServiceMap) AddCustomResourceDefinition(crd k8_extensions.PrsnExternalRe
 	biteservice.Type = strings.ToLower(crd.Kind)
 	biteservice.Options = crd.Spec.Options
 	biteservice.Version = crd.Spec.Version
+	biteservice.TargetNamespace = crd.Spec.TargetNamespace
+	biteservice.Chart = crd.Spec.Chart
+	biteservice.Repo = crd.Spec.Repo
+	biteservice.Set = crd.Spec.Set
+	biteservice.ValuesContent = crd.Spec.ValuesContent
+	biteservice.Ignore = crd.Spec.Ignore
+
 	if crd.Spec.Replicas != 0 {
 		biteservice.Replicas = crd.Spec.Replicas
 	}

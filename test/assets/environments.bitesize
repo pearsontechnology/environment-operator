@@ -161,6 +161,22 @@ environments:
       volume_size_gb: 100
       version: "1.1.1"
       monitoring_level: "PER_TOPIC_PER_BROKER"
+- name: environment-helm
+  namespace: environment-helm
+  services:
+  - type: helmChart
+    name: helm-charts
+    version: 5.7
+    chart: akamai
+    repo: https://admin:mRLHFpLjsDKjgHiHtQPbifIV2WWCAGpp@charts.prsn.io
+    target_namespace: kube-system
+    values_content: |-
+      pipeline: not_a_test
+      bitesize_environment: glp1
+      region: us-east-2
+      bitesize_environment_type: pre
+    options:
+      api_version: helm.kubedex.com/v1
 - name: environment9
   namespace: environment-docdb
   services:

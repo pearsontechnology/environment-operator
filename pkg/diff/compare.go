@@ -2,6 +2,7 @@ package diff
 
 import (
 	"fmt"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/kylelemons/godebug/pretty"
@@ -108,7 +109,9 @@ func alignServices(desiredCfg, currentCfg *bitesize.Service) {
 	if desiredCfg.Type != "" {
 		desiredCfg.Limits.Memory = currentCfg.Limits.Memory
 		desiredCfg.Limits.CPU = currentCfg.Limits.CPU
-
+		if strings.EqualFold(desiredCfg.Type, currentCfg.Type) {
+			desiredCfg.Type = currentCfg.Type
+		}
 	}
 
 	//Sync up Requests in the case where different units are present, but they represent equivalent quantities
