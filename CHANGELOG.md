@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.3.1] 2019-09-26 [RELEASED]**
+ #### Fixed
+  * Fix type case issue with helm controller [BITE-6270](https://agile-jira.pearson.com/browse/BITE-6270)
+
 ### **[1.3.0] 2019-09-20 [RELEASED]**
  #### Added
   * Enable dynamic API versions for CRDs [BITE-6010](https://agile-jira.pearson.com/browse/BITE-6010)

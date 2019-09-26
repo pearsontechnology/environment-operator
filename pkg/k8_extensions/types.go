@@ -31,11 +31,11 @@ type PrsnExternalResourceSpec struct {
 	Version         string                        `json:"version"`
 	Options         map[string]interface{}        `json:"options"`
 	Replicas        int                           `json:"replicas,omitempty"`
-	TargetNamespace string                        `json:"target_namespace,omitempty"`
+	TargetNamespace string                        `json:"targetNamespace,omitempty"`
 	Chart           string                        `json:"chart,omitempty"`
 	Repo            string                        `json:"repo,omitempty"`
 	Set             map[string]intstr.IntOrString `json:"set,omitempty"`
-	ValuesContent   string                        `json:"values_content,omitempty"`
+	ValuesContent   string                        `json:"valuesContent,omitempty"`
 	Ignore          bool                          `json:"ignore,omitempty"`
 }
 
