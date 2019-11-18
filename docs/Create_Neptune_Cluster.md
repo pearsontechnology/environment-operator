@@ -31,14 +31,14 @@ The yaml file above creates a Neptune cluster with four (4) db instances. Usuall
 
 You can use following parameters as options:
 
-**ApplyImmediately** - By default, its False.
-**EnableIAMDatabaseAuthentication** - By default, its True.
-**BackupRetentionPeriod** - By default, its set to 10 days.
-**Port**: Set to default port, 8182.
-**StorageEncrypted** - Set to True by default.
-**MultiAZ**: Set to False by default. Since this is a High Availability feature, enable explicitly for production env only.
-**EnableCloudwatchLogsExports**: The list of log types that need to be enabled for exporting to CloudWatch Logs
-**DBClusterParameterGroupName**: The name of the DB cluster parameter group to associate with this DB cluster
+**ApplyImmediately** - By default, its False.<br/>
+**EnableIAMDatabaseAuthentication** - By default, its True.<br/>
+**BackupRetentionPeriod** - By default, its set to 10 days.<br/>
+**Port** - Set to default port, 8182.<br/>
+**StorageEncrypted** - Set to True by default.<br/>
+**MultiAZ** - Set to False by default. Since this is a High Availability feature, enable explicitly for production env only.<br/>
+**EnableCloudwatchLogsExports** - The list of log types that need to be enabled for exporting to CloudWatch Logs.<br/>
+**DBClusterParameterGroupName** - The name of the DB cluster parameter group to associate with this DB cluster.<br/>
 
 
 The db_name is unique within a Neptune cluster. Note: It takes about 10 - 15 min to create / modify clusters before it can be used by the apps.
