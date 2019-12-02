@@ -8,7 +8,7 @@ import (
 
 // SupportedCustomResources contains all supported CRDs on bitesize cluster.
 var SupportedCustomResources = []string{
-	"mongo", "mysql", "cassandra", "redis", "zookeeper", "kafka", "postgres", "neptune", "sns", "msk", "docdb", "cb", "sqs", "s3", "helmchart",
+	"mongo", "mysql", "cassandra", "redis", "zookeeper", "kafka", "postgres", "neptune", "sns", "msk", "docdb", "cb", "sqs", "s3", "helmchart", "dynamodb",
 }
 
 // SupportedCustomResourceAPIVersions contains all supported CRD API versions on bitesize cluster.
