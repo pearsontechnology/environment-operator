@@ -16,6 +16,7 @@ import (
 type Service struct {
 	Name            string                        `yaml:"name" validate:"nonzero"`
 	ExternalURL     []string                      `yaml:"-"`
+	ServiceMesh     string                        `yaml:"service_mesh,omitempty" validate:"regexp=^(enable|disable)*$"`
 	Backend         string                        `yaml:"backend"`
 	BackendPort     int                           `yaml:"backend_port"`
 	Ports           []int                         `yaml:"-"` // Ports have custom unmarshaler
@@ -141,6 +142,11 @@ func (e *Service) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // HasExternalURL checks if the service has an external_url defined
 func (e Service) HasExternalURL() bool {
 	return len(e.ExternalURL) != 0
+}
+
+// IsServiceMeshEnabled checks if the service_mesh is enabled
+func (e Service) IsServiceMeshEnabled() bool {
+	return e.ServiceMesh == "enable"
 }
 
 // IsBlueGreenParentDeployment verifies if deployment method set for the service
