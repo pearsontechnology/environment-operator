@@ -13,6 +13,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
  #### Added
   * Enable Istio Gateway and VirtualService creation [BITE-6209](https://agile-jira.pearson.com/browse/BITE-6209)
 
+### **[1.3.2] 2019-11-26 [RELEASED]**
+ #### Added
+  * Added DynamoDB Support [BITE-6578](https://agile-jira.pearson.com/browse/BITE-6578)
+
 ### **[1.3.1] 2019-09-26 [RELEASED]**
  #### Fixed
   * Fix type case issue with helm controller [BITE-6270](https://agile-jira.pearson.com/browse/BITE-6270)
