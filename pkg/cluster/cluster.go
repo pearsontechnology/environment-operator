@@ -167,7 +167,6 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, gists *bitesize.
 			}
 
 			if service.IsServiceMeshEnabled() {
-				gateway, _ := mapper.ServiceMeshGateway()
 				client.CRDClient, err = k8s.CRDClient(&schema.GroupVersion{
 					Group:   "networking.istio.io",
 					Version: "v1alpha3",
@@ -177,10 +176,18 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, gists *bitesize.
 					log.Fatalf("Error creating kubernetes client for ServiceMesh use: %s", err.Error())
 				}
 
+				gateway, _ := mapper.ServiceMeshGateway()
 				if err = client.CustomResourceDefinition("Gateway").Apply(gateway); err != nil {
 					log.Error(err)
 				} else {
-					log.Infof("Successfully updated CRD resource: %s", gateway.Name)
+					log.Infof("Successfully updated Gateway CRD resource: %s", gateway.Name)
+				}
+
+				virtualService, _ := mapper.ServiceMeshVirtualService()
+				if err = client.CustomResourceDefinition("VirtualService").Apply(virtualService); err != nil {
+					log.Error(err)
+				} else {
+					log.Infof("Successfully updated VirtualService CRD resource: %s", gateway.Name)
 				}
 			}
 		}

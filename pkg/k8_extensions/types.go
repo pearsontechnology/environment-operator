@@ -39,6 +39,44 @@ type PrsnExternalResourceSpec struct {
 	Ignore          bool                          `json:"ignore,omitempty"`
 	Selector        map[string]string             `json:"selector,omitempty"`
 	Servers         []*Server                     `json:"servers,omitempty"`
+	Gateways        []string                      `json:"gateways,omitempty"`
+	Hosts           []string                      `json:"hosts,omitempty"`
+	HTTP            []*HTTPRoute                  `json:"http,omitempty"`
+}
+
+// HTTPRoute represents format for these mappings
+type HTTPRoute struct {
+	Name  string                  `json:"name,omitempty"`
+	Match []*HTTPMatchRequest     `json:"match,omitempty"`
+	Route []*HTTPRouteDestination `json:"route,omitempty"`
+}
+
+// HTTPMatchRequest represents format for these mappings
+type HTTPMatchRequest struct {
+	Name string       `json:"name,omitempty"`
+	URI  *StringExact `json:"uri,omitempty"`
+}
+
+// StringExact represents format for these mappings
+type StringExact struct {
+	Exact string `json:"exact,omitempty"`
+}
+
+// HTTPRouteDestination represents format for these mappings
+type HTTPRouteDestination struct {
+	Destination *Destination `json:"destination,omitempty"`
+}
+
+// Destination represents format for these mappings
+type Destination struct {
+	Host   string        `json:"host,omitempty"`
+	Subset string        `json:"subset,omitempty"`
+	Port   *PortSelector `json:"port,omitempty"`
+}
+
+// PortSelector represents format for these mappings
+type PortSelector struct {
+	Number uint32 `json:"number,omitempty"`
 }
 
 // PrsnExternalResourceList is a list of PrsnExternalResource
