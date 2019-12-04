@@ -35,7 +35,6 @@ func TestTranslatorIngressLabels(t *testing.T) {
 	t.Run("httpsOnly label", testTranslatorIngressHTTP2)
 }
 
-
 func TestTranslatorIngressTLS(t *testing.T) {
 	w := BuildKubeMapper()
 	w.BiteService.ExternalURL = []string{"www.test.com"}
@@ -52,7 +51,7 @@ func TestTranslatorIngressTLS(t *testing.T) {
 		t.Errorf("TLS config doesn't exist")
 	}
 
-	if !reflect.DeepEqual(ingress.Spec.TLS[0] ,  tls) {
+	if !reflect.DeepEqual(ingress.Spec.TLS[0], tls) {
 		t.Errorf("Unexpected hosts in ingress TLS section %v", ingress.Spec.TLS)
 	}
 
@@ -345,4 +344,53 @@ func TestTranslatorPVCs(t *testing.T) {
 		t.Errorf("incorrect PVCs: %v generated; expecting: %v ", generatedPVCs, expectedPVCs)
 	}
 
+}
+
+func TestServiceMeshGateway(t *testing.T) {
+	w := BuildKubeMapper()
+
+	d, _ := w.ServiceMeshGateway()
+
+	if d.Spec.Selector["istio"] != "ingressgateway" {
+		t.Errorf("Wrong name for the istio selector %s", d.Spec.Selector["istio"])
+	}
+
+	if d.Spec.Servers[0].Port.Number != 80 {
+		t.Errorf("Wrong port for the istio gateway %d", d.Spec.Servers[0].Port.Number)
+	}
+
+	if d.Spec.Servers[0].Port.Protocol != "HTTP" {
+		t.Errorf("Wrong protocol for the istio gateway %s", d.Spec.Servers[0].Port.Protocol)
+	}
+
+	if d.Spec.Servers[0].Hosts[0] != "*" {
+		t.Errorf("Wrong host for the istio gateway %s", d.Spec.Servers[0].Hosts[0])
+	}
+}
+
+func TestServiceMeshVirtualService(t *testing.T) {
+	w := BuildKubeMapper()
+	w.BiteService.ExternalURL = []string{"test-api"}
+
+	d, _ := w.ServiceMeshVirtualService()
+
+	if d.Spec.Gateways[0] != w.BiteService.Name {
+		t.Errorf("Wrong name for the istio gateway %s", d.Spec.Gateways[0])
+	}
+
+	if d.Spec.Hosts[0] != w.BiteService.ExternalURL[0] {
+		t.Errorf("Wrong host for the istio virtual service %s", d.Spec.Hosts[0])
+	}
+
+	if d.Spec.HTTP[0].Route[0].Destination.Host != w.BiteService.Name {
+		t.Errorf("Wrong destination host for the istio virtual service %s", d.Spec.HTTP[0].Route[0].Destination.Host)
+	}
+
+	//testing with custom backend
+	w.BiteService.Backend = "test-backend"
+	d, _ = w.ServiceMeshVirtualService()
+
+	if d.Spec.HTTP[0].Route[0].Destination.Host != w.BiteService.Backend {
+		t.Errorf("Wrong destination host for the istio virtual service %s", d.Spec.HTTP[0].Route[0].Destination.Host)
+	}
 }
