@@ -117,9 +117,23 @@ func plural(singular string) string {
 	case "s", "x":
 		plural = singular + "es"
 	case "y":
+		if isVowel(rune(singular[len(singular)-2])) {
+			plural = singular + "s"
+			break
+		}
 		plural = singular[:len(singular)-1] + "ies"
 	default:
 		plural = singular + "s"
 	}
 	return plural
+}
+
+func isVowel(c rune) bool {
+	vowels := []rune{'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'}
+	for _, value := range vowels {
+		if value == c {
+			return true
+		}
+	}
+	return false
 }
