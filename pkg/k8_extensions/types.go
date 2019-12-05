@@ -28,8 +28,8 @@ type PrsnExternalResource struct {
 // PrsnExternalResourceSpec represents format for these mappings - which is
 // basically it's version and  options
 type PrsnExternalResourceSpec struct {
-	Version         string                        `json:"version"`
-	Options         map[string]interface{}        `json:"options"`
+	Version         string                        `json:"version,omitempty"`
+	Options         map[string]interface{}        `json:"options,omitempty"`
 	Replicas        int                           `json:"replicas,omitempty"`
 	TargetNamespace string                        `json:"targetNamespace,omitempty"`
 	Chart           string                        `json:"chart,omitempty"`
@@ -37,6 +37,46 @@ type PrsnExternalResourceSpec struct {
 	Set             map[string]intstr.IntOrString `json:"set,omitempty"`
 	ValuesContent   string                        `json:"valuesContent,omitempty"`
 	Ignore          bool                          `json:"ignore,omitempty"`
+	Selector        map[string]string             `json:"selector,omitempty"`
+	Servers         []*Server                     `json:"servers,omitempty"`
+	Gateways        []string                      `json:"gateways,omitempty"`
+	Hosts           []string                      `json:"hosts,omitempty"`
+	HTTP            []*HTTPRoute                  `json:"http,omitempty"`
+}
+
+// HTTPRoute represents format for these mappings
+type HTTPRoute struct {
+	Name  string                  `json:"name,omitempty"`
+	Match []*HTTPMatchRequest     `json:"match,omitempty"`
+	Route []*HTTPRouteDestination `json:"route,omitempty"`
+}
+
+// HTTPMatchRequest represents format for these mappings
+type HTTPMatchRequest struct {
+	Name string       `json:"name,omitempty"`
+	URI  *StringExact `json:"uri,omitempty"`
+}
+
+// StringExact represents format for these mappings
+type StringExact struct {
+	Exact string `json:"exact,omitempty"`
+}
+
+// HTTPRouteDestination represents format for these mappings
+type HTTPRouteDestination struct {
+	Destination *Destination `json:"destination,omitempty"`
+}
+
+// Destination represents format for these mappings
+type Destination struct {
+	Host   string        `json:"host,omitempty"`
+	Subset string        `json:"subset,omitempty"`
+	Port   *PortSelector `json:"port,omitempty"`
+}
+
+// PortSelector represents format for these mappings
+type PortSelector struct {
+	Number uint32 `json:"number,omitempty"`
 }
 
 // PrsnExternalResourceList is a list of PrsnExternalResource
@@ -45,6 +85,20 @@ type PrsnExternalResourceList struct {
 	metav1.ListMeta `json:"metadata"`
 
 	Items []PrsnExternalResource `json:"items"`
+}
+
+// Server represents format for these mappings
+type Server struct {
+	Port  *Port    `json:"port,omitempty"`
+	Bind  string   `json:"bind,omitempty"`
+	Hosts []string `json:"hosts,omitempty"`
+}
+
+// Port represents format for these mappings
+type Port struct {
+	Number   uint32 `json:"number,omitempty"`
+	Protocol string `json:"protocol,omitempty"`
+	Name     string `json:"name,omitempty"`
 }
 
 // DeepCopyObject required to satisfy Object interface

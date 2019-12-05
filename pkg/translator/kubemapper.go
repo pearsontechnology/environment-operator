@@ -813,6 +813,100 @@ func (w *KubeMapper) CustomResourceDefinition() (*ext.PrsnExternalResource, erro
 	return retval, nil
 }
 
+// ServiceMeshGateway extracts Kubernetes object from BiteSize definition
+func (w *KubeMapper) ServiceMeshGateway() (*ext.PrsnExternalResource, error) {
+	retval := &ext.PrsnExternalResource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Gateway",
+			APIVersion: "networking.istio.io/v1alpha3",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: map[string]string{
+				"creator": "pipeline",
+				"name":    w.BiteService.Name,
+			},
+			Namespace: w.Namespace,
+			Name:      w.BiteService.Name,
+		},
+		Spec: ext.PrsnExternalResourceSpec{
+			Selector: map[string]string{
+				"istio": "ingressgateway",
+			},
+			Servers: []*ext.Server{
+				{
+					Port: &ext.Port{
+						Number:   80,
+						Protocol: "HTTP",
+						Name:     "http",
+					},
+					Hosts: []string{"*"},
+				},
+			},
+		},
+	}
+
+	return retval, nil
+}
+
+// ServiceMeshVirtualService extracts Kubernetes object from BiteSize definition
+func (w *KubeMapper) ServiceMeshVirtualService() (*ext.PrsnExternalResource, error) {
+	hosts := []string{}
+	port := w.BiteService.Ports[0]
+
+	for _, url := range w.BiteService.ExternalURL {
+		hosts = append(hosts, url)
+	}
+
+	backend := w.BiteService.Name
+	if w.BiteService.Backend != "" {
+		backend = w.BiteService.Backend
+	}
+
+	retval := &ext.PrsnExternalResource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "VirtualService",
+			APIVersion: "networking.istio.io/v1alpha3",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: map[string]string{
+				"creator": "pipeline",
+				"name":    w.BiteService.Name,
+			},
+			Namespace: w.Namespace,
+			Name:      w.BiteService.Name,
+		},
+		Spec: ext.PrsnExternalResourceSpec{
+			Gateways: []string{
+				w.BiteService.Name,
+			},
+			Hosts: hosts,
+			HTTP: []*ext.HTTPRoute{
+				{
+					Match: []*ext.HTTPMatchRequest{
+						{
+							URI: &ext.StringExact{
+								Exact: "/",
+							},
+						},
+					},
+					Route: []*ext.HTTPRouteDestination{
+						{
+							Destination: &ext.Destination{
+								Host: backend,
+								Port: &ext.PortSelector{
+									Number: uint32(port),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	return retval, nil
+}
+
 func getAPIVersion(options map[string]interface{}) string {
 	if options != nil && options["api_version"] != nil {
 		return options["api_version"].(string)

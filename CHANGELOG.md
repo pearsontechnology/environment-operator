@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.3.3] 2019-12-03 [RELEASED]**
+ #### Added
+  * Enable Istio Gateway and VirtualService creation [BITE-6209](https://agile-jira.pearson.com/browse/BITE-6209)
+
 ### **[1.3.2] 2019-11-26 [RELEASED]**
  #### Added
   * Added DynamoDB Support [BITE-6578](https://agile-jira.pearson.com/browse/BITE-6578)
