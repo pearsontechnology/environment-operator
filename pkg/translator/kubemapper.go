@@ -845,6 +845,16 @@ func (w *KubeMapper) ServiceMeshGateway() (*ext.PrsnExternalResource, error) {
 		},
 	}
 
+	if w.BiteService.Ssl == "true" {
+		tls := &ext.ServerTLSOptions{
+			Mode:           "SIMPLE",
+			CredentialName: w.BiteService.Name,
+		}
+		retval.Spec.Servers[0].TLS = tls
+	} else {
+		retval.Spec.Servers[0].TLS = nil
+	}
+
 	return retval, nil
 }
 

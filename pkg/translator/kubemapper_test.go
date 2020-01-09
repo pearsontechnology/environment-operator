@@ -366,6 +366,13 @@ func TestServiceMeshGateway(t *testing.T) {
 	if d.Spec.Servers[0].Hosts[0] != "*" {
 		t.Errorf("Wrong host for the istio gateway %s", d.Spec.Servers[0].Hosts[0])
 	}
+
+	//testing TLS
+	w.BiteService.Ssl = "true"
+	d, _ = w.ServiceMeshGateway()
+	if d.Spec.Servers[0].TLS.CredentialName != w.BiteService.Name {
+		t.Errorf("Wrong name for the TLS secret name %s", d.Spec.Servers[0].TLS.CredentialName)
+	}
 }
 
 func TestServiceMeshVirtualService(t *testing.T) {
