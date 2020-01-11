@@ -89,9 +89,16 @@ type PrsnExternalResourceList struct {
 
 // Server represents format for these mappings
 type Server struct {
-	Port  *Port    `json:"port,omitempty"`
-	Bind  string   `json:"bind,omitempty"`
-	Hosts []string `json:"hosts,omitempty"`
+	Port  *Port             `json:"port,omitempty"`
+	Bind  string            `json:"bind,omitempty"`
+	Hosts []string          `json:"hosts,omitempty"`
+	TLS   *ServerTLSOptions `json:"tls,omitempty"`
+}
+
+// ServerTLSOptions is set of TLS related options that govern the server's behavior
+type ServerTLSOptions struct {
+	Mode           string `json:"mode,omitempty"`
+	CredentialName string `json:"credential_name,omitempty"`
 }
 
 // Port represents format for these mappings
