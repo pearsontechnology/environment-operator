@@ -12,7 +12,7 @@ import (
 	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
-	autoscale_v2beta1 "k8s.io/api/autoscaling/v2beta1"
+	autoscale_v2beta2 "k8s.io/api/autoscaling/v2beta2"
 	v1 "k8s.io/api/core/v1"
 	v1beta1_ext "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -269,18 +269,18 @@ func (w *KubeMapper) imagePullSecrets() ([]v1.LocalObjectReference, error) {
 }
 
 // HPA extracts Kubernetes object from Bitesize definition
-func (w *KubeMapper) HPA() (*autoscale_v2beta1.HorizontalPodAutoscaler, error) {
+func (w *KubeMapper) HPA() (*autoscale_v2beta2.HorizontalPodAutoscaler, error) {
 	if w.BiteService.IsBlueGreenParentDeployment() {
 		return nil, nil
 	}
-	retval := &autoscale_v2beta1.HorizontalPodAutoscaler{
+	retval := &autoscale_v2beta2.HorizontalPodAutoscaler{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      w.BiteService.Name,
 			Namespace: w.Namespace,
 			Labels:    w.labels(),
 		},
-		Spec: autoscale_v2beta1.HorizontalPodAutoscalerSpec{
-			ScaleTargetRef: autoscale_v2beta1.CrossVersionObjectReference{
+		Spec: autoscale_v2beta2.HorizontalPodAutoscalerSpec{
+			ScaleTargetRef: autoscale_v2beta2.CrossVersionObjectReference{
 				Kind:       "Deployment",
 				Name:       w.BiteService.Name,
 				APIVersion: "extensions/v1beta1",
@@ -294,36 +294,46 @@ func (w *KubeMapper) HPA() (*autoscale_v2beta1.HorizontalPodAutoscaler, error) {
 	return retval, nil
 }
 
-func (w *KubeMapper) getMetricSpec() (m []autoscale_v2beta1.MetricSpec) {
+func (w *KubeMapper) getMetricSpec() (m []autoscale_v2beta2.MetricSpec) {
 	if w.BiteService.HPA.Metric.Name == "cpu" || w.BiteService.HPA.Metric.Name == "memory" {
 		if w.BiteService.HPA.Metric.Name == "cpu" && w.BiteService.HPA.Metric.TargetAverageUtilization != 0 {
-			m = append(m, autoscale_v2beta1.MetricSpec{
-				Type: autoscale_v2beta1.ResourceMetricSourceType,
-				Resource: &autoscale_v2beta1.ResourceMetricSource{
-					TargetAverageUtilization: &w.BiteService.HPA.Metric.TargetAverageUtilization,
-					Name:                     "cpu",
+			m = append(m, autoscale_v2beta2.MetricSpec{
+				Type: autoscale_v2beta2.ResourceMetricSourceType,
+				Resource: &autoscale_v2beta2.ResourceMetricSource{
+					Target: autoscale_v2beta2.MetricTarget{
+						Type:               "Utilization",
+						AverageUtilization: &w.BiteService.HPA.Metric.TargetAverageUtilization,
+					},
+					Name: "cpu",
 				},
 			},
 			)
 		}
 		if w.BiteService.HPA.Metric.Name == "memory" && w.BiteService.HPA.Metric.TargetAverageUtilization != 0 {
-			m = append(m, autoscale_v2beta1.MetricSpec{
-				Type: autoscale_v2beta1.ResourceMetricSourceType,
-				Resource: &autoscale_v2beta1.ResourceMetricSource{
-
-					TargetAverageUtilization: &w.BiteService.HPA.Metric.TargetAverageUtilization,
-					Name:                     "memory",
+			m = append(m, autoscale_v2beta2.MetricSpec{
+				Type: autoscale_v2beta2.ResourceMetricSourceType,
+				Resource: &autoscale_v2beta2.ResourceMetricSource{
+					Target: autoscale_v2beta2.MetricTarget{
+						Type:               "Utilization",
+						AverageUtilization: &w.BiteService.HPA.Metric.TargetAverageUtilization,
+					},
+					Name: "memory",
 				},
 			},
 			)
 		}
 	} else {
 		targetValue, _ := resource.ParseQuantity(w.BiteService.HPA.Metric.TargetAverageValue)
-		m = append(m, autoscale_v2beta1.MetricSpec{
-			Type: autoscale_v2beta1.PodsMetricSourceType,
-			Pods: &autoscale_v2beta1.PodsMetricSource{
-				TargetAverageValue: targetValue,
-				MetricName:         w.BiteService.HPA.Metric.Name,
+		m = append(m, autoscale_v2beta2.MetricSpec{
+			Type: autoscale_v2beta2.PodsMetricSourceType,
+			Pods: &autoscale_v2beta2.PodsMetricSource{
+				Target: autoscale_v2beta2.MetricTarget{
+					Type:         "AverageValue",
+					AverageValue: &targetValue,
+				},
+				Metric: autoscale_v2beta2.MetricIdentifier{
+					Name: w.BiteService.HPA.Metric.Name,
+				},
 			},
 		},
 		)
