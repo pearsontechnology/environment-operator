@@ -69,9 +69,12 @@ Steps
 
 ![1_dynamodb](https://github.com/pearsontechnology/environment-operator/blob/BITE-6589/docs/images/1_dynamodb.png)
 
+#
 ![2_dynamodb](https://github.com/pearsontechnology/environment-operator/blob/BITE-6589/docs/images/1_dynamodb.png)
 
+#
 ![3_dynamodb](https://github.com/pearsontechnology/environment-operator/blob/BITE-6589/docs/images/1_dynamodb.png)
 
+#
 ![4_dynamodb](https://github.com/pearsontechnology/environment-operator/blob/BITE-6589/docs/images/1_dynamodb.png)
 
