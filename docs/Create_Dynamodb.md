@@ -65,16 +65,15 @@ spec:
 # Dynamodb On-demand backup
 Amazon DynamoDB provides on-demand backup capability. It allows you to create full backups of your tables for long-term retention and archival for regulatory compliance needs. You can back up and restore your DynamoDB table data anytime with a single click in the AWS Management Console or with a single API call. Backup and restore actions execute with zero impact on table performance or availability.
 
-Steps
-
+# Steps 1
 ![1_dynamodb](https://github.com/pearsontechnology/environment-operator/blob/BITE-6589/docs/images/1_dynamodb.png)
 
-#
+# Steps 2
 ![2_dynamodb](https://github.com/pearsontechnology/environment-operator/blob/BITE-6589/docs/images/1_dynamodb.png)
 
-#
+# Steps 3
 ![3_dynamodb](https://github.com/pearsontechnology/environment-operator/blob/BITE-6589/docs/images/1_dynamodb.png)
 
-#
+# Steps 4
 ![4_dynamodb](https://github.com/pearsontechnology/environment-operator/blob/BITE-6589/docs/images/1_dynamodb.png)
 
