@@ -2,6 +2,7 @@
 
 The AWS Dynamodb cluster can be provisioned in Bitesize as Kubernetes CRD-Custom Resource Object. You need to define a yaml structure as stated below in kubernetes using EO-Environment Operator.
 
+```yaml
 apiVersion: prsn.io/v1
 kind: Dynamodb
 metadata:
@@ -22,14 +23,17 @@ spec:
     sort_key_attributename: "age"
     sort_key_attributetype: "N"
     sort_key_keytype: "RANGE"
+```
+!.[pirt](https://github.com/pearsontechnology/environment-operator/blob/BITE-6589/docs/images/pirt.png)
 
 # Dynamodb configuring backup
 
 Dynamodb provides two types of Dynamodb Backup Options
 
-Dynamodb point-in-time recovery
-Dynamodb On-demand backup
-1) Dynamodb point-in-time recovery backup
+* Dynamodb point-in-time recovery
+* Dynamodb On-demand backup
+
+# Dynamodb point-in-time recovery backup
 Point-in-time recovery helps protect your DynamoDB tables from accidental write or delete operations. With point-in-time recovery, you don't have to worry about creating, maintaining, or scheduling on-demand backups. With point-in-time recovery, you can restore that table to any point in time during the last 35 days. DynamoDB maintains incremental backups of your table.
 
 Point-in-time Recovery backup has been enabled through the workflow.  you can enable it by set the  variable "pttr :  "true"  " as below. if it is false , it keeps disable. 
@@ -57,3 +61,5 @@ spec:
     sort_key_attributetype: "N"
     sort_key_keytype: "RANGE"
 ```
+# Dynamodb On-demand backup
+ 
