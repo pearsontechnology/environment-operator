@@ -35,7 +35,7 @@ Point-in-time recovery helps protect your DynamoDB tables from accidental write 
 Point-in-time Recovery backup has been enabled through the workflow.  you can enable it by set the  variable "pttr :  "true"  " as below. if it is false , it keeps disable. 
 
 
-
+```yaml
 apiVersion: prsn.io/v1
 kind: Dynamodb
 metadata:
@@ -56,4 +56,4 @@ spec:
     sort_key_attributename: "age"
     sort_key_attributetype: "N"
     sort_key_keytype: "RANGE"
-
+```
