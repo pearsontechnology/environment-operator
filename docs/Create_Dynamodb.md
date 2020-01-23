@@ -24,7 +24,8 @@ spec:
     sort_key_attributetype: "N"
     sort_key_keytype: "RANGE"
 ```
-!.[pirt](https://github.com/pearsontechnology/environment-operator/blob/BITE-6589/docs/images/pirt.png)
+![pirt](https://github.com/pearsontechnology/environment-operator/blob/BITE-6589/docs/images/pirt.png)
+![deploy-sequence](https://github.com/pearsontechnology/environment-operator/blob/dev/docs/images/deploy-sequence.png)
 
 # Dynamodb configuring backup
 
