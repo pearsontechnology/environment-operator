@@ -3,7 +3,9 @@ package translator
 // translator package converts objects between Kubernetes and Bitesize
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -780,6 +782,51 @@ func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 	}
 
 	return retval, nil
+}
+
+func (w *KubeMapper) ExternalSecretTLS() (*ext.ExternalSecret, error) {
+
+	labels := map[string]string{
+		"creator":     "pipeline",
+		"application": w.BiteService.Application,
+		"name":        w.BiteService.Name,
+	}
+
+	var env, envType string
+
+	if env = os.Getenv("ENVIRONMENT"); env == "" {
+		return nil, errors.New("ENVIRONMENT is not set")
+	}
+
+	if envType = os.Getenv("ENVTYPE"); envType == "" {
+		return nil, errors.New("ENVTYPE is not set")
+	}
+
+	return &ext.ExternalSecret{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "kubernetes-client.io/v1",
+			Kind: strings.Title("ExternalSecret"),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: w.BiteService.Name,
+			Labels: labels,
+		},
+		SecretDescriptor: ext.ExternalSecretSecretDescriptor{
+				BackendType: "secretsManager",
+				Compressed: true,
+				Type: "kubernetes.io/tls",
+				Data: []map[string]string{
+					{
+						"key": fmt.Sprintf("tls/%s/%s/%s/%s.crt", envType, env, w.Namespace, w.BiteService.Name),
+						"name": "tls.crt",
+					},
+					{
+						"key": fmt.Sprintf("tls/%s/%s/%s/%s.key", envType, env, w.Namespace, w.BiteService.Name),
+						"name": "tls.key",
+					},
+				},
+		},
+	}, nil
 }
 
 // CustomResourceDefinition extracts Kubernetes object from BiteSize definition

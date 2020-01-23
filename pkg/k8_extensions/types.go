@@ -44,6 +44,29 @@ type PrsnExternalResourceSpec struct {
 	HTTP            []*HTTPRoute                  `json:"http,omitempty"`
 }
 
+type ExternalSecretList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata"`
+
+	Items []ExternalSecret `json:"items"`
+}
+
+type ExternalSecret struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata"`
+	SecretDescriptor  ExternalSecretSecretDescriptor `json:"secretDescriptor"`
+}
+
+type ExternalSecretSecretDescriptor struct {
+	// RoleArn     string              `json:"roleArn, omitempty"`
+	// VaultRole   string              `json:"vaultRole, omitempty"`
+	BackendType string              `json:"backendType, omitempty"`
+	Type        string              `json:"type, omitempty"`
+	Compressed  bool                `json:"compressed, omitempty"`
+	Data        []map[string]string `json:"data, omitempty"`
+	// DataFrom    []string            `json:"dataFrom, omitempty"`
+}
+
 // HTTPRoute represents format for these mappings
 type HTTPRoute struct {
 	Name  string                  `json:"name,omitempty"`
@@ -116,4 +139,12 @@ func (tpr PrsnExternalResource) DeepCopyObject() runtime.Object {
 // DeepCopyObject required to satisfy Object interface
 func (tpr PrsnExternalResourceList) DeepCopyObject() runtime.Object {
 	return new(PrsnExternalResource)
+}
+
+func (es ExternalSecret) DeepCopyObject() runtime.Object {
+	return new(ExternalSecret)
+}
+
+func (es ExternalSecretList) DeepCopyObject() runtime.Object {
+	return new(ExternalSecretList)
 }

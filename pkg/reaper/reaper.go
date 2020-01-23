@@ -8,6 +8,7 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/cluster"
 	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // Reaper goes through orphan objects defined in Namespace and deletes them
@@ -98,7 +99,31 @@ func (r *Reaper) destroyIngress(name string) error {
 		Namespace: r.Namespace,
 	}
 
+	if err :=  r.destroyExternalSecret(name);err != nil {
+		log.Errorf("REAPER: failed to destroy ExternalSecret: %s", err.Error())
+	}
+
 	return client.Destroy(name)
+}
+
+func (r *Reaper) destroyExternalSecret(name string) error{
+
+	client, err := k8s.CRDClient(&schema.GroupVersion{
+		Group:   "kubernetes-client.io",
+		Version: "v1",
+	})
+
+	if err != nil {
+		return err
+	}
+
+	es := k8s.ExternalSecret{
+		Interface: client,
+		Namespace: r.Namespace,
+		Type:      "ExternalSecret",
+	}
+
+	return es.Destroy(name)
 }
 
 func (r *Reaper) destroyDeployment(name string) error {
