@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
-	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -87,7 +86,7 @@ func (f *fakeCRD) HandleRequest(req *http.Request) (*http.Response, error) {
 	}
 }
 
-var manager *registered.APIRegistrationManager
+var manager *runtime.Scheme
 
 // CRDClient returns fake REST client to be used in TPR unit tests.
 func CRDClient(objects ...runtime.Object) *fake.RESTClient {

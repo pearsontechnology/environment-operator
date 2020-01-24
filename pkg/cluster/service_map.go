@@ -6,7 +6,7 @@ import (
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
-	autoscale_v2beta1 "k8s.io/api/autoscaling/v2beta1"
+	autoscale_v2beta2 "k8s.io/api/autoscaling/v2beta2"
 	v1 "k8s.io/api/core/v1"
 	v1beta1_ext "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -133,7 +133,7 @@ func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
 }
 
 // AddHPA adds Kubernetes HPA to biteservice
-func (s ServiceMap) AddHPA(hpa autoscale_v2beta1.HorizontalPodAutoscaler) {
+func (s ServiceMap) AddHPA(hpa autoscale_v2beta2.HorizontalPodAutoscaler) {
 	name := hpa.Name
 
 	biteservice := s.CreateOrGet(name)
@@ -150,12 +150,12 @@ func (s ServiceMap) AddHPA(hpa autoscale_v2beta1.HorizontalPodAutoscaler) {
 			biteservice.HPA.Metric.Name = "memory"
 		}
 
-		biteservice.HPA.Metric.TargetAverageUtilization = *hpa.Spec.Metrics[0].Resource.TargetAverageUtilization
+		biteservice.HPA.Metric.TargetAverageUtilization = *hpa.Spec.Metrics[0].Resource.Target.AverageUtilization
 	}
 
 	if hpa.Spec.Metrics[0].Type == "Pods" {
-		targetAverageValueQuantity := hpa.Spec.Metrics[0].Pods.TargetAverageValue
-		biteservice.HPA.Metric.Name = hpa.Spec.Metrics[0].Pods.MetricName
+		targetAverageValueQuantity := hpa.Spec.Metrics[0].Pods.Target.AverageValue
+		biteservice.HPA.Metric.Name = hpa.Spec.Metrics[0].Pods.Metric.Name
 		biteservice.HPA.Metric.TargetAverageValue = targetAverageValueQuantity.String()
 	}
 
