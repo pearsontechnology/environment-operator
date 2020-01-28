@@ -161,12 +161,28 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, gists *bitesize.
 		}
 
 		if service.HasExternalURL() {
+
+			log.Debugf("applying ingress for service %s", service.Name)
 			ingress, _ := mapper.Ingress()
 			if err = client.Ingress().Apply(ingress); err != nil {
 				log.Error(err)
 			}
 
+			if k8s.ExternalSecretsEnabled {
+				log.Debugf("applying external secret for ingress %s", service.Name)
+				if err := createExternalSecret(mapper, client, ""); err != nil {
+					log.Error("Failed to create ExternalSecret")
+				}
+			}
+
 			if service.IsServiceMeshEnabled() {
+
+				if k8s.ExternalSecretsEnabled {
+					if err := createExternalSecret(mapper, client, "istio-system"); err != nil {
+						log.Error("Failed to create ExternalSecret")
+					}
+				}
+
 				client.CRDClient, err = k8s.CRDClient(&schema.GroupVersion{
 					Group:   "networking.istio.io",
 					Version: "v1alpha3",
@@ -341,7 +357,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 	return &bitesizeConfig, nil
 }
 
-//Only deploy k8s resources when the environment was actually deployed and changed or if the service has specified a version
+// Only deploy k8s resources when the environment was actually deployed and changed or if the service has specified a version
 func shouldDeployOnChange(currentEnvironment, newEnvironment *bitesize.Environment, serviceName string) bool {
 	if !diff.ServiceChanged(serviceName) {
 		return false
@@ -367,4 +383,36 @@ func shouldDeployOnChange(currentEnvironment, newEnvironment *bitesize.Environme
 		return true
 	}
 	return false
+}
+
+func createExternalSecret(mapper *translator.KubeMapper, client *k8s.Client, ns string) error {
+
+	es, err := mapper.ExternalSecretTLS()
+	if err != nil {
+		log.Errorf("Error creating external secret CRD for ingress: %s", err.Error())
+		return err
+	}
+
+	if ns != "" {
+		es.Namespace = ns
+	}
+
+	client.CRDClient, err = k8s.CRDClient(&schema.GroupVersion{
+		Group:   "kubernetes-client.io",
+		Version: "v1",
+	})
+
+	if err != nil {
+		log.Errorf("Error creating kubernetes client for External Secrets use: %s", err.Error())
+		return err
+	}
+
+	if err = client.ExternalSecret().Apply(es); err != nil {
+		log.Fatalf("Error creating external secret CRD for ingress: %s", err.Error())
+		return err
+	} else {
+		log.Infof("Successfully updated ExternalSecret CRD resource: %s", es.Name)
+	}
+
+	return nil
 }

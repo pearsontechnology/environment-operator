@@ -7,6 +7,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/kylelemons/godebug/pretty"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
+	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
@@ -78,6 +79,10 @@ func Compare(desiredCfg, existingCfg bitesize.Environment) bool {
 				addServiceChange(desiredCfgSvc.Name, serviceDiff)
 			}
 		}
+
+		if k8s.ExternalSecretsEnabled && !desiredCfgSvc.ExternalSecretExist(desiredCfgSvc.Name) {
+			addServiceChange(desiredCfgSvc.Name, fmt.Sprintf("Name: +%s", desiredCfgSvc.Name))
+		}
 	}
 	return len(changeMap) > 0
 }
@@ -105,7 +110,7 @@ func alignServices(desiredCfg, currentCfg *bitesize.Service) {
 		currentCfg.Deployment.BlueGreen = nil
 	}
 
-	//If its a TPR type service, sync up the Limits since they aren't appied to the k8s resource
+	// If its a TPR type service, sync up the Limits since they aren't appied to the k8s resource
 	if desiredCfg.Type != "" {
 		desiredCfg.Limits.Memory = currentCfg.Limits.Memory
 		desiredCfg.Limits.CPU = currentCfg.Limits.CPU
@@ -114,7 +119,7 @@ func alignServices(desiredCfg, currentCfg *bitesize.Service) {
 		}
 	}
 
-	//Sync up Requests in the case where different units are present, but they represent equivalent quantities
+	// Sync up Requests in the case where different units are present, but they represent equivalent quantities
 	destmemreq, _ := resource.ParseQuantity(currentCfg.Requests.Memory)
 	srcmemreq, _ := resource.ParseQuantity(desiredCfg.Requests.Memory)
 	destcpureq, _ := resource.ParseQuantity(currentCfg.Requests.CPU)
@@ -126,7 +131,7 @@ func alignServices(desiredCfg, currentCfg *bitesize.Service) {
 		desiredCfg.Requests.CPU = currentCfg.Requests.CPU
 	}
 
-	//Sync up Limits in the case where different units are present, but they represent equivalent quantities
+	// Sync up Limits in the case where different units are present, but they represent equivalent quantities
 	destmemlim, _ := resource.ParseQuantity(currentCfg.Limits.Memory)
 	srcmemlim, _ := resource.ParseQuantity(desiredCfg.Limits.Memory)
 	destcpulim, _ := resource.ParseQuantity(currentCfg.Limits.CPU)

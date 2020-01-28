@@ -6,8 +6,11 @@ import (
 	"strconv"
 	"strings"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/pearsontechnology/environment-operator/pkg/config"
+	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
 	validator "gopkg.in/validator.v2"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -219,6 +222,32 @@ func (e Service) ActiveDeploymentTag() BlueGreenServiceSet {
 		return 0
 	}
 	return *e.Deployment.BlueGreen.Active
+}
+
+func (e Service) IsTLSEnabled() bool {
+	return e.Ssl == "true"
+}
+
+func (e Service) ExternalSecretExist(name string) bool {
+
+	var err error
+	client := k8s.Client{}
+
+	client.CRDClient, err = k8s.CRDClient(&schema.GroupVersion{
+		Group:   "kubernetes-client.io",
+		Version: "v1",
+	})
+
+	if err != nil {
+		log.Errorf("Error creating kubernetes client for External Secrets use: %s", err.Error())
+		return false
+	}
+
+	if e.IsTLSEnabled() && client.ExternalSecret().Exist(name) {
+		return true
+	}
+
+	return false
 }
 
 func (slice Services) Len() int {

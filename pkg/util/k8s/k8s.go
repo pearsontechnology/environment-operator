@@ -125,6 +125,16 @@ func (c *Client) CustomResourceDefinition(kind string) *CustomResourceDefinition
 	}
 }
 
+// ExternalSecret builds ExternalSec
+func (c *Client) ExternalSecret() *ExternalSecret {
+
+	return &ExternalSecret{
+		Interface: c.CRDClient,
+		Namespace: c.Namespace,
+		Type:      "ExternalSecret",
+	}
+}
+
 func listOptions() metav1.ListOptions {
 	return metav1.ListOptions{
 		LabelSelector: "creator=pipeline",
