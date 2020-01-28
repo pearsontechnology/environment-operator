@@ -10,7 +10,7 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Security** for any security changes or fixes for vulnerabilities.
 
 
-### **[1.3.6] 2020-01-09 [RELEASED]**
+### **[1.3.6] 2020-01-28 [RELEASED]**
  #### Added
   * Add support for ExternalSecret CRD
 
