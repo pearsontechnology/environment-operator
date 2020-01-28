@@ -89,8 +89,8 @@ func (f *fakeCRD) HandleRequest(req *http.Request) (*http.Response, error) {
 var manager *runtime.Scheme
 
 // CRDClient returns fake REST client to be used in TPR unit tests.
-func CRDClient(objects ...runtime.Object) *fake.RESTClient {
-	var schemeGroupVersion = schema.GroupVersion{Group: "prsn.io", Version: "v1"}
+func CRDClient(group string, version string, objects ...runtime.Object) *fake.RESTClient {
+	var schemeGroupVersion = schema.GroupVersion{Group: group, Version: version}
 
 	f := &fakeCRD{
 		Store: objectStore(objects),

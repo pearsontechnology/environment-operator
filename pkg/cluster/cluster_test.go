@@ -80,15 +80,15 @@ func TestApplyEnvironment(t *testing.T) {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
 
-	//There should be no changes between environments e1 and e2 (they will be synced with the apply below)
+	// There should be no changes between environments e1 and e2 (they will be synced with the apply below)
 	//	diff.Compare(*e1, *e2)
 	cluster.ApplyEnvironment(e1, e2)
 	if diff.Compare(*e1, *e2) {
 		t.Errorf("Expected loaded environments to be equal, yet diff is: %s", diff.Changes())
 	}
 
-	//environments2.bitesize removes annotated_service2 and testdb from environment2
-	//The diff between e2 and e3 should only contain the testdb change as annotated_service2 didn't have a "version" field in the source config
+	// environments2.bitesize removes annotated_service2 and testdb from environment2
+	// The diff between e2 and e3 should only contain the testdb change as annotated_service2 didn't have a "version" field in the source config
 	e3, err := bitesize.LoadEnvironment("../../test/assets/environments2.bitesize", "environment2")
 	if !diff.Compare(*e2, *e3) {
 		fmt.Printf("%+v\n", diff.Changes())
@@ -110,7 +110,7 @@ func TestShouldDeployOnChange(t *testing.T) {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
 
-	//Mark all services in the initial environment as deployed
+	// Mark all services in the initial environment as deployed
 	for i := range e1.Services {
 		e1.Services[i].Status.DeployedAt = "Current Time"
 	}
@@ -229,6 +229,8 @@ func validMeta(namespace, name string) metav1.ObjectMeta {
 
 func loadTestCRDs() *fakerest.RESTClient {
 	return fakecrd.CRDClient(
+		"prsn.io",
+		"v1",
 		&ext.PrsnExternalResource{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Neptune",
@@ -253,6 +255,40 @@ func loadTestCRDs() *fakerest.RESTClient {
 							"db_name":           "db02",
 							"db_instance_class": "db.r4.xlarge",
 						},
+					},
+				},
+			},
+		},
+	)
+}
+
+func loadTestExternalSecrets() *fakerest.RESTClient {
+	return fakecrd.CRDClient(
+		"kubernetes-client.io",
+		"v1",
+		&ext.ExternalSecret{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "ExternalSecret",
+				APIVersion: "kubernetes-client.io/v1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "testexternalsecret",
+				Labels: map[string]string{
+					"creator": "pipeline",
+				},
+			},
+			SecretDescriptor: ext.ExternalSecretSecretDescriptor{
+				BackendType: "secretsManager",
+				Compressed: true,
+				Type: "kubernetes.io/tls",
+				Data: []map[string]string{
+					{
+						"key": fmt.Sprintf("tls/test.crt"),
+						"name": "tls.crt",
+					},
+					{
+						"key": fmt.Sprintf("tls/test.key"),
+						"name": "tls.key",
 					},
 				},
 			},
@@ -553,7 +589,7 @@ func TestInitContainers(t *testing.T) {
 
 	e2, err := cluster.LoadEnvironment("environment-dev")
 
-	cluster.ApplyEnvironment(e1, e2)
+	_ = cluster.ApplyEnvironment(e1, e2)
 
 	if err != nil {
 		t.Fatalf("Unexpected err: %s", err.Error())
@@ -579,7 +615,7 @@ func TestEnvironmentAnnotations(t *testing.T) {
 	}
 
 	e1, _ := bitesize.LoadEnvironment("../../test/assets/annotations.bitesize", "test")
-	cluster.ApplyEnvironment(e1, e1)
+	_ = cluster.ApplyEnvironment(e1, e1)
 
 	e2, _ := cluster.LoadEnvironment("test")
 	testService = e2.Services.FindByName("test")
@@ -614,7 +650,7 @@ func TestApplyNewHPA(t *testing.T) {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
 
-	cluster.ApplyEnvironment(e1, e1)
+	_ = cluster.ApplyEnvironment(e1, e1)
 
 	e2, err := cluster.LoadEnvironment("environment-dev")
 
@@ -709,7 +745,7 @@ func TestApplyExistingHPA(t *testing.T) {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
 
-	cluster.ApplyEnvironment(e1, e1)
+	_ = cluster.ApplyEnvironment(e1, e1)
 
 	e2, err := cluster.LoadEnvironment("environment-dev")
 
@@ -722,5 +758,5 @@ func TestApplyExistingHPA(t *testing.T) {
 	}
 }
 func loadEmptyCRDs() *fakerest.RESTClient {
-	return fakecrd.CRDClient()
+	return fakecrd.CRDClient("prsn.io", "v1")
 }

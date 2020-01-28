@@ -49,7 +49,7 @@ func TestDeleteService(t *testing.T) {
 		},
 	)
 
-	crdcli := fakecrd.CRDClient()
+	crdcli := fakecrd.CRDClient("prsn.io", "v1")
 
 	wrapper := &cluster.Cluster{
 		Interface: c,
