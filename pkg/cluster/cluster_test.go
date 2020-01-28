@@ -11,7 +11,7 @@ import (
 	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	fakecrd "github.com/pearsontechnology/environment-operator/pkg/util/k8s/fake"
-	autoscale_v2beta1 "k8s.io/api/autoscaling/v2beta1"
+	autoscale_v2beta2 "k8s.io/api/autoscaling/v2beta2"
 	v1 "k8s.io/api/core/v1"
 	v1beta1_ext "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -676,7 +676,7 @@ func TestApplyExistingHPA(t *testing.T) {
 				},
 			},
 		},
-		&autoscale_v2beta1.HorizontalPodAutoscaler{
+		&autoscale_v2beta2.HorizontalPodAutoscaler{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "hpa-service",
 				Namespace: "environment-dev",
@@ -687,27 +687,35 @@ func TestApplyExistingHPA(t *testing.T) {
 					"version":     "some-version",
 				},
 			},
-			Spec: autoscale_v2beta1.HorizontalPodAutoscalerSpec{
-				ScaleTargetRef: autoscale_v2beta1.CrossVersionObjectReference{
+			Spec: autoscale_v2beta2.HorizontalPodAutoscalerSpec{
+				ScaleTargetRef: autoscale_v2beta2.CrossVersionObjectReference{
 					Kind:       "Deployment",
 					Name:       "hpa-service",
 					APIVersion: "extensions/v1beta1",
 				},
 				MinReplicas: &min,
 				MaxReplicas: 5,
-				Metrics: []autoscale_v2beta1.MetricSpec{
+				Metrics: []autoscale_v2beta2.MetricSpec{
 					{
-						Type: autoscale_v2beta1.ObjectMetricSourceType,
-						Object: &autoscale_v2beta1.ObjectMetricSource{
-							TargetValue: customMetricValue,
-							MetricName:  "custom_metric",
+						Type: autoscale_v2beta2.ObjectMetricSourceType,
+						Object: &autoscale_v2beta2.ObjectMetricSource{
+							Target: autoscale_v2beta2.MetricTarget{
+								Type:         "AverageVale",
+								AverageValue: &customMetricValue,
+							},
+							Metric: autoscale_v2beta2.MetricIdentifier{
+								Name: "custom_metric",
+							},
 						},
 					},
 					{
-						Type: autoscale_v2beta1.ResourceMetricSourceType,
-						Resource: &autoscale_v2beta1.ResourceMetricSource{
-							TargetAverageUtilization: &target,
-							Name:                     "memory",
+						Type: autoscale_v2beta2.ResourceMetricSourceType,
+						Resource: &autoscale_v2beta2.ResourceMetricSource{
+							Target: autoscale_v2beta2.MetricTarget{
+								Type:               "Utilization",
+								AverageUtilization: &target,
+							},
+							Name: "cpu",
 						},
 					},
 				},

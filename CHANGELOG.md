@@ -9,9 +9,15 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+
 ### **[1.3.6] 2020-01-09 [RELEASED]**
  #### Added
   * Add support for ExternalSecret CRD
+
+### **[1.3.5] 2020-01-22 [RELEASED]**
+ #### Fixed
+  * Fixed HPA memory metric issue [MAV-59](https://agile-jira.pearson.com/browse/MAV-59)
+
 
 ### **[1.3.4] 2020-01-09 [RELEASED]**
  #### Added
