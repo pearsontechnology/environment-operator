@@ -170,7 +170,7 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, gists *bitesize.
 
 			if k8s.ExternalSecretsEnabled {
 				log.Debugf("applying external secret for ingress %s", service.Name)
-				if err := createExternalSecret(mapper, client, ""); err != nil {
+				if err := createExternalSecret(mapper, *client, ""); err != nil {
 					log.Error("Failed to create ExternalSecret")
 				}
 			}
@@ -178,7 +178,7 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, gists *bitesize.
 			if service.IsServiceMeshEnabled() {
 
 				if k8s.ExternalSecretsEnabled {
-					if err := createExternalSecret(mapper, client, "istio-system"); err != nil {
+					if err := createExternalSecret(mapper, *client, "istio-system"); err != nil {
 						log.Error("Failed to create ExternalSecret")
 					}
 				}
@@ -385,7 +385,7 @@ func shouldDeployOnChange(currentEnvironment, newEnvironment *bitesize.Environme
 	return false
 }
 
-func createExternalSecret(mapper *translator.KubeMapper, client *k8s.Client, ns string) error {
+func createExternalSecret(mapper *translator.KubeMapper, client k8s.Client, ns string) error {
 
 	es, err := mapper.ExternalSecretTLS()
 	if err != nil {
@@ -395,6 +395,7 @@ func createExternalSecret(mapper *translator.KubeMapper, client *k8s.Client, ns 
 
 	if ns != "" {
 		es.Namespace = ns
+		client.Namespace = ns
 	}
 
 	client.CRDClient, err = k8s.CRDClient(&schema.GroupVersion{
