@@ -225,14 +225,15 @@ func (e Service) ActiveDeploymentTag() BlueGreenServiceSet {
 }
 
 func (e Service) IsTLSEnabled() bool {
-	return e.Ssl == "true"
+	return e.Ssl == "true" && e.HasExternalURL()
 }
 
-func (e Service) ExternalSecretExist(name string) bool {
+func (e Service) ExternalSecretExist(namespace, name string) bool {
 
 	var err error
 	client := k8s.Client{}
 
+	client.Namespace = namespace
 	client.CRDClient, err = k8s.CRDClient(&schema.GroupVersion{
 		Group:   "kubernetes-client.io",
 		Version: "v1",
