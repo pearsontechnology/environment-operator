@@ -237,6 +237,7 @@ func (e Service) ExternalSecretExist(name string) bool {
 		Group:   "kubernetes-client.io",
 		Version: "v1",
 	})
+	client.Namespace = e.TargetNamespace
 
 	if err != nil {
 		log.Errorf("Error creating kubernetes client for External Secrets use: %s", err.Error())
