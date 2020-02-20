@@ -815,26 +815,26 @@ func (w *KubeMapper) ExternalSecretTLS() (*ext.ExternalSecret, error) {
 	return &ext.ExternalSecret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "kubernetes-client.io/v1",
-			Kind: strings.Title("ExternalSecret"),
+			Kind:       strings.Title("ExternalSecret"),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: w.BiteService.Name,
+			Name:   w.BiteService.Name,
 			Labels: labels,
 		},
 		SecretDescriptor: ext.ExternalSecretSecretDescriptor{
-				BackendType: "secretsManager",
-				Compressed: true,
-				Type: "kubernetes.io/tls",
-				Data: []map[string]string{
-					{
-						"key": fmt.Sprintf("tls/%s/%s/%s/%s.crt", envType, env, w.Namespace, w.BiteService.Name),
-						"name": "tls.crt",
-					},
-					{
-						"key": fmt.Sprintf("tls/%s/%s/%s/%s.key", envType, env, w.Namespace, w.BiteService.Name),
-						"name": "tls.key",
-					},
+			BackendType: "secretsManager",
+			Compressed:  true,
+			Type:        "kubernetes.io/tls",
+			Data: []map[string]string{
+				{
+					"key":  fmt.Sprintf("tls/%s/%s/%s/%s.crt", envType, env, w.Namespace, w.BiteService.Name),
+					"name": "tls.crt",
 				},
+				{
+					"key":  fmt.Sprintf("tls/%s/%s/%s/%s.key", envType, env, w.Namespace, w.BiteService.Name),
+					"name": "tls.key",
+				},
+			},
 		},
 	}, nil
 }
@@ -1042,3 +1042,35 @@ func (w *KubeMapper) labels() map[string]string {
 		"version":     w.BiteService.Version,
 	}
 }
+
+// func (w *KubeMapper) CronJob() (*batchv1.CronJob, error) {
+// 	targetServiceName := w.BiteService.Name
+// 	if w.BiteService.IsBlueGreenParentDeployment() {
+// 		targetServiceName = w.BiteService.ActiveDeploymentName()
+// 	}
+// 	var ports []v1.ServicePort
+// 	for _, p := range w.BiteService.Ports {
+// 		servicePort := v1.ServicePort{
+// 			Port:       int32(p),
+// 			TargetPort: intstr.FromInt(p),
+// 			Name:       fmt.Sprintf("tcp-port-%d", p),
+// 		}
+// 		ports = append(ports, servicePort)
+// 	}
+// 	retval := &batchv1.CronJob{
+// 		ObjectMeta: metav1.ObjectMeta{
+// 			Name:        w.BiteService.Name,
+// 			Namespace:   w.Namespace,
+// 			Labels:      w.labels(),
+// 			Annotations: w.annotations(),
+// 		},
+// 		Spec: v1.ServiceSpec{
+// 			Ports: ports,
+// 			Selector: map[string]string{
+// 				"creator": "pipeline",
+// 				"name":    targetServiceName,
+// 			},
+// 		},
+// 	}
+// 	return retval, nil
+// }

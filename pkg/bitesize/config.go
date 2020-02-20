@@ -6,6 +6,7 @@ import (
 
 	validator "gopkg.in/validator.v2"
 	yaml "gopkg.in/yaml.v2"
+	batchv1 "k8s.io/api/batch/v1beta1"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -185,6 +186,47 @@ type KeyToPath struct {
 	// +optional
 	Mode *int32 `yaml:"mode,omitempty"`
 }
+
+// type CronJobs struct {
+// 	Command                       []string           `yaml:"command,omitempty"`
+// 	Image                         string           `yaml:"image,omitempty"`
+// 	Schedule                      string           `yaml:"schedule,omitempty"`
+// 	CronJobEnvVar                 []CronJobEnvVar  `yaml:"env,omitempty"`
+// 	SecurityContext               *SecurityContext `yaml:"security_context"`
+// 	ConcurrencyPolicy             string           `yaml:"concurrencypolicy,omitempty"`
+// 	FailedJobsHistoryLimit        *int64           `yaml:"failed_jobs_history_limit,omitempty"`
+// 	TerminationGracePeriodSeconds *int64           `yaml:"termination_grace_period_seconds,omitempty"`
+// 	successfulJobsHistoryLimit    *int64           `yaml:"successful_jobs_history_limit,omitempty"`
+// 	// XXX    map[string]interface{} `yaml:",inline"`
+// }
+
+type CronJob struct {
+	// metav1.TypeMeta   `yaml:",inline"`
+	// metav1.ObjectMeta `yaml:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+	Spec   CronJobSpec   `yaml:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Status CronJobStatus `yaml:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+}
+type CronJobSpec struct {
+	Schedule                   string            `yaml:"schedule" protobuf:"bytes,1,opt,name=schedule"`
+	StartingDeadlineSeconds    *int64            `yaml:"startingDeadlineSeconds,omitempty" protobuf:"varint,2,opt,name=startingDeadlineSeconds"`
+	ConcurrencyPolicy          ConcurrencyPolicy `yaml:"concurrencyPolicy,omitempty" protobuf:"bytes,3,opt,name=concurrencyPolicy,casttype=ConcurrencyPolicy"`
+	Suspend                    *bool             `yaml:"suspend,omitempty" protobuf:"varint,4,opt,name=suspend"`
+	JobTemplate                JobTemplateSpec   `yaml:"jobTemplate" protobuf:"bytes,5,opt,name=jobTemplate"`
+	SuccessfulJobsHistoryLimit *int32            `yaml:"successfulJobsHistoryLimit,omitempty" protobuf:"varint,6,opt,name=successfulJobsHistoryLimit"`
+	FailedJobsHistoryLimit     *int32            `yaml:"failedJobsHistoryLimit,omitempty" protobuf:"varint,7,opt,name=failedJobsHistoryLimit"`
+}
+
+type CronJobStatus struct {
+	Active []v1.ObjectReference `yaml:"active,omitempty" protobuf:"bytes,1,rep,name=active"`
+	// LastScheduleTime *metav1.Time         `yaml:"lastScheduleTime,omitempty" protobuf:"bytes,4,opt,name=lastScheduleTime"`
+}
+
+type JobTemplateSpec struct {
+	// metav1.ObjectMeta `yaml:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+	Spec batchv1.CronJobSpec `yaml:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+}
+
+type ConcurrencyPolicy string
 
 func init() {
 	addCustomValidators()

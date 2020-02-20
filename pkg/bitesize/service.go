@@ -54,6 +54,7 @@ type Service struct {
 	Set             map[string]intstr.IntOrString `yaml:"set,omitempty"`
 	ValuesContent   string                        `yaml:"values_content,omitempty"`
 	Ignore          bool                          `yaml:"ignore,omitempty"`
+	CronJob         *CronJob                      `yaml:"cronjob,omitempty"`
 }
 
 // ServiceStatus represents cluster service's status metrics
