@@ -269,7 +269,7 @@ func (e Service) ExternalSecretExist(namespace, name string) bool {
 		return false
 	}
 
-	if e.IsTLSEnabled() && client.ExternalSecret().Exist(name) {
+	if client.ExternalSecret().Exist(name) {
 		return true
 	}
 

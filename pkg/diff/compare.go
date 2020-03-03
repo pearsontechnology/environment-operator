@@ -80,8 +80,8 @@ func Compare(desiredCfg, existingCfg bitesize.Environment) bool {
 			}
 		}
 
-		if k8s.ExternalSecretsEnabled && !desiredCfgSvc.ExternalSecretExist(desiredCfg.Namespace, desiredCfgSvc.Name) {
-			log.Debugf("changes detected for externalsecrets in %s for %s", desiredCfg.Namespace, desiredCfgSvc.Name)
+		if k8s.ExternalSecretsEnabled && desiredCfgSvc.IsTLSEnabled() && !desiredCfgSvc.ExternalSecretExist(desiredCfg.Namespace, desiredCfgSvc.Name) {
+			log.Debugf("changes detected for externalsecrets for %s", desiredCfgSvc.Name)
 			addServiceChange(desiredCfgSvc.Name, fmt.Sprintf("ExternalSecrets: +%s", desiredCfgSvc.Name))
 		}
 	}
