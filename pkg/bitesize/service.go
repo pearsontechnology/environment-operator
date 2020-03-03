@@ -17,43 +17,51 @@ import (
 // Service represents a single service and it's configuration,
 // running in environment
 type Service struct {
-	Name            string                        `yaml:"name" validate:"nonzero"`
-	ExternalURL     []string                      `yaml:"-"`
-	ServiceMesh     string                        `yaml:"service_mesh,omitempty" validate:"regexp=^(enable|disable)*$"`
-	Backend         string                        `yaml:"backend"`
-	BackendPort     int                           `yaml:"backend_port"`
-	Ports           []int                         `yaml:"-"` // Ports have custom unmarshaler
-	Ssl             string                        `yaml:"ssl,omitempty" validate:"regexp=^(true|false)*$"`
-	Version         string                        `yaml:"version,omitempty"`
-	Application     string                        `yaml:"application,omitempty"`
-	Replicas        int                           `yaml:"replicas,omitempty"`
-	Deployment      *DeploymentSettings           `yaml:"deployment,omitempty"`
-	HPA             HorizontalPodAutoscaler       `yaml:"hpa" validate:"hpa"`
-	Requests        ContainerRequests             `yaml:"requests" validate:"requests"`
-	Limits          ContainerLimits               `yaml:"limits" validate:"limits"`
-	HealthCheck     *HealthCheck                  `yaml:"health_check,omitempty"`
-	LivenessProbe   *Probe                        `yaml:"liveness_probe,omitempty"`
-	ReadinessProbe  *Probe                        `yaml:"readiness_probe,omitempty"`
-	EnvVars         []EnvVar                      `yaml:"env,omitempty"`
-	Commands        []string                      `yaml:"command,omitempty"`
-	InitContainers  *[]Container                  `yaml:"init_containers,omitempty"`
-	Annotations     map[string]string             `yaml:"-"` // Annotations have custom unmarshaler
-	Volumes         []Volume                      `yaml:"volumes,omitempty"`
-	Options         map[string]interface{}        `yaml:"-"` // Options have custom unmarshaler
-	HTTP2           string                        `yaml:"http2,omitempty" validate:"regexp=^(true|false)*$"`
-	HTTPSOnly       string                        `yaml:"httpsOnly,omitempty" validate:"regexp=^(true|false)*$"`
-	HTTPSBackend    string                        `yaml:"httpsBackend,omitempty" validate:"regexp=^(true|false)*$"`
-	Type            string                        `yaml:"type,omitempty"`
-	Status          ServiceStatus                 `yaml:"status,omitempty"`
-	DatabaseType    string                        `yaml:"database_type,omitempty" validate:"regexp=^(mongo)*$"`
-	GracePeriod     *int64                        `yaml:"graceperiod,omitempty"`
-	ResourceVersion string                        `yaml:"resourceVersion,omitempty"`
-	TargetNamespace string                        `yaml:"target_namespace,omitempty"`
-	Chart           string                        `yaml:"chart,omitempty"`
-	Repo            string                        `yaml:"repo,omitempty"`
-	Set             map[string]intstr.IntOrString `yaml:"set,omitempty"`
-	ValuesContent   string                        `yaml:"values_content,omitempty"`
-	Ignore          bool                          `yaml:"ignore,omitempty"`
+	Name              string                        `yaml:"name" validate:"nonzero"`
+	ExternalURL       []string                      `yaml:"-"`
+	ServiceMesh       string                        `yaml:"service_mesh,omitempty" validate:"regexp=^(enable|disable)*$"`
+	Backend           string                        `yaml:"backend"`
+	BackendPort       int                           `yaml:"backend_port"`
+	Ports             []int                         `yaml:"-"` // Ports have custom unmarshaler
+	Ssl               string                        `yaml:"ssl,omitempty" validate:"regexp=^(true|false)*$"`
+	Version           string                        `yaml:"version,omitempty"`
+	Application       string                        `yaml:"application,omitempty"`
+	Replicas          int                           `yaml:"replicas,omitempty"`
+	Deployment        *DeploymentSettings           `yaml:"deployment,omitempty"`
+	HPA               HorizontalPodAutoscaler       `yaml:"hpa" validate:"hpa"`
+	Requests          ContainerRequests             `yaml:"requests" validate:"requests"`
+	Limits            ContainerLimits               `yaml:"limits" validate:"limits"`
+	HealthCheck       *HealthCheck                  `yaml:"health_check,omitempty"`
+	LivenessProbe     *Probe                        `yaml:"liveness_probe,omitempty"`
+	ReadinessProbe    *Probe                        `yaml:"readiness_probe,omitempty"`
+	EnvVars           []EnvVar                      `yaml:"env,omitempty"`
+	Commands          []string                      `yaml:"command,omitempty"`
+	InitContainers    *[]Container                  `yaml:"init_containers,omitempty"`
+	Annotations       map[string]string             `yaml:"-"` // Annotations have custom unmarshaler
+	Volumes           []Volume                      `yaml:"volumes,omitempty"`
+	Options           map[string]interface{}        `yaml:"-"` // Options have custom unmarshaler
+	HTTP2             string                        `yaml:"http2,omitempty" validate:"regexp=^(true|false)*$"`
+	HTTPSOnly         string                        `yaml:"httpsOnly,omitempty" validate:"regexp=^(true|false)*$"`
+	HTTPSBackend      string                        `yaml:"httpsBackend,omitempty" validate:"regexp=^(true|false)*$"`
+	Type              string                        `yaml:"type,omitempty"`
+	Status            ServiceStatus                 `yaml:"status,omitempty"`
+	DatabaseType      string                        `yaml:"database_type,omitempty" validate:"regexp=^(mongo)*$"`
+	GracePeriod       *int64                        `yaml:"graceperiod,omitempty"`
+	ResourceVersion   string                        `yaml:"resourceVersion,omitempty"`
+	TargetNamespace   string                        `yaml:"target_namespace,omitempty"`
+	Chart             string                        `yaml:"chart,omitempty"`
+	Repo              string                        `yaml:"repo,omitempty"`
+	Set               map[string]intstr.IntOrString `yaml:"set,omitempty"`
+	ValuesContent     string                        `yaml:"values_content,omitempty"`
+	Ignore            bool                          `yaml:"ignore,omitempty"`
+	Hosts             []string                      `yaml:"hosts,omitempty"`
+	Addresses         []string                      `yaml:"addresses,omitempty"`
+	ServiceEntryPorts []Port                        `yaml:"service_entry_ports,omitempty"`
+	Location          string                        `yaml:"location,omitempty"`
+	Resolution        string                        `yaml:"resolution,omitempty"`
+	Endpoints         []ServiceEntry_Endpoint       `yaml:"endpoints,omitempty"`
+	ExportTo          []string                      `yaml:"export_to,omitempty"`
+	Protocol          string                        `yaml:"protocol,omitempty"`
 }
 
 // ServiceStatus represents cluster service's status metrics
@@ -62,6 +70,23 @@ type ServiceStatus struct {
 	AvailableReplicas int
 	DesiredReplicas   int
 	CurrentReplicas   int
+}
+
+// ServiceEntry_Endpoint represents one or more endpoints associated with the service.
+type ServiceEntry_Endpoint struct {
+	Address  string            `yaml:"address,omitempty"`
+	Ports    map[string]uint32 `yaml:"ports,omitempty"`
+	Labels   map[string]string `yaml:"labels,omitempty"`
+	Network  string            `yaml:"network,omitempty"`
+	Locality string            `yaml:"locality,omitempty"`
+	Weight   uint32            `yaml:"weight,omitempty"`
+}
+
+// Port represents format for these mappings
+type Port struct {
+	Number   uint32 `yaml:"number,omitempty"`
+	Protocol string `yaml:"protocol,omitempty"`
+	Name     string `yaml:"name,omitempty"`
 }
 
 // Services implement sort.Interface

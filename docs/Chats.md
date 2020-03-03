@@ -29,6 +29,4 @@ environments:
           bitesize_environment: glp1
           region: us-east-2
           bitesize_environment_type: pre
-        options:
-          api_version: helm.kubedex.com/v1
 ```
