@@ -966,6 +966,14 @@ func (w *KubeMapper) ServiceMeshGateway() (*ext.PrsnExternalResource, error) {
 				},
 				Hosts: hosts,
 			},
+			{
+				Port: &ext.Port{
+					Number:   80,
+					Protocol: "HTTP",
+					Name:     "http",
+				},
+				Hosts: hosts,
+			},
 		}
 		retval.Spec.Servers = servers
 
