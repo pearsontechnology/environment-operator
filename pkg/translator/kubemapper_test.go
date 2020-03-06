@@ -363,8 +363,11 @@ func TestServiceMeshGateway(t *testing.T) {
 		t.Errorf("Wrong protocol for the istio gateway %s", d.Spec.Servers[0].Port.Protocol)
 	}
 
-	if d.Spec.Servers[0].Hosts[0] != "*" {
-		t.Errorf("Wrong host for the istio gateway %s", d.Spec.Servers[0].Hosts[0])
+	w.BiteService.Backend = "test-backend"
+	d, _ = w.ServiceMeshVirtualService()
+
+	if d.Spec.HTTP[0].Route[0].Destination.Host != w.BiteService.Backend {
+		t.Errorf("Wrong destination host for the istio virtual service %s", d.Spec.HTTP[0].Route[0].Destination.Host)
 	}
 
 	//testing TLS
