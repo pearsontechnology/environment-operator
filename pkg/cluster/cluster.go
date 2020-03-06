@@ -98,6 +98,9 @@ func (cluster *Cluster) ApplyEnvironment(currentEnvironment, newEnvironment *bit
 			}
 		}
 		// TODO: load jobs and cronjobs
+		if service.Version == "" {
+			service.Version = currentEnvironment.Services.FindByName(service.Name).Version
+		}
 
 		err = cluster.ApplyService(&service, &gists, newEnvironment.Namespace)
 	}

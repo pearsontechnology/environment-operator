@@ -44,8 +44,13 @@ func (w *KubeMapper) Service() (*v1.Service, error) {
 		servicePort := v1.ServicePort{
 			Port:       int32(p),
 			TargetPort: intstr.FromInt(p),
-			Name:       fmt.Sprintf("tcp-port-%d", p),
+			Name:       fmt.Sprintf("http-%d", p),
 		}
+
+		if strings.EqualFold(w.BiteService.Protocol, "tcp") {
+			servicePort.Name = fmt.Sprintf("tcp-port-%d", p)
+		}
+
 		ports = append(ports, servicePort)
 	}
 	retval := &v1.Service{
@@ -79,8 +84,13 @@ func (w *KubeMapper) HeadlessService() (*v1.Service, error) {
 		servicePort := v1.ServicePort{
 			Port:       int32(p),
 			TargetPort: intstr.FromInt(p),
-			Name:       fmt.Sprintf("tcp-port-%d", p),
+			Name:       fmt.Sprintf("http-%d", p),
 		}
+
+		if strings.EqualFold(w.BiteService.Protocol, "tcp") {
+			servicePort.Name = fmt.Sprintf("tcp-port-%d", p)
+		}
+
 		ports = append(ports, servicePort)
 	}
 	retval := &v1.Service{
@@ -216,6 +226,7 @@ func (w *KubeMapper) Deployment() (*v1beta1_ext.Deployment, error) {
 				"name":        w.BiteService.Name,
 				"application": w.BiteService.Application,
 				"version":     w.BiteService.Version,
+				"app":         w.BiteService.Application,
 			},
 		},
 		Spec: v1beta1_ext.DeploymentSpec{
@@ -235,6 +246,7 @@ func (w *KubeMapper) Deployment() (*v1beta1_ext.Deployment, error) {
 						"application": w.BiteService.Application,
 						"name":        w.BiteService.Name,
 						"version":     w.BiteService.Version,
+						"app":         w.BiteService.Application,
 					},
 					Annotations: w.BiteService.Annotations,
 				},
@@ -410,6 +422,15 @@ func (w *KubeMapper) container() (*v1.Container, error) {
 		return nil, err
 	}
 
+	var ports []v1.ContainerPort
+	for _, port := range w.BiteService.Ports {
+		containerPort := v1.ContainerPort{
+			ContainerPort: int32(port),
+			Protocol:      "TCP",
+		}
+		ports = append(ports, containerPort)
+	}
+
 	retval = &v1.Container{
 		Name:           w.BiteService.Name,
 		Image:          "",
@@ -419,6 +440,7 @@ func (w *KubeMapper) container() (*v1.Container, error) {
 		Command:        w.BiteService.Commands,
 		LivenessProbe:  liveness,
 		ReadinessProbe: readiness,
+		Ports:          ports,
 	}
 
 	return retval, nil
@@ -815,36 +837,57 @@ func (w *KubeMapper) ExternalSecretTLS() (*ext.ExternalSecret, error) {
 	return &ext.ExternalSecret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "kubernetes-client.io/v1",
-			Kind: strings.Title("ExternalSecret"),
+			Kind:       strings.Title("ExternalSecret"),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: w.BiteService.Name,
+			Name:   w.BiteService.Name,
 			Labels: labels,
 		},
 		SecretDescriptor: ext.ExternalSecretSecretDescriptor{
-				BackendType: "secretsManager",
-				Compressed: true,
-				Type: "kubernetes.io/tls",
-				Data: []map[string]string{
-					{
-						"key": fmt.Sprintf("tls/%s/%s/%s/%s.crt", envType, env, w.Namespace, w.BiteService.Name),
-						"name": "tls.crt",
-					},
-					{
-						"key": fmt.Sprintf("tls/%s/%s/%s/%s.key", envType, env, w.Namespace, w.BiteService.Name),
-						"name": "tls.key",
-					},
+			BackendType: "secretsManager",
+			Compressed:  true,
+			Type:        "kubernetes.io/tls",
+			Data: []map[string]string{
+				{
+					"key":  fmt.Sprintf("tls/%s/%s/%s/%s.crt", envType, env, w.Namespace, w.BiteService.Name),
+					"name": "tls.crt",
 				},
+				{
+					"key":  fmt.Sprintf("tls/%s/%s/%s/%s.key", envType, env, w.Namespace, w.BiteService.Name),
+					"name": "tls.key",
+				},
+			},
 		},
 	}, nil
 }
 
 // CustomResourceDefinition extracts Kubernetes object from BiteSize definition
 func (w *KubeMapper) CustomResourceDefinition() (*ext.PrsnExternalResource, error) {
+	ports := []*ext.Port{}
+	for _, port := range w.BiteService.ServiceEntryPorts {
+		ports = append(ports, &ext.Port{
+			Number:   port.Number,
+			Protocol: port.Protocol,
+			Name:     port.Name,
+		})
+	}
+
+	endpoints := []*ext.ServiceEntry_Endpoint{}
+	for _, endpoint := range w.BiteService.Endpoints {
+		endpoints = append(endpoints, &ext.ServiceEntry_Endpoint{
+			Address:  endpoint.Address,
+			Ports:    endpoint.Ports,
+			Labels:   endpoint.Labels,
+			Network:  endpoint.Network,
+			Locality: endpoint.Locality,
+			Weight:   endpoint.Weight,
+		})
+	}
+
 	retval := &ext.PrsnExternalResource{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       strings.Title(w.BiteService.Type),
-			APIVersion: getAPIVersion(w.BiteService.Options),
+			APIVersion: getAPIVersion(w.BiteService.Type),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
@@ -864,6 +907,12 @@ func (w *KubeMapper) CustomResourceDefinition() (*ext.PrsnExternalResource, erro
 			Set:             w.BiteService.Set,
 			ValuesContent:   w.BiteService.ValuesContent,
 			Ignore:          w.BiteService.Ignore,
+			Hosts:           w.BiteService.Hosts,
+			Addresses:       w.BiteService.Addresses,
+			Ports:           ports,
+			Location:        w.BiteService.Location,
+			Resolution:      w.BiteService.Resolution,
+			Endpoints:       endpoints,
 		},
 	}
 
@@ -872,6 +921,11 @@ func (w *KubeMapper) CustomResourceDefinition() (*ext.PrsnExternalResource, erro
 
 // ServiceMeshGateway extracts Kubernetes object from BiteSize definition
 func (w *KubeMapper) ServiceMeshGateway() (*ext.PrsnExternalResource, error) {
+	hosts := []string{}
+	for _, url := range w.BiteService.ExternalURL {
+		hosts = append(hosts, url)
+	}
+
 	retval := &ext.PrsnExternalResource{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Gateway",
@@ -896,13 +950,33 @@ func (w *KubeMapper) ServiceMeshGateway() (*ext.PrsnExternalResource, error) {
 						Protocol: "HTTP",
 						Name:     "http",
 					},
-					Hosts: []string{"*"},
+					Hosts: hosts,
 				},
 			},
 		},
 	}
 
 	if w.BiteService.Ssl == "true" {
+		servers := []*ext.Server{
+			{
+				Port: &ext.Port{
+					Number:   443,
+					Protocol: "HTTPS",
+					Name:     "https",
+				},
+				Hosts: hosts,
+			},
+			{
+				Port: &ext.Port{
+					Number:   80,
+					Protocol: "HTTP",
+					Name:     "http",
+				},
+				Hosts: hosts,
+			},
+		}
+		retval.Spec.Servers = servers
+
 		tls := &ext.ServerTLSOptions{
 			Mode:           "SIMPLE",
 			CredentialName: w.BiteService.Name,
@@ -951,8 +1025,8 @@ func (w *KubeMapper) ServiceMeshVirtualService() (*ext.PrsnExternalResource, err
 				{
 					Match: []*ext.HTTPMatchRequest{
 						{
-							URI: &ext.StringExact{
-								Exact: "/",
+							URI: &ext.StringPrefix{
+								Prefix: "/",
 							},
 						},
 					},
@@ -974,11 +1048,15 @@ func (w *KubeMapper) ServiceMeshVirtualService() (*ext.PrsnExternalResource, err
 	return retval, nil
 }
 
-func getAPIVersion(options map[string]interface{}) string {
-	if options != nil && options["api_version"] != nil {
-		return options["api_version"].(string)
+func getAPIVersion(Type string) string {
+	switch strings.ToLower(Type) {
+	case "helmchart":
+		return "helm.kubedex.com/v1"
+	case "serviceentry":
+		return "networking.istio.io/v1alpha3"
+	default:
+		return "prsn.io/v1"
 	}
-	return "prsn.io/v1"
 }
 
 func getAccessModesFromString(modes string) []v1.PersistentVolumeAccessMode {

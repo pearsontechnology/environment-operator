@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.3.8] 2020-03-03 [RELEASED]**
+ #### Added
+  * Introduced ServiceEntries and fixed some of the istio releated issues.
+
 ### **[1.3.7] 2020-02-14 [RELEASED]**
  #### Added
   * Fix changes for externalsecrets always getting detected, which in turn causes problems with HPA by resetting it every 30s.

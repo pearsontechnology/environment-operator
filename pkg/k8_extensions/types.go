@@ -8,12 +8,12 @@ import (
 
 // SupportedCustomResources contains all supported CRDs on bitesize cluster.
 var SupportedCustomResources = []string{
-	"mongo", "mysql", "cassandra", "redis", "zookeeper", "kafka", "postgres", "neptune", "sns", "msk", "docdb", "cb", "sqs", "s3", "helmchart", "dynamodb",
+	"mongo", "mysql", "cassandra", "redis", "zookeeper", "kafka", "postgres", "neptune", "sns", "msk", "docdb", "cb", "sqs", "s3", "helmchart", "dynamodb", "serviceentry", "gateway", "virtualservice",
 }
 
 // SupportedCustomResourceAPIVersions contains all supported CRD API versions on bitesize cluster.
 var SupportedCustomResourceAPIVersions = []string{
-	"prsn.io/v1", "helm.kubedex.com/v1",
+	"prsn.io/v1", "helm.kubedex.com/v1", "networking.istio.io/v1alpha3",
 }
 
 // PrsnExternalResource represents CustomResources mapped from
@@ -41,7 +41,23 @@ type PrsnExternalResourceSpec struct {
 	Servers         []*Server                     `json:"servers,omitempty"`
 	Gateways        []string                      `json:"gateways,omitempty"`
 	Hosts           []string                      `json:"hosts,omitempty"`
+	Addresses       []string                      `json:"addresses,omitempty"`
+	Ports           []*Port                       `json:"ports,omitempty"`
+	Location        string                        `json:"location,omitempty"`
+	Resolution      string                        `json:"resolution,omitempty"`
+	Endpoints       []*ServiceEntry_Endpoint      `json:"endpoints,omitempty"`
+	ExportTo        []string                      `json:"export_to,omitempty"`
+	SubjectAltNames []string                      `json:"subject_alt_names,omitempty"`
 	HTTP            []*HTTPRoute                  `json:"http,omitempty"`
+}
+
+type ServiceEntry_Endpoint struct {
+	Address  string            `json:"address,omitempty"`
+	Ports    map[string]uint32 `json:"ports,omitempty"`
+	Labels   map[string]string `json:"labels,omitempty"`
+	Network  string            `json:"network,omitempty"`
+	Locality string            `json:"locality,omitempty"`
+	Weight   uint32            `json:"weight,omitempty"`
 }
 
 type ExternalSecretList struct {
@@ -76,13 +92,13 @@ type HTTPRoute struct {
 
 // HTTPMatchRequest represents format for these mappings
 type HTTPMatchRequest struct {
-	Name string       `json:"name,omitempty"`
-	URI  *StringExact `json:"uri,omitempty"`
+	Name string        `json:"name,omitempty"`
+	URI  *StringPrefix `json:"uri,omitempty"`
 }
 
-// StringExact represents format for these mappings
-type StringExact struct {
-	Exact string `json:"exact,omitempty"`
+// StringPrefix represents format for these mappings
+type StringPrefix struct {
+	Prefix string `json:"prefix,omitempty"`
 }
 
 // HTTPRouteDestination represents format for these mappings
