@@ -5,13 +5,13 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	apps_v1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
 )
 
 func TestHealthCheck(t *testing.T) {
-	deployment := v1beta1.Deployment{
-		Spec: v1beta1.DeploymentSpec{
+	deployment := apps_v1.Deployment{
+		Spec: apps_v1.DeploymentSpec{
 			Template: v1.PodTemplateSpec{
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{
@@ -41,8 +41,8 @@ func TestHealthCheck(t *testing.T) {
 }
 
 func TestLivenessProbe(t *testing.T) {
-	deployment := v1beta1.Deployment{
-		Spec: v1beta1.DeploymentSpec{
+	deployment := apps_v1.Deployment{
+		Spec: apps_v1.DeploymentSpec{
 			Template: v1.PodTemplateSpec{
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{
@@ -88,8 +88,8 @@ func TestLivenessProbe(t *testing.T) {
 }
 
 func TestReadinessProbe(t *testing.T) {
-	deployment := v1beta1.Deployment{
-		Spec: v1beta1.DeploymentSpec{
+	deployment := apps_v1.Deployment{
+		Spec: apps_v1.DeploymentSpec{
 			Template: v1.PodTemplateSpec{
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{

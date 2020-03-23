@@ -77,7 +77,7 @@ func (client *StatefulSet) Create(resource *v1beta2.StatefulSet) error {
 
 // Destroy deletes statefulset from the k8 cluster
 func (client *StatefulSet) Destroy(name string) error {
-	return client.Apps().StatefulSets(client.Namespace).Delete(name, &metav1.DeleteOptions{})
+	return client.AppsV1beta2().StatefulSets(client.Namespace).Delete(name, &metav1.DeleteOptions{})
 }
 
 // List returns the list of k8s services maintained by pipeline
