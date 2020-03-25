@@ -1,7 +1,7 @@
 package k8s
 
 import (
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -14,5 +14,5 @@ type Namespace struct {
 
 // Get returns namespace object from the k8s by name
 func (client *Namespace) Get() (*v1.Namespace, error) {
-	return client.Interface.Core().Namespaces().Get(client.Namespace, metav1.GetOptions{})
+	return client.Interface.CoreV1().Namespaces().Get(client.Namespace, metav1.GetOptions{})
 }

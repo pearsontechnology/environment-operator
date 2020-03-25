@@ -6,9 +6,10 @@ import (
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
+	apps_v1 "k8s.io/api/apps/v1"
 	autoscale_v2beta2 "k8s.io/api/autoscaling/v2beta2"
 	v1 "k8s.io/api/core/v1"
-	v1beta1_ext "k8s.io/api/extensions/v1beta1"
+	netwk_v1beta1 "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -75,7 +76,7 @@ func (s ServiceMap) addDeploymentSettings(metadata metav1.ObjectMeta) *bitesize.
 }
 
 // AddDeployment adds kubernetes deployment object to biteservice
-func (s ServiceMap) AddDeployment(deployment v1beta1_ext.Deployment) {
+func (s ServiceMap) AddDeployment(deployment apps_v1.Deployment) {
 	name := deployment.Name
 
 	biteservice := s.CreateOrGet(name)
@@ -201,7 +202,7 @@ func (s ServiceMap) AddCustomResourceDefinition(crd k8_extensions.PrsnExternalRe
 }
 
 // AddIngress adds Kubernetes ingress fields to biteservice
-func (s ServiceMap) AddIngress(ingress v1beta1_ext.Ingress) {
+func (s ServiceMap) AddIngress(ingress netwk_v1beta1.Ingress) {
 	name := ingress.Name
 	biteservice := s.CreateOrGet(name)
 	ssl := ingress.Labels["ssl"]
