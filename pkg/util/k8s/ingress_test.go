@@ -3,7 +3,7 @@ package k8s
 import (
 	"testing"
 
-	"k8s.io/api/extensions/v1beta1"
+	netwk_v1beta1 "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 )
@@ -39,7 +39,7 @@ func TestIngressExist(t *testing.T) {
 
 func TestIngressApplyNew(t *testing.T) {
 	client := createIngress()
-	newResource := &v1beta1.Ingress{
+	newResource := &netwk_v1beta1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "new",
 			Namespace: "sample",
@@ -59,7 +59,7 @@ func TestIngressApplyNew(t *testing.T) {
 
 func TestIngressApplyExisting(t *testing.T) {
 	client := createIngress()
-	existing := &v1beta1.Ingress{
+	existing := &netwk_v1beta1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test",
 			Namespace: "sample",
@@ -87,7 +87,7 @@ func createIngress() Ingress {
 
 func createSimpleIngressClient() *fake.Clientset {
 	return fake.NewSimpleClientset(
-		&v1beta1.Ingress{
+		&netwk_v1beta1.Ingress{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test",
 				Namespace: "sample",

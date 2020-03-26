@@ -1,7 +1,7 @@
 package k8s
 
 import (
-	"k8s.io/api/extensions/v1beta1"
+	netwk_v1beta1 "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -13,9 +13,9 @@ type Ingress struct {
 }
 
 // Get returns ingress object from the k8s by name
-func (client *Ingress) Get(name string) (*v1beta1.Ingress, error) {
+func (client *Ingress) Get(name string) (*netwk_v1beta1.Ingress, error) {
 	return client.
-		Extensions().
+		NetworkingV1beta1().
 		Ingresses(client.Namespace).
 		Get(name, getOptions())
 }
@@ -27,7 +27,7 @@ func (client *Ingress) Exist(name string) bool {
 }
 
 // Apply updates or creates ingress in k8s
-func (client *Ingress) Apply(resource *v1beta1.Ingress) error {
+func (client *Ingress) Apply(resource *netwk_v1beta1.Ingress) error {
 	if resource == nil {
 		return nil
 	}
@@ -39,7 +39,7 @@ func (client *Ingress) Apply(resource *v1beta1.Ingress) error {
 }
 
 // Update updates existing ingress in k8s
-func (client *Ingress) Update(resource *v1beta1.Ingress) error {
+func (client *Ingress) Update(resource *netwk_v1beta1.Ingress) error {
 	if resource == nil {
 		return nil
 	}
@@ -50,19 +50,19 @@ func (client *Ingress) Update(resource *v1beta1.Ingress) error {
 	resource.ResourceVersion = current.GetResourceVersion()
 
 	_, err = client.
-		Extensions().
+		NetworkingV1beta1().
 		Ingresses(client.Namespace).
 		Update(resource)
 	return err
 }
 
 // Create creates new ingress in k8s
-func (client *Ingress) Create(resource *v1beta1.Ingress) error {
+func (client *Ingress) Create(resource *netwk_v1beta1.Ingress) error {
 	if resource == nil {
 		return nil
 	}
 	_, err := client.
-		Extensions().
+		NetworkingV1beta1().
 		Ingresses(client.Namespace).
 		Create(resource)
 	return err
@@ -70,12 +70,12 @@ func (client *Ingress) Create(resource *v1beta1.Ingress) error {
 
 // Destroy deletes ingress from the k8 cluster
 func (client *Ingress) Destroy(name string) error {
-	return client.Extensions().Ingresses(client.Namespace).Delete(name, &metav1.DeleteOptions{})
+	return client.NetworkingV1beta1().Ingresses(client.Namespace).Delete(name, &metav1.DeleteOptions{})
 }
 
 // List returns the list of k8s services maintained by pipeline
-func (client *Ingress) List() ([]v1beta1.Ingress, error) {
-	list, err := client.Extensions().Ingresses(client.Namespace).List(listOptions())
+func (client *Ingress) List() ([]netwk_v1beta1.Ingress, error) {
+	list, err := client.NetworkingV1beta1().Ingresses(client.Namespace).List(listOptions())
 	if err != nil {
 		return nil, err
 	}

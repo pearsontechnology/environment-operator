@@ -7,7 +7,7 @@ import (
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	v1 "k8s.io/api/core/v1"
-	v1beta1_ext "k8s.io/api/extensions/v1beta1"
+	netwk_v1beta1 "k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -42,7 +42,7 @@ func TestTranslatorIngressTLS(t *testing.T) {
 	w.BiteService.Ssl = "true"
 	ingress, _ := w.Ingress()
 
-	tls := v1beta1_ext.IngressTLS{
+	tls := netwk_v1beta1.IngressTLS{
 		Hosts:      w.BiteService.ExternalURL,
 		SecretName: w.BiteService.Name,
 	}
