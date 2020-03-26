@@ -1,9 +1,10 @@
 package k8s
 
-import "k8s.io/client-go/kubernetes"
-import "k8s.io/api/core/v1"
 import (
 	"bytes"
+
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 // Pod type actions on pods in k8s cluster
@@ -15,7 +16,7 @@ type Pod struct {
 // GetLogs returns pod's logs as a string
 func (client *Pod) GetLogs(name string) (string, error) {
 
-	reader, err := client.Core().Pods(client.Namespace).GetLogs(name, logOptions()).Stream()
+	reader, err := client.CoreV1().Pods(client.Namespace).GetLogs(name, logOptions()).Stream()
 	if err != nil {
 		return "", err
 	}
@@ -27,7 +28,7 @@ func (client *Pod) GetLogs(name string) (string, error) {
 
 // List returns the list of k8s services maintained by pipeline
 func (client *Pod) List() ([]v1.Pod, error) {
-	list, err := client.Core().Pods(client.Namespace).List(listOptions())
+	list, err := client.CoreV1().Pods(client.Namespace).List(listOptions())
 	if err != nil {
 		return nil, err
 	}

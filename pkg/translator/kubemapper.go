@@ -14,9 +14,10 @@ import (
 	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
+	apps_v1 "k8s.io/api/apps/v1"
 	autoscale_v2beta2 "k8s.io/api/autoscaling/v2beta2"
 	v1 "k8s.io/api/core/v1"
-	v1beta1_ext "k8s.io/api/extensions/v1beta1"
+	netwk_v1beta1 "k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -196,7 +197,7 @@ func (w *KubeMapper) PersistentVolumeClaims() ([]v1.PersistentVolumeClaim, error
 }
 
 // Deployment extracts Kubernetes object from BiteSize definition
-func (w *KubeMapper) Deployment() (*v1beta1_ext.Deployment, error) {
+func (w *KubeMapper) Deployment() (*apps_v1.Deployment, error) {
 	if w.BiteService.IsBlueGreenParentDeployment() {
 		return nil, nil
 	}
@@ -217,7 +218,7 @@ func (w *KubeMapper) Deployment() (*v1beta1_ext.Deployment, error) {
 		return nil, err
 	}
 
-	retval := &v1beta1_ext.Deployment{
+	retval := &apps_v1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      w.BiteService.Name,
 			Namespace: w.Namespace,
@@ -229,7 +230,7 @@ func (w *KubeMapper) Deployment() (*v1beta1_ext.Deployment, error) {
 				"app":         w.BiteService.Application,
 			},
 		},
-		Spec: v1beta1_ext.DeploymentSpec{
+		Spec: apps_v1.DeploymentSpec{
 			Replicas: &replicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
@@ -739,7 +740,7 @@ func (w *KubeMapper) volumeSource(vol bitesize.Volume) v1.VolumeSource {
 }
 
 // Ingress extracts Kubernetes object from BiteSize definition
-func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
+func (w *KubeMapper) Ingress() (*netwk_v1beta1.Ingress, error) {
 	labels := map[string]string{
 		"creator":     "pipeline",
 		"application": w.BiteService.Application,
@@ -763,26 +764,26 @@ func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 	}
 
 	port := intstr.FromInt(w.BiteService.Ports[0])
-	retval := &v1beta1_ext.Ingress{
+	retval := &netwk_v1beta1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      w.BiteService.Name,
 			Namespace: w.Namespace,
 			Labels:    labels,
 		},
-		Spec: v1beta1_ext.IngressSpec{
-			Rules: []v1beta1_ext.IngressRule{},
+		Spec: netwk_v1beta1.IngressSpec{
+			Rules: []netwk_v1beta1.IngressRule{},
 		},
 	}
 
 	for _, url := range w.BiteService.ExternalURL {
-		rule := v1beta1_ext.IngressRule{
+		rule := netwk_v1beta1.IngressRule{
 			Host: url,
-			IngressRuleValue: v1beta1_ext.IngressRuleValue{
-				HTTP: &v1beta1_ext.HTTPIngressRuleValue{
-					Paths: []v1beta1_ext.HTTPIngressPath{
+			IngressRuleValue: netwk_v1beta1.IngressRuleValue{
+				HTTP: &netwk_v1beta1.HTTPIngressRuleValue{
+					Paths: []netwk_v1beta1.HTTPIngressPath{
 						{
 							Path: "/",
-							Backend: v1beta1_ext.IngressBackend{
+							Backend: netwk_v1beta1.IngressBackend{
 								ServiceName: w.BiteService.Name,
 								ServicePort: port,
 							},
@@ -793,11 +794,11 @@ func (w *KubeMapper) Ingress() (*v1beta1_ext.Ingress, error) {
 		}
 
 		if w.BiteService.Ssl == "true" {
-			tls := v1beta1_ext.IngressTLS{
+			tls := netwk_v1beta1.IngressTLS{
 				Hosts:      []string{url},
 				SecretName: w.BiteService.Name,
 			}
-			retval.Spec.TLS = []v1beta1_ext.IngressTLS{tls}
+			retval.Spec.TLS = []netwk_v1beta1.IngressTLS{tls}
 		} else {
 			retval.Spec.TLS = nil
 		}

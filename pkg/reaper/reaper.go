@@ -99,14 +99,14 @@ func (r *Reaper) destroyIngress(name string) error {
 		Namespace: r.Namespace,
 	}
 
-	if err :=  r.destroyExternalSecret(name);err != nil {
+	if err := r.destroyExternalSecret(name); err != nil {
 		log.Errorf("REAPER: failed to destroy ExternalSecret: %s", err.Error())
 	}
 
 	return client.Destroy(name)
 }
 
-func (r *Reaper) destroyExternalSecret(name string) error{
+func (r *Reaper) destroyExternalSecret(name string) error {
 
 	client, err := k8s.CRDClient(&schema.GroupVersion{
 		Group:   "kubernetes-client.io",

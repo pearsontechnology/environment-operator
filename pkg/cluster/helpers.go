@@ -4,12 +4,12 @@ import (
 	"strings"
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
+	apps_v1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	v1beta1ext "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func envVars(deployment v1beta1ext.Deployment) []bitesize.EnvVar {
+func envVars(deployment apps_v1.Deployment) []bitesize.EnvVar {
 	var retval []bitesize.EnvVar
 	for _, e := range deployment.Spec.Template.Spec.Containers[0].Env {
 		var v bitesize.EnvVar
@@ -44,7 +44,7 @@ func isReservedEnvVar(e v1.EnvVar) bool {
 	return false
 }
 
-func healthCheck(deployment v1beta1ext.Deployment) *bitesize.HealthCheck {
+func healthCheck(deployment apps_v1.Deployment) *bitesize.HealthCheck {
 	var retval *bitesize.HealthCheck
 
 	probe := deployment.Spec.Template.Spec.Containers[0].LivenessProbe
@@ -115,13 +115,13 @@ func convertProbeType(probe *v1.Probe) *bitesize.Probe {
 	return retval
 }
 
-func livenessProbe(deployment v1beta1ext.Deployment) *bitesize.Probe {
+func livenessProbe(deployment apps_v1.Deployment) *bitesize.Probe {
 	probe := deployment.Spec.Template.Spec.Containers[0].LivenessProbe
 
 	return convertProbeType(probe)
 }
 
-func readinessProbe(deployment v1beta1ext.Deployment) *bitesize.Probe {
+func readinessProbe(deployment apps_v1.Deployment) *bitesize.Probe {
 	probe := deployment.Spec.Template.Spec.Containers[0].ReadinessProbe
 
 	return convertProbeType(probe)
@@ -161,7 +161,7 @@ func containsAccessMode(modes []v1.PersistentVolumeAccessMode, mode v1.Persisten
 	return false
 }
 
-func volumes(deployment v1beta1ext.Deployment) []bitesize.Volume {
+func volumes(deployment apps_v1.Deployment) []bitesize.Volume {
 	//TODO: implement other volume types
 	var volumes []bitesize.Volume
 

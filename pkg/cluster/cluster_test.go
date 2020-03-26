@@ -11,9 +11,10 @@ import (
 	ext "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	fakecrd "github.com/pearsontechnology/environment-operator/pkg/util/k8s/fake"
+	apps_v1 "k8s.io/api/apps/v1"
 	autoscale_v2beta2 "k8s.io/api/autoscaling/v2beta2"
 	v1 "k8s.io/api/core/v1"
-	v1beta1_ext "k8s.io/api/extensions/v1beta1"
+	netwk_v1beta1 "k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
@@ -176,8 +177,8 @@ func TestGetPods(t *testing.T) {
 }
 */
 
-func newDeployment(namespace, name string) *v1beta1_ext.Deployment {
-	d := v1beta1_ext.Deployment{
+func newDeployment(namespace, name string) *apps_v1.Deployment {
+	d := apps_v1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -185,7 +186,7 @@ func newDeployment(namespace, name string) *v1beta1_ext.Deployment {
 				"deployment.kubernetes.io/revision": "1",
 			},
 		},
-		Spec: v1beta1_ext.DeploymentSpec{
+		Spec: apps_v1.DeploymentSpec{
 			Template: v1.PodTemplateSpec{},
 		},
 	}
@@ -279,15 +280,15 @@ func loadTestExternalSecrets() *fakerest.RESTClient {
 			},
 			SecretDescriptor: ext.ExternalSecretSecretDescriptor{
 				BackendType: "secretsManager",
-				Compressed: true,
-				Type: "kubernetes.io/tls",
+				Compressed:  true,
+				Type:        "kubernetes.io/tls",
 				Data: []map[string]string{
 					{
-						"key": fmt.Sprintf("tls/test.crt"),
+						"key":  fmt.Sprintf("tls/test.crt"),
 						"name": "tls.crt",
 					},
 					{
-						"key": fmt.Sprintf("tls/test.key"),
+						"key":  fmt.Sprintf("tls/test.key"),
 						"name": "tls.key",
 					},
 				},
@@ -338,7 +339,7 @@ func loadTestEnvironment() *fake.Clientset {
 				Labels: validLabels,
 			},
 		},
-		&v1beta1_ext.Deployment{
+		&apps_v1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test",
 				Namespace: "test",
@@ -352,12 +353,12 @@ func loadTestEnvironment() *fake.Clientset {
 					"deployment.kubernetes.io/revision": "1",
 				},
 			},
-			Status: v1beta1_ext.DeploymentStatus{
+			Status: apps_v1.DeploymentStatus{
 				AvailableReplicas: 1,
 				Replicas:          1,
 				UpdatedReplicas:   1,
 			},
-			Spec: v1beta1_ext.DeploymentSpec{
+			Spec: apps_v1.DeploymentSpec{
 				Replicas: &replicaCount,
 				Template: v1.PodTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
@@ -457,13 +458,13 @@ func loadTestEnvironment() *fake.Clientset {
 		&v1.Service{
 			ObjectMeta: validMeta("test", "test2"),
 		},
-		&v1beta1_ext.Ingress{
+		&netwk_v1beta1.Ingress{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "ts",
 				Namespace: "test",
 			},
 		},
-		&v1beta1_ext.Ingress{
+		&netwk_v1beta1.Ingress{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test",
 				Namespace: "test",
@@ -471,16 +472,16 @@ func loadTestEnvironment() *fake.Clientset {
 					"creator": "pipeline",
 				},
 			},
-			Spec: v1beta1_ext.IngressSpec{
-				Rules: []v1beta1_ext.IngressRule{
+			Spec: netwk_v1beta1.IngressSpec{
+				Rules: []netwk_v1beta1.IngressRule{
 					{
 						Host: "www.test.com",
-						IngressRuleValue: v1beta1_ext.IngressRuleValue{
-							HTTP: &v1beta1_ext.HTTPIngressRuleValue{
-								Paths: []v1beta1_ext.HTTPIngressPath{
+						IngressRuleValue: netwk_v1beta1.IngressRuleValue{
+							HTTP: &netwk_v1beta1.HTTPIngressRuleValue{
+								Paths: []netwk_v1beta1.HTTPIngressPath{
 									{
 										Path: "/",
-										Backend: v1beta1_ext.IngressBackend{
+										Backend: netwk_v1beta1.IngressBackend{
 											ServiceName: "test",
 										},
 									},

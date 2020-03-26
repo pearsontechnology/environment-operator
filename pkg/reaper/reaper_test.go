@@ -6,8 +6,8 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/cluster"
 	fakecrd "github.com/pearsontechnology/environment-operator/pkg/util/k8s/fake"
-	"k8s.io/api/apps/v1beta1"
-	"k8s.io/api/core/v1"
+	apps_v1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 )
@@ -19,7 +19,7 @@ func TestDeleteService(t *testing.T) {
 				Name: "sample",
 			},
 		},
-		&v1beta1.Deployment{
+		&apps_v1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "abr",
 				Namespace: "sample",
@@ -27,7 +27,7 @@ func TestDeleteService(t *testing.T) {
 					"creator": "pipeline",
 				},
 			},
-			Spec: v1beta1.DeploymentSpec{
+			Spec: apps_v1.DeploymentSpec{
 				Template: v1.PodTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test",
@@ -65,7 +65,7 @@ func TestDeleteService(t *testing.T) {
 
 	reaper.Cleanup(cfg)
 
-	if d, err := wrapper.Extensions().Deployments("sample").Get("abr", metav1.GetOptions{}); err == nil {
+	if d, err := wrapper.AppsV1().Deployments("sample").Get("abr", metav1.GetOptions{}); err == nil {
 		t.Errorf("Expected deployment nil, got: %+v", d)
 	}
 

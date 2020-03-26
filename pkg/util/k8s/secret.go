@@ -15,7 +15,7 @@ type Secret struct {
 
 // List returns the list of k8s secrets maintained by pipeline for provided client
 func (client *Secret) List() ([]v1.Secret, error) {
-	list, err := client.Core().Secrets(client.Namespace).List(metav1.ListOptions{})
+	list, err := client.CoreV1().Secrets(client.Namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (client *Secret) Create(resource *v1.Secret) error {
 		return nil
 	}
 	_, err := client.
-		Core().
+		CoreV1().
 		Secrets(client.Namespace).
 		Create(resource)
 	return err
@@ -73,7 +73,7 @@ func (client *Secret) Update(resource *v1.Secret) error {
 	resource.ResourceVersion = current.GetResourceVersion()
 
 	_, err = client.
-		Core().
+		CoreV1().
 		Secrets(client.Namespace).
 		Update(resource)
 	return err
@@ -81,5 +81,5 @@ func (client *Secret) Update(resource *v1.Secret) error {
 
 // Get returns secret object from the k8s by name
 func (client *Secret) Get(name string) (*v1.Secret, error) {
-	return client.Core().Secrets(client.Namespace).Get(name, metav1.GetOptions{})
+	return client.CoreV1().Secrets(client.Namespace).Get(name, metav1.GetOptions{})
 }

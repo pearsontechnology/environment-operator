@@ -14,7 +14,7 @@ type Service struct {
 
 // Get returns service object from the k8s by name
 func (client *Service) Get(name string) (*v1.Service, error) {
-	return client.Core().Services(client.Namespace).Get(name, getOptions())
+	return client.CoreV1().Services(client.Namespace).Get(name, getOptions())
 }
 
 // Exist returns boolean value if pvc exists in k8s
@@ -40,7 +40,7 @@ func (client *Service) Create(resource *v1.Service) error {
 		return nil
 	}
 	_, err := client.
-		Core().
+		CoreV1().
 		Services(client.Namespace).
 		Create(resource)
 	return err
@@ -59,7 +59,7 @@ func (client *Service) Update(resource *v1.Service) error {
 	resource.Spec.ClusterIP = current.Spec.ClusterIP
 
 	_, err = client.
-		Core().
+		CoreV1().
 		Services(client.Namespace).
 		Update(resource)
 	return err
@@ -67,12 +67,12 @@ func (client *Service) Update(resource *v1.Service) error {
 
 // Destroy deletes service from the k8 cluster
 func (client *Service) Destroy(name string) error {
-	return client.Core().Services(client.Namespace).Delete(name, &metav1.DeleteOptions{})
+	return client.CoreV1().Services(client.Namespace).Delete(name, &metav1.DeleteOptions{})
 }
 
 // List returns the list of k8s services maintained by pipeline
 func (client *Service) List() ([]v1.Service, error) {
-	list, err := client.Core().Services(client.Namespace).List(listOptions())
+	list, err := client.CoreV1().Services(client.Namespace).List(listOptions())
 	if err != nil {
 		return nil, err
 	}

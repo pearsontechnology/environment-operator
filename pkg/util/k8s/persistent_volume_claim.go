@@ -15,7 +15,7 @@ type PersistentVolumeClaim struct {
 
 // Get returns pvc object from the k8s by name
 func (client *PersistentVolumeClaim) Get(name string) (*v1.PersistentVolumeClaim, error) {
-	return client.Core().PersistentVolumeClaims(client.Namespace).Get(name, metav1.GetOptions{})
+	return client.CoreV1().PersistentVolumeClaims(client.Namespace).Get(name, metav1.GetOptions{})
 }
 
 // Exist returns boolean value if pvc exists in k8s
@@ -41,7 +41,7 @@ func (client *PersistentVolumeClaim) Create(resource *v1.PersistentVolumeClaim) 
 		return nil
 	}
 	_, err := client.
-		Core().
+		CoreV1().
 		PersistentVolumeClaims(client.Namespace).
 		Create(resource)
 	return err
@@ -62,7 +62,7 @@ func (client *PersistentVolumeClaim) Update(resource *v1.PersistentVolumeClaim) 
 	log.Warningf("attemting to update volume \"%s\", service \"%s\", but PVC Spec is immutable so this may fail.", current.ObjectMeta.Name, current.ObjectMeta.Labels["deployment"])
 
 	_, err = client.
-		Core().
+		CoreV1().
 		PersistentVolumeClaims(client.Namespace).
 		Update(resource)
 
@@ -75,12 +75,12 @@ func (client *PersistentVolumeClaim) Update(resource *v1.PersistentVolumeClaim) 
 
 // Destroy deletes pvc from the k8 cluster
 func (client *PersistentVolumeClaim) Destroy(name string) error {
-	return client.Core().PersistentVolumeClaims(client.Namespace).Delete(name, &metav1.DeleteOptions{})
+	return client.CoreV1().PersistentVolumeClaims(client.Namespace).Delete(name, &metav1.DeleteOptions{})
 }
 
 // List returns the list of k8s services maintained by pipeline
 func (client *PersistentVolumeClaim) List() ([]v1.PersistentVolumeClaim, error) {
-	list, err := client.Core().PersistentVolumeClaims(client.Namespace).List(listOptions())
+	list, err := client.CoreV1().PersistentVolumeClaims(client.Namespace).List(listOptions())
 	if err != nil {
 		return nil, err
 	}
