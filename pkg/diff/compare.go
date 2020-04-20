@@ -3,7 +3,7 @@ package diff
 import (
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/kylelemons/godebug/pretty"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"k8s.io/apimachinery/pkg/api/resource"

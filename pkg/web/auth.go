@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/coreos/go-oidc/jose"
 	oidc "github.com/coreos/go-oidc/oidc"

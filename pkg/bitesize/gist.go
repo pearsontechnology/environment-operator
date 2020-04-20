@@ -4,7 +4,7 @@ import (
 	"os"
 	"path"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	v1batch "k8s.io/api/batch/v1"
 	"k8s.io/api/batch/v1beta1"

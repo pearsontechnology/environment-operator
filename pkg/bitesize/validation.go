@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strconv"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/pearsontechnology/environment-operator/pkg/config"
 	validator "gopkg.in/validator.v2"
 )

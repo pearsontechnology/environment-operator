@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/cluster"
 	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
@@ -60,16 +60,16 @@ func (r *Reaper) deleteService(svc bitesize.Service) error {
 	}
 
 	if err := r.destroyDeployment(svc.Name); err != nil {
-		log.Errorf("REAPER: failed to destroy deployment: %s",err.Error())
+		log.Errorf("REAPER: failed to destroy deployment: %s", err.Error())
 	}
 
 	if err := r.destroyService(svc.Name); err != nil {
-		log.Errorf("REAPER: failed to destroy service failed: %s",err.Error())
+		log.Errorf("REAPER: failed to destroy service failed: %s", err.Error())
 	}
 
 	for _, volume := range svc.Volumes {
 		if err := r.destroyPersistentVolume(volume.Name); err != nil {
-			log.Errorf("REAPER: failed to destroy persistent volume: %s",err.Error())
+			log.Errorf("REAPER: failed to destroy persistent volume: %s", err.Error())
 		}
 	}
 

@@ -1,7 +1,7 @@
 package k8s
 
 import (
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	extensions "github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"k8s.io/client-go/rest"
 )

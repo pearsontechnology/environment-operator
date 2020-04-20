@@ -6,7 +6,7 @@ import (
 	"os"
 	"path"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/pearsontechnology/environment-operator/pkg/config"
 	"golang.org/x/crypto/ssh"
 	gogit "gopkg.in/src-d/go-git.v4"
@@ -139,7 +139,7 @@ func (g *Git) pullOptions() *gogit.PullOptions {
 	}
 
 	if config.Env.UseAuth {
-		opt.Auth =  g.auth()
+		opt.Auth = g.auth()
 	}
 
 	return &opt
@@ -153,7 +153,7 @@ func (g *Git) fetchOptions() *gogit.FetchOptions {
 	opt := gogit.FetchOptions{}
 
 	if config.Env.UseAuth {
-		opt.Auth =  g.auth()
+		opt.Auth = g.auth()
 	}
 
 	return &opt

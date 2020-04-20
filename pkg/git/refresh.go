@@ -1,6 +1,6 @@
 package git
 
-import log "github.com/Sirupsen/logrus"
+import log "github.com/sirupsen/logrus"
 
 // Refresh checks if local git repository copy is outdated. If it is,
 // changes are pulled in.

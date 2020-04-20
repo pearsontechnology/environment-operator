@@ -1,13 +1,13 @@
 package config
 
 import (
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/kelseyhightower/envconfig"
 )
 
 // Config contains environment variables used to configure the app
 type Config struct {
-  LogLevel          string `envconfig:"LOG_LEVEL"default:"info"`
+	LogLevel          string `envconfig:"LOG_LEVEL"default:"info"`
 	UseAuth           bool   `envconfig:"USE_AUTH" default:"false"`
 	GitRepo           string `envconfig:"GIT_REMOTE_REPOSITORY"`
 	GitBranch         string `envconfig:"GIT_BRANCH" default:"master"`
