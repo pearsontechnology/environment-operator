@@ -77,15 +77,58 @@ spec:
         {{- end }}
         modes: {{ .Modes }}
       {{- end }}
-    {{- if .Service.HPA.MaxReplicas }}
+    {{- if .Service.HPA }}
     {{- with .Service.HPA }}
     hpa:
       enabled: true
+      {{- if .MinReplicas }}
+      minReplicas: {{ .MinReplicas }}
+      {{- end }}
+      {{- if .MaxReplicas }}
       maxReplicas: {{ .MaxReplicas }}
-      {{- if eq .Name "cpu"}}
-      cpu: {{ .TargetAverageUtilization }}
-      {{- else if eq .Name "memory"}}
-      memory: {{ .TargetAverageUtilization }}
+      {{- end }}
+      {{- if eq .Metric.Name "cpu"}}
+      cpu: {{ .Metric.TargetAverageUtilization }}
+      {{- else if eq .Metric.Name "memory"}}
+      memory: {{ .Metric.TargetAverageUtilization }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- if .Service.ReadinessProbe }}
+    {{- with .Service.ReadinessProbe }}
+    readinessProbe:
+      {{- if .Handler.HTTPGet.Path }}
+      httpGet: 
+        path: {{ .Handler.HTTPGet.Path }}
+        port: {{ .Handler.HTTPGet.Port }}
+      {{- end }}
+      {{- if .InitialDelaySeconds }}
+      initialDelaySeconds: {{ .InitialDelaySeconds }}
+      {{- end }}
+      {{- if .TimeoutSeconds }}
+      timeoutSeconds: {{ .TimeoutSeconds }}
+      {{- end }}
+      {{- if .PeriodSeconds }}
+      periodSeconds: {{ .PeriodSeconds }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- if .Service.LivenessProbe }}
+    {{- with .Service.LivenessProbe }}
+    livenessProbe:
+      {{- if .Handler.HTTPGet.Path }}
+      httpGet: 
+        path: {{ .Handler.HTTPGet.Path }}
+        port: {{ .Handler.HTTPGet.Port }}
+      {{- end }}
+      {{- if .InitialDelaySeconds }}
+      initialDelaySeconds: {{ .InitialDelaySeconds }}
+      {{- end }}
+      {{- if .TimeoutSeconds }}
+      timeoutSeconds: {{ .TimeoutSeconds }}
+      {{- end }}
+      {{- if .PeriodSeconds }}
+      periodSeconds: {{ .PeriodSeconds }}
       {{- end }}
     {{- end }}
     {{- end }}
