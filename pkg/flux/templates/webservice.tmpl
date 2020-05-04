@@ -97,10 +97,12 @@ spec:
     {{- if .Service.ReadinessProbe }}
     {{- with .Service.ReadinessProbe }}
     readinessProbe:
+      enabled: true
       {{- if .Handler.HTTPGet.Path }}
-      httpGet: 
-        path: {{ .Handler.HTTPGet.Path }}
-        port: {{ .Handler.HTTPGet.Port }}
+      path: {{ .Handler.HTTPGet.Path }}
+      {{- end }}
+      {{- if .Handler.HTTPGet.Port }}
+      port: {{ .Handler.HTTPGet.Port }}
       {{- end }}
       {{- if .InitialDelaySeconds }}
       initialDelaySeconds: {{ .InitialDelaySeconds }}
@@ -116,10 +118,12 @@ spec:
     {{- if .Service.LivenessProbe }}
     {{- with .Service.LivenessProbe }}
     livenessProbe:
+      enabled: true
       {{- if .Handler.HTTPGet.Path }}
-      httpGet: 
-        path: {{ .Handler.HTTPGet.Path }}
-        port: {{ .Handler.HTTPGet.Port }}
+      path: {{ .Handler.HTTPGet.Path }}
+      {{- end }}
+      {{- if .Handler.HTTPGet.Port }}
+      port: {{ .Handler.HTTPGet.Port }}
       {{- end }}
       {{- if .InitialDelaySeconds }}
       initialDelaySeconds: {{ .InitialDelaySeconds }}
