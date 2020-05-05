@@ -115,6 +115,8 @@ func objectStore(objects []runtime.Object) cache.Store {
 
 func kindFromElem(e string) string {
 	switch e {
+	case "auroras":
+		return "Aurora"
 	case "mysqls":
 		return "Mysql"
 	case "mongos":

@@ -264,3 +264,16 @@ environments:
     options:
       bucket_region: "us-east-2"
       bucket_encryption: "aes-256"
+- name: environment15
+  namespace: environment-aurora
+  services:
+  - type: aurora
+    name: aurora_cluster_id
+    allow_destroy: true
+    allow_modify: true
+    options:
+      cluster:
+        engine: aurora-postgresql
+      instance:
+        count: 3
+        instance_class: db.r5.4xlarge
