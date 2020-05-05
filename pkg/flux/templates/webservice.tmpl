@@ -66,6 +66,18 @@ spec:
           paths:
           - path: /
         {{- end }}
+    {{- if eq .Service.Ssl "true"}}
+      ssl: true
+      tls:
+      - secretName: {{ .Service.Name }}-tls
+        hosts: 
+          {{- range .Service.ExternalURL }}
+          - {{ . }}
+          {{- end }}
+    {{- end }}
+    {{- if eq .Service.Ssl "false"}}
+      ssl: false
+    {{- end }}
     {{- end }}
     volumes:
       {{- range .Service.Volumes }}
