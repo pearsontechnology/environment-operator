@@ -5,7 +5,7 @@ metadata:
   name: {{ .Environment.Namespace }}-{{ .Service.Name }}
   namespace: {{ .Environment.Namespace }}
   annotations:
-    flux.weave.works/automated: "false"
+    fluxcd.io/automated: "false"
 spec:
   chart:
     repository: http://storage.googleapis.com/kubernetes-charts-incubator
