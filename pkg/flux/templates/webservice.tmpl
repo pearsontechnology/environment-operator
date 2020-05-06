@@ -9,8 +9,8 @@ metadata:
     filter.fluxcd.io/chart-image: glob:{{ .Environment.Namespace }}-*
 spec:
   chart:
-    git: git@github.com:pearsontechnology/onestack
-    path: charts/webservice
+    git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
+    path: webservice
     ref: master
   values:
     fullnameOverride: {{ .Service.Name }}
@@ -37,7 +37,6 @@ spec:
     image:
       repository: {{ .Registry }}/{{ .Service.Name }}
       tag: latest
-    probePath: "/account/v1/account"
     env:
       {{- range .Service.EnvVars }}
       {{- if .PodField }}
