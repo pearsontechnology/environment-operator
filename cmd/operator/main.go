@@ -28,7 +28,7 @@ func init() {
 
 	client, err = cluster.Client()
 	if err != nil {
-		log.Fatalf("Error creating kubernetes client: %s", err.Error())
+		log.Fatalf("Error initializing kubernetes client: %s", err.Error())
 	}
 
 	reap = reaper.Reaper{
@@ -36,7 +36,14 @@ func init() {
 		Wrapper:   client,
 	}
 
-	if config.Env.Debug != "" {
+	logLevel, err := log.ParseLevel(config.Env.LogLevel)
+	if err != nil {
+		log.Fatalf("Can't parse LOG_LEVEL \"%s\": %s", logLevel, err.Error())
+	}
+	log.SetLevel(logLevel)
+
+	// allow DEBUG=true to override LOG_LEVEL
+	if config.Env.Debug == "true" {
 		log.SetLevel(log.DebugLevel)
 	}
 }
@@ -59,32 +66,46 @@ func main() {
 
 	go webserver()
 
-	sleepDuration := 30000 * time.Millisecond
+	// Polling interval
+	sleepDurationSeconds := 30
+	sleepDuration := time.Duration(sleepDurationSeconds) * time.Second
+
 	err := gitClient.Pull()
 
 	if err != nil {
 		log.Errorf("Git clone error: %s", err.Error())
-		log.Errorf("Git Client Information: \n RemotePath=%s \n LocalPath=%s \n Branch=%s \n SSHkey=%s \n  GITUser= %s \n", gitClient.RemotePath, gitClient.LocalPath, gitClient.BranchName, gitClient.SSHKey, gitClient.GitUser)
+		log.Errorf("Git Client Information:")
+		log.Errorf("  RemotePath=%s"+
+			"   LocalPath=%s"+
+			"   Branch=%s"+
+			"   SSHkey=%s"+
+			"   GITUser=%s\n",
+			gitClient.RemotePath,
+			gitClient.LocalPath,
+			gitClient.BranchName,
+			gitClient.SSHKey,
+			gitClient.GitUser,
+		)
 	}
 
 	for {
 		if err := gitClient.Refresh(); err != nil {
 			log.Errorf("git client refresh failed with %s", err.Error())
 		}
-		gitConfiguration, err := bitesize.LoadEnvironmentFromConfig(config.Env)
-		log.Tracef("gitConfiguration: %#v", gitConfiguration)
+		configurationInGit, err := bitesize.LoadEnvironmentFromConfig(config.Env)
+		log.Tracef("configurationInGit: %#v", configurationInGit)
 
 		if err != nil {
 			log.Errorf("error while loading environment config: %s", err.Error())
 		} else {
-			if err := client.ApplyIfChanged(gitConfiguration); err != nil {
+			if err := client.ApplyIfChanged(configurationInGit); err != nil {
 				log.Errorf("error when applying changes: %s", err.Error())
 			}
-			if err := reap.Cleanup(gitConfiguration); err != nil {
+			if err := reap.Cleanup(configurationInGit); err != nil {
 				log.Errorf("error reaper failed: %s", err.Error())
 			}
 		}
-		log.Tracef("Sleeping: %d ms", sleepDuration)
+		log.Debugf("Sleeping %d seconds", sleepDurationSeconds)
 		time.Sleep(sleepDuration)
 	}
 

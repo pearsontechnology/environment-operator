@@ -56,7 +56,7 @@ func postDeploy(w http.ResponseWriter, r *http.Request) {
 	client, err := cluster.Client()
 
 	if err != nil {
-		log.Errorf("error creating kubernetes client: %s", err.Error())
+		log.Errorf("error creating post-deploy Kubernetes client: %s", err.Error())
 	}
 
 	d, err := ParseDeployRequest(r.Body)
@@ -119,7 +119,7 @@ func getStatus(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	}
 
-	e, err := client.LoadEnvironment(config.Env.Namespace)
+	e, err := client.ScrapeResourcesForNamespace(config.Env.Namespace)
 	if err != nil {
 		log.Errorf("error getting cluster client: %s", err.Error())
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)

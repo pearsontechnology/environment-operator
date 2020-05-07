@@ -1,11 +1,14 @@
 package cluster
 
 import (
+	"fmt"
+	"os"
 	"sort"
 	"strings"
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
+	"github.com/pearsontechnology/environment-operator/pkg/util"
 	apps_v1 "k8s.io/api/apps/v1"
 	autoscale_v2beta2 "k8s.io/api/autoscaling/v2beta2"
 	v1 "k8s.io/api/core/v1"
@@ -21,6 +24,8 @@ type ServiceMap map[string]*bitesize.Service
 // CreateOrGet initializes new biteservice or returns an existing one (by name)
 func (s ServiceMap) CreateOrGet(name string) *bitesize.Service {
 	// Create with some defaults -- defaults should probably live in bitesize.Service
+	// Defaults should be the same as in bitesize.ServiceWithDefaults
+
 	if s[name] == nil {
 		s[name] = &bitesize.Service{
 			Name:        name,
@@ -29,6 +34,8 @@ func (s ServiceMap) CreateOrGet(name string) *bitesize.Service {
 			ExternalURL: []string{},
 			Deployment:  &bitesize.DeploymentSettings{},
 			Requests:    bitesize.ContainerRequests{CPU: "100m"},
+			HTTPSOnly:   "false",
+			Ssl:         "false",
 		}
 	}
 	return s[name]
@@ -57,9 +64,11 @@ func (s ServiceMap) AddService(svc v1.Service) {
 	if len(svc.Spec.Ports) > 0 {
 		biteservice.Ports = []int{}
 	}
+
 	for _, port := range svc.Spec.Ports {
 		biteservice.Ports = append(biteservice.Ports, int(port.Port))
 	}
+	util.LogTraceAsYaml("AddService biteservice", biteservice)
 }
 
 func (s ServiceMap) addDeploymentSettings(metadata metav1.ObjectMeta) *bitesize.DeploymentSettings {
@@ -99,19 +108,32 @@ func (s ServiceMap) AddDeployment(deployment apps_v1.Deployment) {
 		biteservice.Limits.CPU = cpuQuantity.String()
 		biteservice.Limits.Memory = memQuantity.String()
 	}
-
-	if getLabel(deployment.ObjectMeta, "ssl") != "" {
-		biteservice.Ssl = getLabel(deployment.ObjectMeta, "ssl") // kubeDeployment.Labels["ssl"]
+	sslEnabled := getLabel(deployment.ObjectMeta, "ssl") // kubeDeployment.Labels["ssl"]
+	if sslEnabled == "true" {
+		biteservice.Ssl = "true"
 	}
+	HTTPSOnly := getLabel(deployment.ObjectMeta, "httpsOnly")
+	if HTTPSOnly == "true" {
+		biteservice.HTTPSOnly = "true"
+	}
+
 	biteservice.Version = getLabel(deployment.ObjectMeta, "version")
 	biteservice.Application = getLabel(deployment.ObjectMeta, "application")
-	biteservice.HTTPSOnly = getLabel(deployment.ObjectMeta, "httpsOnly")
 	biteservice.HTTPSBackend = getLabel(deployment.ObjectMeta, "httpsBackend")
 	biteservice.EnvVars = envVars(deployment)
 	biteservice.HealthCheck = healthCheck(deployment)
 	biteservice.LivenessProbe = livenessProbe(deployment)
 	biteservice.ReadinessProbe = readinessProbe(deployment)
-	biteservice.Volumes = append(biteservice.Volumes, volumes(deployment)...)
+	vols := append(biteservice.Volumes, volumes(deployment)...)
+	sortedVols, err := bitesize.SortVolumesByVolName(vols)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "sortVolumesByVolName error: %v\n", err)
+		os.Exit(1)
+	}
+
+	if len(sortedVols) > 0 {
+		biteservice.Volumes = sortedVols
+	}
 
 	for _, cmd := range deployment.Spec.Template.Spec.Containers[0].Command {
 		biteservice.Commands = append(biteservice.Commands, string(cmd))
@@ -131,6 +153,7 @@ func (s ServiceMap) AddDeployment(deployment apps_v1.Deployment) {
 		DeployedAt:        deployment.CreationTimestamp.String(),
 	}
 
+	util.LogTraceAsYaml("AddDeployment biteservice", biteservice)
 }
 
 // AddHPA adds Kubernetes HPA to biteservice
@@ -141,6 +164,7 @@ func (s ServiceMap) AddHPA(hpa autoscale_v2beta2.HorizontalPodAutoscaler) {
 
 	biteservice.HPA.MinReplicas = *hpa.Spec.MinReplicas
 	biteservice.HPA.MaxReplicas = hpa.Spec.MaxReplicas
+	biteservice.Replicas = int(biteservice.HPA.MinReplicas)
 
 	if hpa.Spec.Metrics[0].Type == "Resource" {
 		if hpa.Spec.Metrics[0].Resource.Name == "cpu" {
@@ -159,6 +183,7 @@ func (s ServiceMap) AddHPA(hpa autoscale_v2beta2.HorizontalPodAutoscaler) {
 		biteservice.HPA.Metric.Name = hpa.Spec.Metrics[0].Pods.Metric.Name
 		biteservice.HPA.Metric.TargetAverageValue = targetAverageValueQuantity.String()
 	}
+	util.LogTraceAsYaml("AddHPA biteservice", biteservice)
 
 }
 
@@ -179,7 +204,19 @@ func (s ServiceMap) AddVolumeClaim(claim v1.PersistentVolumeClaim) {
 		Name:  claim.ObjectMeta.Name,
 		Type:  claim.ObjectMeta.Labels["type"],
 	}
-	biteservice.Volumes = append(biteservice.Volumes, vol)
+
+	vols := append(biteservice.Volumes, vol)
+	sortedVols, err := bitesize.SortVolumesByVolName(vols)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "sortVolumesByVolName error: %v\n", err)
+		os.Exit(1)
+	}
+
+	if len(sortedVols) > 0 {
+		biteservice.Volumes = sortedVols
+	}
+
+	util.LogTraceAsYaml("AddVolumeClaim biteservice", biteservice)
 }
 
 // AddCustomResourceDefinition adds Kubernetes CRD to biteservice
@@ -199,14 +236,24 @@ func (s ServiceMap) AddCustomResourceDefinition(crd k8_extensions.PrsnExternalRe
 	if crd.Spec.Replicas != 0 {
 		biteservice.Replicas = crd.Spec.Replicas
 	}
+	util.LogTraceAsYaml("AddCustomResourceDefinition biteservice", biteservice)
 }
 
 // AddIngress adds Kubernetes ingress fields to biteservice
 func (s ServiceMap) AddIngress(ingress netwk_v1beta1.Ingress) {
 	name := ingress.Name
 	biteservice := s.CreateOrGet(name)
-	ssl := ingress.Labels["ssl"]
-	httpsOnly := ingress.Labels["httpsOnly"]
+
+	sslEnabled := ingress.Labels["ssl"]
+	if sslEnabled == "true" {
+		biteservice.Ssl = "true"
+	}
+
+	HTTPSOnly := ingress.Labels["httpsOnly"]
+	if HTTPSOnly == "true" {
+		biteservice.HTTPSOnly = "true"
+	}
+
 	httpsBackend := ingress.Labels["httpsBackend"]
 
 	biteservice.ExternalURL = []string{}
@@ -217,9 +264,7 @@ func (s ServiceMap) AddIngress(ingress netwk_v1beta1.Ingress) {
 	}
 
 	biteservice.HTTPSBackend = httpsBackend
-	biteservice.HTTPSOnly = httpsOnly
 	biteservice.HTTP2 = ingress.Labels["http2"]
-	biteservice.Ssl = ssl
 
 	// backend service has been overridden
 	backendService := ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend.ServiceName
@@ -231,4 +276,5 @@ func (s ServiceMap) AddIngress(ingress netwk_v1beta1.Ingress) {
 	if len(biteservice.Ports) > 0 && backendPort != biteservice.Ports[0] {
 		biteservice.BackendPort = backendPort
 	}
+	util.LogTraceAsYaml("AddIngress biteservice", biteservice)
 }

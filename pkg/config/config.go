@@ -60,10 +60,4 @@ func init() {
 	if Env.GitKey != "" && Env.GitToken != "" {
 		log.Fatal("Please choose either Gitkey or GitToken but not both")
 	}
-
-	logLevel, err := log.ParseLevel(Env.LogLevel)
-	if err != nil {
-		log.Fatalf("Can't set loglevel \"%s\": %s", Env.LogLevel, err.Error())
-	}
-	log.SetLevel(logLevel)
 }

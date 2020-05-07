@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/config"
 	"github.com/pearsontechnology/environment-operator/pkg/diff"
@@ -51,7 +50,6 @@ func TestKubernetesClusterClient(t *testing.T) {
 
 func TestApplyEnvironment(t *testing.T) {
 
-	log.SetLevel(log.FatalLevel)
 	client := fake.NewSimpleClientset(
 		&v1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -63,35 +61,59 @@ func TestApplyEnvironment(t *testing.T) {
 		},
 	)
 	crdcli := loadTestCRDs()
-	cluster := Cluster{
+	runningCluster := Cluster{
 		Interface: client,
 		CRDClient: crdcli,
 	}
 
-	e1, err := bitesize.LoadEnvironment("../../test/assets/environments.bitesize", "environment2")
+	envFromConfigFile, err := bitesize.LoadEnvironment(
+		"../../test/assets/environments.bitesize", "environment2")
 
 	if err != nil {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
 
-	cluster.ApplyIfChanged(e1)
+	runningCluster.ApplyIfChanged(envFromConfigFile)
 
-	e2, err := cluster.LoadEnvironment("environment-dev")
+	// load an environment config over top of currently-running config
+	envToCompare, err := runningCluster.ScrapeResourcesForNamespace("environment-dev")
 	if err != nil {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
 
-	// There should be no changes between environments e1 and e2 (they will be synced with the apply below)
-	//	diff.Compare(*e1, *e2)
-	cluster.ApplyEnvironment(e1, e2)
-	if diff.Compare(*e1, *e2) {
-		t.Errorf("Expected loaded environments to be equal, yet diff is: %s", diff.Changes())
+	/* Uncomment this if you want to debug the YAML marshaling
+	cfgYAMLEnvToCompare, err := yaml.Marshal(&envToCompare)
+	if err != nil {
+		t.Fatalf("Unexpected err: %s", err.Error())
+	}
+	t.Errorf("envToCompare environment-myenv: %s", string(cfgYAMLEnvToCompare))
+
+	cfgYAMLEnvFromConfigFile, err := yaml.Marshal(&envFromConfigFile)
+	if err != nil {
+		t.Fatalf("Unexpected err: %s", err.Error())
+	}
+	t.Errorf("envFromConfigFile myenv: %s", string(cfgYAMLEnvFromConfigFile))
+	*/
+
+	// There shouldn't be changes b/t runningCluster + envToCompare
+	// (they will be synced with the apply below)
+	// current is envFromConfigFile
+	// new is envToCompare
+	runningCluster.ApplyEnvironment(envFromConfigFile, envToCompare)
+
+	// envFromConfigFile is desired config.
+	// *envToCompare is existing config
+	if diff.Compare(*envFromConfigFile, *envToCompare) {
+		t.Errorf("ApplyEnvironment: Expected loaded environments to be equal, yet diff is: %s", diff.Changes())
 	}
 
 	// environments2.bitesize removes annotated_service2 and testdb from environment2
-	// The diff between e2 and e3 should only contain the testdb change as annotated_service2 didn't have a "version" field in the source config
-	e3, err := bitesize.LoadEnvironment("../../test/assets/environments2.bitesize", "environment2")
-	if !diff.Compare(*e2, *e3) {
+	// The diff b/t envToCompare + env2ToCompare should only be the testdb change
+	// (b/c annotated_service2 doesn't have a "version" field in source config)
+	env2ToCompare, err := bitesize.LoadEnvironment(
+		"../../test/assets/environments2.bitesize", "environment2")
+
+	if !diff.Compare(*envToCompare, *env2ToCompare) {
 		fmt.Printf("%+v\n", diff.Changes())
 		t.Errorf("expected diff, got none")
 	}
@@ -101,9 +123,36 @@ func TestApplyEnvironment(t *testing.T) {
 	}
 }
 
-func TestShouldDeployOnChange(t *testing.T) {
+func TestApplyIfChanged(t *testing.T) {
 
-	log.SetLevel(log.FatalLevel)
+	client := fake.NewSimpleClientset(
+		&v1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "environment-dev",
+				Labels: map[string]string{
+					"environment": "environment2",
+				},
+			},
+		},
+	)
+	crdcli := loadTestCRDs()
+	runningCluster := Cluster{
+		Interface: client,
+		CRDClient: crdcli,
+	}
+
+	envFromConfigFile, err := bitesize.LoadEnvironment(
+		"../../test/assets/environments.bitesize", "environment2")
+
+	if err != nil {
+		t.Fatalf("Unexpected err: %s", err.Error())
+	}
+
+	// initialize running cluster
+	runningCluster.ApplyIfChanged(envFromConfigFile)
+}
+
+func TestShouldDeployOnChange(t *testing.T) {
 
 	e1, err := bitesize.LoadEnvironment("../../test/assets/environments.bitesize", "environment2")
 
@@ -386,10 +435,11 @@ func loadTestEnvironment() *fake.Clientset {
 										Value: "3",
 									},
 									{
-										Name: "test4",
+										Name: "TEST4",
 										ValueFrom: &v1.EnvVarSource{
 											SecretKeyRef: &v1.SecretKeySelector{
-												Key: "ttt",
+												LocalObjectReference: v1.LocalObjectReference{Name: "test4"},
+												Key:                  "ttt",
 											},
 										},
 									},
@@ -502,7 +552,7 @@ func testServicePorts(t *testing.T) {
 		Interface: client,
 		CRDClient: crdcli,
 	}
-	environment, err := cluster.LoadEnvironment("test")
+	environment, err := cluster.ScrapeResourcesForNamespace("test")
 	if err != nil {
 		t.Error(err)
 	}
@@ -521,7 +571,7 @@ func testFullBitesizeEnvironment(t *testing.T) {
 		Interface: client,
 		CRDClient: crdcli,
 	}
-	environment, err := cluster.LoadEnvironment("test")
+	environment, err := cluster.ScrapeResourcesForNamespace("test")
 	if err != nil {
 		t.Error(err)
 	}
@@ -559,7 +609,7 @@ func testFullBitesizeEnvironment(t *testing.T) {
 
 	secretEnvVar := svc.EnvVars[3]
 
-	if secretEnvVar.Secret != "test4" || secretEnvVar.Value != "ttt" {
+	if secretEnvVar.Secret != "TEST4" || secretEnvVar.Value != "test4/ttt" {
 		t.Errorf("Unexpected envvar[3]: %+v", secretEnvVar)
 	}
 }
@@ -588,7 +638,7 @@ func TestInitContainers(t *testing.T) {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
 
-	e2, err := cluster.LoadEnvironment("environment-dev")
+	e2, err := cluster.ScrapeResourcesForNamespace("environment-dev")
 
 	_ = cluster.ApplyEnvironment(e1, e2)
 
@@ -608,7 +658,7 @@ func TestEnvironmentAnnotations(t *testing.T) {
 		Interface: client,
 		CRDClient: crdcli,
 	}
-	environment, _ := cluster.LoadEnvironment("test")
+	environment, _ := cluster.ScrapeResourcesForNamespace("test")
 	testService := environment.Services.FindByName("test")
 
 	if testService.Annotations["existing_annotation"] != "exist" {
@@ -618,7 +668,7 @@ func TestEnvironmentAnnotations(t *testing.T) {
 	e1, _ := bitesize.LoadEnvironment("../../test/assets/annotations.bitesize", "test")
 	_ = cluster.ApplyEnvironment(e1, e1)
 
-	e2, _ := cluster.LoadEnvironment("test")
+	e2, _ := cluster.ScrapeResourcesForNamespace("test")
 	testService = e2.Services.FindByName("test")
 
 	if testService.Annotations["existing_annotation"] != "exist" {
@@ -653,7 +703,7 @@ func TestApplyNewHPA(t *testing.T) {
 
 	_ = cluster.ApplyEnvironment(e1, e1)
 
-	e2, err := cluster.LoadEnvironment("environment-dev")
+	e2, err := cluster.ScrapeResourcesForNamespace("environment-dev")
 
 	if err != nil {
 		t.Fatalf("Unexpected err: %s", err.Error())
@@ -748,7 +798,7 @@ func TestApplyExistingHPA(t *testing.T) {
 
 	_ = cluster.ApplyEnvironment(e1, e1)
 
-	e2, err := cluster.LoadEnvironment("environment-dev")
+	e2, err := cluster.ScrapeResourcesForNamespace("environment-dev")
 
 	if err != nil {
 		t.Fatalf("Unexpected err: %s", err.Error())

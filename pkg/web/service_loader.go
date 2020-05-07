@@ -34,7 +34,7 @@ func loadServiceFromCluster(name string) (bitesize.Service, error) {
 		return bitesize.Service{}, errors.New(fmt.Sprintf("Error cluster client: %s", err.Error()))
 	}
 
-	e, err := client.LoadEnvironment(config.Env.Namespace)
+	e, err := client.ScrapeResourcesForNamespace(config.Env.Namespace)
 	if err != nil {
 		return bitesize.Service{}, errors.New(fmt.Sprintf("Error getting environment: %s", err.Error()))
 	}

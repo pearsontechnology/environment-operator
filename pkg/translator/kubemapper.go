@@ -747,17 +747,13 @@ func (w *KubeMapper) Ingress() (*netwk_v1beta1.Ingress, error) {
 		"name":        w.BiteService.Name,
 	}
 
-	if w.BiteService.Ssl != "" {
-		labels["ssl"] = w.BiteService.Ssl
-	}
+	labels["ssl"] = w.BiteService.Ssl
 
 	if w.BiteService.HTTPSBackend != "" {
 		labels["httpsBackend"] = w.BiteService.HTTPSBackend
 	}
 
-	if w.BiteService.HTTPSOnly != "" {
-		labels["httpsOnly"] = w.BiteService.HTTPSOnly
-	}
+	labels["httpsOnly"] = w.BiteService.HTTPSOnly
 
 	if w.BiteService.HTTP2 != "" {
 		labels["http2"] = w.BiteService.HTTP2
