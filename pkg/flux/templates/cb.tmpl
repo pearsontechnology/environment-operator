@@ -8,20 +8,42 @@ metadata:
     fluxcd.io/automated: "false"
 spec:
   chart:
-    repository: github.com/pearsontechnology/onestack
-    path: charts/couchbase
+    git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
+    path: cb
     ref: master
   {{- with .Service.Options }}
-  values:
+  options:
+    {{- if .data_size }}
     data_size: {{ .data_size }}
+    {{- end }}
+    {{- if .high_perf }}
     high_perf: {{ .high_perf }}
+    {{- end }}
+    {{- if .index_data_size }}
     index_data_size: {{ .index_data_size }}
+    {{- end }}
+    {{- if .index_instance_type }}
     index_instance_type: {{ .index_instance_type }}
+    {{- end }}
+    {{- if .index_node_count }}
     index_node_count: {{ .index_node_count }}
+    {{- end }}
+    {{- if .instance_type }}
     instance_type: {{ .instance_type }}
+    {{- end }}
+    {{- if .node_count }}
     node_count: {{ .node_count }}
+    {{- end }}
+    {{- if .query_data_size }}
     query_data_size: {{ .query_data_size }}
+    {{- end }}
+    {{- if .query_instance_type }}
     query_instance_type: {{ .query_instance_type }}
+    {{- end }}
+    {{- if .query_node_count }}
     query_node_count: {{ .query_node_count }}
+    {{- end }}
+    {{- if .use_mds }}
     use_mds: {{ .use_mds }}
+    {{- end }}
   {{- end }}
