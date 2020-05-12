@@ -8,14 +8,27 @@ metadata:
     fluxcd.io/automated: "false"
 spec:
   chart:
-    repository: github.com/pearsontechnology/onestack
-    path: charts/postgresql
+    git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
+    path: postgres
     ref: master
   {{- with .Service.Options }}
-  values:
+  options:
+    {{- if .version }}
     version: {{ .version }}
+    {{- end }}
+    {{- if .replicas }}
     replicas: {{ .replicas }}
+    {{- end }}
+    {{- if .multiaz }}
     multiaz: {{ .multiaz }}
+    {{- end }}
+    {{- if .dbinstanceclass }}
     dbinstanceclass: {{ .dbinstanceclass }}
+    {{- end }}
+    {{- if .allocatedstorage }}
     allocatedstorage: {{ .allocatedstorage }}
+    {{- end }}
+    {{- if .iops }}
+    iops: {{ .iops }}
+    {{- end }}
   {{- end }}
