@@ -56,6 +56,10 @@ spec:
         value: {{ .Value}}
       {{- end }}
       {{- end }}
+    {{- if .Service.Deployment.Method }}
+    deployment:
+      method: {{ .Service.Deployment.Method }}
+    {{- end }}
     {{- if .Service.ExternalURL }}
     ingress:
       enabled: true
@@ -147,5 +151,5 @@ spec:
       {{- end }}
     {{- end }}
     {{- end }}
-  valueFileSecrets:
+    valueFileSecrets:
     - name: "{{ .Service.Name }}-values"
