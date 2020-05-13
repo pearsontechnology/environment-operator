@@ -8,17 +8,24 @@ metadata:
     fluxcd.io/automated: "false"
 spec:
   chart:
-    repository: http://storage.googleapis.com/kubernetes-charts-incubator
+    git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
     name: zookeeper
-    release: 1.2.2
+    ref: master
   {{- with .Service.Options }}
-  values:
+  options:
+    {{- if .replicas }}
     replicas: {{ .replicas }}
-    resources:
-      limits:
-        cpu: {{ .resources_limits_cpu }}
-        memory: {{ .resources_limits_memory }}
-      requests:
-        cpu: {{ .resources_requests_cpu }}
-        memory: {{ .resources_requests_memory }}
+    {{- end }}
+    {{- if .resources_limits_cpu }}
+    resources_limits_cpu: {{ .resources_limits_cpu }}
+    {{- end }}
+    {{- if .resources_limits_memory }}
+    resources_limits_memory: {{ .resources_limits_memory }}
+    {{- end }}
+    {{- if .resources_requests_cpu }}
+    resources_requests_cpu: {{ .resources_requests_cpu }}
+    {{- end }}
+    {{- if .resources_requests_memory }}
+    resources_requests_memory: {{ .resources_requests_memory }}
+    {{- end }}
   {{- end }}
