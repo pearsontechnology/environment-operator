@@ -8,8 +8,15 @@ metadata:
     fluxcd.io/automated: "false"
 spec:
   chart:
-    repository: github.com/pearsontechnology/onestack
-    path: charts/sqs
+    git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
+    path: sqs
     ref: master
-  values:
-    instance_type: {{ .Service.Options.instance_type }}
+  {{- with .Service.Options }}
+  options:
+    {{- if .instance_type }}
+    instance_type: {{ .instance_type }}
+    {{- end }}
+    {{- if .region }}
+    region: {{ .region }}
+    {{- end }}
+  {{- end }}
