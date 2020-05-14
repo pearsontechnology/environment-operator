@@ -8,8 +8,31 @@ metadata:
     fluxcd.io/automated: "false"
 spec:
   chart:
-    repository: github.com/pearsontechnology/onestack
-    path: charts/docdb
+    git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
+    path: docdb
     ref: master
-  values:
-    instance_type: {{ .Service.Options.instance_type }}
+  {{- with .Service.Options }}
+  options:
+    {{- if .ApplyImmediately }}
+    ApplyImmediately: {{ .ApplyImmediately }}
+    {{- end }}
+    {{- if .EnableIAMDatabaseAuthentication }}
+    EnableIAMDatabaseAuthentication: {{ .EnableIAMDatabaseAuthentication }}
+    {{- end }}
+    {{- if .EnableCloudwatchLogsExports }}
+    EnableCloudwatchLogsExports: 
+      {{- range .EnableCloudwatchLogsExports }}
+      - {{ . }}
+      {{- end }}
+    {{- end }}
+    {{- if .DBClusterParameterGroupName }}
+    DBClusterParameterGroupName: {{ .DBClusterParameterGroupName }}
+    {{- end }}
+    {{- if .db_instances }}
+    db_instances: 
+    {{- range .db_instances }}
+     - db_name: {{ .db_name }}
+       db_instance_class: {{ .db_instance_class }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
