@@ -1,0 +1,37 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: {{ .Environment.Namespace }}-{{ .Service.Name }}
+  namespace: {{ .Environment.Namespace }}
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  chart:
+    git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
+    path: msk
+    ref: master
+  {{- with .Service.Options }}
+  options:
+    {{- if .instance_type }}
+    instance_type: {{ .instance_type }}
+    {{- end }}
+    {{- if .broker_count }}
+    broker_count: {{ .broker_count }}
+    {{- end }}
+    {{- if .volume_size_gb }}
+    volume_size_gb: {{ .volume_size_gb }}
+    {{- end }}
+    {{- if .kafka_version }}
+    kafka_version: {{ .kafka_version }}
+    {{- end }}
+    {{- if .monitoring_level }}
+    monitoring_level: {{ .monitoring_level }}
+    {{- end }}
+    {{- if .configuration_info }}
+    configuration_info: |-
+    {{- with .configuration_info }}
+      {{ . }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
