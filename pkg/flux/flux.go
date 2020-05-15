@@ -3,6 +3,7 @@ package flux
 import (
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/gobuffalo/packr/v2"
+        "github.com/Masterminds/sprig"
 	"fmt"
 	"bytes"
 	"text/template"
@@ -45,7 +46,7 @@ func RenderHelmRelease(env bitesize.Environment, svc bitesize.Service, registryP
 		return "", fmt.Errorf("No template available for type \"%s\": %s", svc.Type, err.Error())
 	}
 
-	t := template.New("T")
+	t := template.New("T").Funcs(sprig.TxtFuncMap())
 	tmpl, err := t.Parse(templateText)
 	if err != nil {
 		return "", fmt.Errorf("Error opening file \"%s\": %s", templateFile, err.Error())
