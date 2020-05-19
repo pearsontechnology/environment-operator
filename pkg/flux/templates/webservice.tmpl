@@ -30,10 +30,6 @@ spec:
         {{- if .Service.Requests.Memory }}
         memory: {{ .Service.Requests.Memory }}
         {{- end }}
-    annotations:
-      {{- range $k, $v := .Service.Annotations }}
-      {{ $k }}: {{ $v }}
-      {{- end }}
     image:
       repository: {{ .Registry }}/{{ .Service.Name }}
       tag: latest
@@ -56,9 +52,16 @@ spec:
         value: {{ .Value}}
       {{- end }}
       {{- end }}
-    {{- if .Service.Deployment.Method }}
+    {{- $deployMethod := default "rolling-upgrade" .Service.Deployment.Method . -}} 
+    {{- if $deployMethod }}
     deployment:
-      method: {{ .Service.Deployment.Method }}
+      method: {{ $deployMethod }}
+      {{- if .Service.Annotations }}
+      annotations:
+      {{- range $k, $v := .Service.Annotations }}
+        {{ $k }}: {{ $v }}
+      {{- end }}
+      {{- end }}
     {{- end }}
     {{- if .Service.ExternalURL }}
     ingress:
