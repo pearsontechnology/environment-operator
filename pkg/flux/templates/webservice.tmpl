@@ -33,7 +33,23 @@ spec:
     image:
       repository: {{ .Registry }}/{{ .Service.Name }}
       tag: latest
-    env:
+    {{- if .Service.Ports }}
+    service:
+      {{- if .Service.Annotations }}
+      annotations:
+      {{- range $k, $v := .Service.Annotations }}
+        {{ $k }}: {{ $v }}
+      {{- end }}
+      {{- end }}
+      type: ClusterIP
+      portDiscovery: true
+      ports:
+      {{- range .Service.Ports }}
+      - port: {{ . }}
+        internalPort: {{ . }}
+      {{- end }}
+    {{- end }}
+    extraEnvs:
       {{- range .Service.EnvVars }}
       {{- if .PodField }}
       - name: {{ .Name }}
@@ -154,5 +170,3 @@ spec:
       {{- end }}
     {{- end }}
     {{- end }}
-    valueFileSecrets:
-    - name: "{{ .Service.Name }}-values"
