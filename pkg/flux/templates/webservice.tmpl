@@ -38,7 +38,7 @@ spec:
       {{- if .Service.Annotations }}
       annotations:
       {{- range $k, $v := .Service.Annotations }}
-        {{ $k }}: {{ $v }}
+        {{ $k }}: {{ $v | quote }}
       {{- end }}
       {{- end }}
       type: ClusterIP
@@ -49,14 +49,14 @@ spec:
         internalPort: {{ . }}
       {{- end }}
     {{- end }}
-    extraEnvs:
+    extraEnv:
       {{- range .Service.EnvVars }}
       {{- if .PodField }}
       - name: {{ .Name }}
         valueFrom:
-        fieldRef:
-          apiVersion: v1
-          fieldPath: {{ .PodField }}
+          fieldRef:
+            apiVersion: v1
+            fieldPath: {{ .PodField }}
       {{- else if .Secret }}
       - name: {{ .Secret }}
         valueFrom:
@@ -75,7 +75,7 @@ spec:
       {{- if .Service.Annotations }}
       annotations:
       {{- range $k, $v := .Service.Annotations }}
-        {{ $k }}: {{ $v }}
+        {{ $k }}: {{ $v | quote }}
       {{- end }}
       {{- end }}
     {{- end }}
