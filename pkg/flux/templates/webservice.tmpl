@@ -49,7 +49,7 @@ spec:
         internalPort: {{ . }}
       {{- end }}
     {{- end }}
-    extraEnv:
+    extraEnvs:
       {{- range .Service.EnvVars }}
       {{- if .PodField }}
       - name: {{ .Name }}
