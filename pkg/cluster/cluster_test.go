@@ -86,13 +86,13 @@ func TestApplyEnvironment(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
-	t.Errorf("envToCompare environment-myenv: %s", string(cfgYAMLEnvToCompare))
+	t.Errorf("envToCompare environment-dev: %s", string(cfgYAMLEnvToCompare))
 
 	cfgYAMLEnvFromConfigFile, err := yaml.Marshal(&envFromConfigFile)
 	if err != nil {
 		t.Fatalf("Unexpected err: %s", err.Error())
 	}
-	t.Errorf("envFromConfigFile myenv: %s", string(cfgYAMLEnvFromConfigFile))
+	t.Errorf("envFromConfigFile environment2: %s", string(cfgYAMLEnvFromConfigFile))
 	*/
 
 	// There shouldn't be changes b/t runningCluster + envToCompare
