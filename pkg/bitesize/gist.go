@@ -8,7 +8,7 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/util"
 	v1batch "k8s.io/api/batch/v1"
 	"k8s.io/api/batch/v1beta1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	k8Yaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 
@@ -19,6 +19,8 @@ const (
 	TypeJob string = "job"
 	// TypeCronJob k8s cronjob type
 	TypeCronJob string = "cronjob"
+	// TypeSecret k8s secret type
+	TypeSecret string = "secret"
 )
 
 // Gist represent a resource
@@ -30,6 +32,7 @@ type Gist struct {
 	ConfigMap v1.ConfigMap    `yaml:"-"`
 	Job       v1batch.Job     `yaml:"-"`
 	CronJob   v1beta1.CronJob `yaml:"-"`
+	Secret    v1.Secret       `yaml:"-"`
 }
 
 // GistsRepository contains the repository info all the imports per env

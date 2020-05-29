@@ -262,6 +262,14 @@
   version = "v0.9.1"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  pruneopts = "UT"
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:d14a5f4bfecf017cb780bdde1b6483e5deb87e12c332544d2c430eda58734bcb"
   name = "github.com/prometheus/client_golang"
   packages = [
@@ -324,6 +332,14 @@
   pruneopts = "UT"
   revision = "1ac3a1ac202429a54835fe8408a92880156b489d"
   version = "v1.4.0"
+
+[[projects]]
+  digest = "1:5e8f46b412421d2d6cceea845d28ac46f3f5a5f60a6e86f0ee75e24fd43a02a9"
+  name = "github.com/stretchr/testify"
+  packages = ["assert"]
+  pruneopts = "UT"
+  revision = "3ebf1ddaeb260c4b1ae502a01c7844fa8c1fa0e9"
+  version = "v1.5.1"
 
 [[projects]]
   digest = "1:172f94a6b3644a8f9e6b5e5b7fc9fe1e42d424f52a0300b2e7ab1e57db73f85d"
@@ -787,6 +803,7 @@
     "github.com/kylelemons/godebug/pretty",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/prometheus/client_golang/prometheus/promhttp",
+    "github.com/stretchr/testify/assert",
     "golang.org/x/crypto/ssh",
     "gopkg.in/src-d/go-git.v4",
     "gopkg.in/src-d/go-git.v4/config",
@@ -798,13 +815,11 @@
     "gopkg.in/validator.v2",
     "gopkg.in/yaml.v2",
     "k8s.io/api/apps/v1",
-    "k8s.io/api/apps/v1beta1",
     "k8s.io/api/apps/v1beta2",
     "k8s.io/api/autoscaling/v2beta2",
     "k8s.io/api/batch/v1",
     "k8s.io/api/batch/v1beta1",
     "k8s.io/api/core/v1",
-    "k8s.io/api/extensions/v1beta1",
     "k8s.io/api/networking/v1beta1",
     "k8s.io/apimachinery/pkg/api/resource",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
