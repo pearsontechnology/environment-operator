@@ -23,7 +23,7 @@ type Service struct {
 	Backend           string                        `yaml:"backend"`
 	BackendPort       int                           `yaml:"backend_port"`
 	Ports             []int                         `yaml:"-"` // Ports have custom unmarshaler
-	Ssl               string                        `yaml:"ssl,omitempty" validate:"regexp=^(true|false)*$"`
+	Ssl               string                        `yaml:"ssl" validate:"regexp=^(true|false)*$"`
 	Version           string                        `yaml:"version,omitempty"`
 	Application       string                        `yaml:"application,omitempty"`
 	Replicas          int                           `yaml:"replicas,omitempty"`
@@ -41,10 +41,10 @@ type Service struct {
 	Volumes           []Volume                      `yaml:"volumes,omitempty"`
 	Options           map[string]interface{}        `yaml:"-"` // Options have custom unmarshaler
 	HTTP2             string                        `yaml:"http2,omitempty" validate:"regexp=^(true|false)*$"`
-	HTTPSOnly         string                        `yaml:"httpsOnly,omitempty" validate:"regexp=^(true|false)*$"`
+	HTTPSOnly         string                        `yaml:"httpsOnly" validate:"regexp=^(true|false)*$"`
 	HTTPSBackend      string                        `yaml:"httpsBackend,omitempty" validate:"regexp=^(true|false)*$"`
 	Type              string                        `yaml:"type,omitempty"`
-	Status            ServiceStatus                 `yaml:"status,omitempty"`
+	Status            ServiceStatus                 `yaml:"status"`
 	DatabaseType      string                        `yaml:"database_type,omitempty" validate:"regexp=^(mongo)*$"`
 	GracePeriod       *int64                        `yaml:"graceperiod,omitempty"`
 	ResourceVersion   string                        `yaml:"resourceVersion,omitempty"`
@@ -93,6 +93,7 @@ type Port struct {
 type Services []Service
 
 // ServiceWithDefaults returns new *Service object with default values set
+// default values should match those in bitesize.AddDeployment
 func ServiceWithDefaults() *Service {
 	return &Service{
 		Ports:    []int{80},
@@ -106,10 +107,12 @@ func ServiceWithDefaults() *Service {
 		},
 		Deployment:  &DeploymentSettings{},
 		ExternalURL: []string{},
+		Ssl:         "false",
+		HTTPSOnly:   "false",
 	}
 }
 
-// UnmarshalYAML implements the yaml.Unmarshaler interface for BitesizeService.
+// UnmarshalYAML converts Service yaml to *bitesize.Service
 func (e *Service) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var err error
 	ee := ServiceWithDefaults()
@@ -144,11 +147,9 @@ func (e *Service) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	e.Annotations = annotations
 	e.ExternalURL = externalURL
 	e.Options = unmarshalOptions
-
 	if e.Type != "" {
 		e.Ports = nil
 	}
-
 	// annotation := Annotation{Name: "Name", Value: e.Name}
 	// e.Annotations = append(e.Annotations, annotation)
 

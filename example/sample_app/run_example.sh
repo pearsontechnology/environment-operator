@@ -31,16 +31,16 @@ sleep 5
 
 echo
 echo "Deploying Back End Application"
-curl -k -s -XPOST -H "Authentication: Bearer $( cat token )" -H 'Content-Type: application/json' -d '{"application":"sample-app-back", "name":"back", "version":"latest"}'  $svcip/deploy
+curl -k -s -XPOST -H "Authorization: Bearer $( cat token )" -H 'Content-Type: application/json' -d '{"application":"sample-app-back", "name":"back", "version":"latest"}'  $svcip/deploy
 
 sleep 3
 
-backstatus=$(curl -k -s -XGET -H "Authentication: Bearer $( cat token )" -H 'Content-Type: application/json' $svcip/status | jq -r '.services[] | select(.name=="back") | .status')
+backstatus=$(curl -k -s -XGET -H "Authorization: Bearer $( cat token )" -H 'Content-Type: application/json' $svcip/status | jq -r '.services[] | select(.name=="back") | .status')
 
 while [ "$backstatus" != "green" ]; do
     echo "Waiting for backend deployment to enter running state before deploying front end app"
     sleep 5
-    backstatus=$(curl -k -s -XGET -H "Authentication: Bearer $( cat token )" -H 'Content-Type: application/json' $svcip/status | jq -r '.services[] | select(.name=="back") | .status')
+    backstatus=$(curl -k -s -XGET -H "Authorization: Bearer $( cat token )" -H 'Content-Type: application/json' $svcip/status | jq -r '.services[] | select(.name=="back") | .status')
 done
 
 ###################################
@@ -49,16 +49,16 @@ done
 
 echo
 echo "Deploying Front End Application"
-curl -k -s -XPOST -H "Authentication: Bearer $( cat token )" -H 'Content-Type: application/json' -d '{"application":"sample-app-front", "name":"front", "version":"latest"}'  $svcip/deploy
+curl -k -s -XPOST -H "Authorization: Bearer $( cat token )" -H 'Content-Type: application/json' -d '{"application":"sample-app-front", "name":"front", "version":"latest"}'  $svcip/deploy
 
 sleep 3
 
-frontstatus=$(curl -k -s -XGET -H "Authentication: Bearer $( cat token )" -H 'Content-Type: application/json' $svcip/status | jq -r '.services[] | select(.name=="front") | .status')
+frontstatus=$(curl -k -s -XGET -H "Authorization: Bearer $( cat token )" -H 'Content-Type: application/json' $svcip/status | jq -r '.services[] | select(.name=="front") | .status')
 
 while [ "$frontstatus" != "green" ]; do
     echo "Waiting for frontend deployment to enter running state before retrieving deploy status from environment operator"
     sleep 5
-    frontstatus=$(curl -k -s -XGET -H "Authentication: Bearer $( cat token )" -H 'Content-Type: application/json' $svcip/status | jq -r '.services[] | select(.name=="front") | .status')
+    frontstatus=$(curl -k -s -XGET -H "Authorization: Bearer $( cat token )" -H 'Content-Type: application/json' $svcip/status | jq -r '.services[] | select(.name=="front") | .status')
 done
 
 ###################################
@@ -67,7 +67,7 @@ done
 
 echo
 echo "Environment Operator Deployment status:"
-curl -k -XGET -H "Authentication: Bearer $( cat token )" -H 'Content-Type: application/json' $svcip/status
+curl -k -XGET -H "Authorization: Bearer $( cat token )" -H 'Content-Type: application/json' $svcip/status
 
 echo
 echo "Deployed pods in sample-app Namespace:"

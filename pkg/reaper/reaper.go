@@ -25,7 +25,7 @@ func (r *Reaper) Cleanup(cfg *bitesize.Environment) error {
 		return errors.New("REAPER: error with bitesize file, configuration is nil")
 	}
 
-	current, err := r.Wrapper.LoadEnvironment(r.Namespace)
+	current, err := r.Wrapper.ScrapeResourcesForNamespace(r.Namespace)
 	if err != nil {
 		return fmt.Errorf("REAPER: error loading environment: %s", err.Error())
 	}

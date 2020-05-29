@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
@@ -19,18 +20,30 @@ func envVars(deployment apps_v1.Deployment) []bitesize.EnvVar {
 		}
 
 		if e.ValueFrom != nil && e.ValueFrom.SecretKeyRef != nil {
+			// Secret
 			v = bitesize.EnvVar{
-				Value:  e.ValueFrom.SecretKeyRef.Key,
+				Value: fmt.Sprintf("%s/%s",
+					e.ValueFrom.SecretKeyRef.Name,
+					e.ValueFrom.SecretKeyRef.Key),
 				Secret: e.Name,
 			}
+		} else if e.ValueFrom != nil && e.ValueFrom.FieldRef != nil {
+			// FieldRef
+			v = bitesize.EnvVar{
+				PodField: e.ValueFrom.FieldRef.FieldPath,
+				Name:     e.Name,
+			}
 		} else {
+			// String Value
 			v = bitesize.EnvVar{
 				Name:  e.Name,
 				Value: e.Value,
 			}
 		}
+
 		retval = append(retval, v)
 	}
+
 	return retval
 }
 
@@ -190,7 +203,29 @@ func volumes(deployment apps_v1.Deployment) []bitesize.Volume {
 				})
 			}
 			volumes = append(volumes, vol)
+		} else if v.VolumeSource.Secret != nil {
+			vol := bitesize.Volume{
+				Name:  v.Name,
+				Type:  bitesize.TypeSecret,
+				Modes: "ReadWriteOnce",
+			}
+			// find the mount path for the volume
+			for _, mount := range volumeMounts {
+				if mount.Name == v.Name {
+					vol.Path = mount.MountPath
+				}
+			}
+			// generate items if any
+			for _, it := range v.Secret.Items {
+				vol.Items = append(vol.Items, bitesize.KeyToPath{
+					Key:  it.Key,
+					Path: it.Path,
+					Mode: it.Mode,
+				})
+			}
+			volumes = append(volumes, vol)
 		}
+
 	}
 	return volumes
 }

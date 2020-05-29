@@ -13,7 +13,7 @@ You can use `curl` to perform deployments to your environment manually. All you 
 
 ```
 $ curl -k -XPOST \
-       -H "Authentication: Bearer ${auth_token}" \
+       -H "Authorization: Bearer ${auth_token}" \
        -H 'Content-Type: application/json' \
        -d '{"application":"myapp", "name":"myapp", "version":"1.0.0"}' \
        https://${deployment_endpoint}/deploy
@@ -30,7 +30,7 @@ To verify if your deployment is complete and running healthy, you can perform GE
 
 ```
 $ curl -k -XGET \
-       -H "Authentication: Bearer ${auth_token}" \
+       -H "Authorization: Bearer ${auth_token}" \
        -H "Content-Type: application/json" \
        https://${deployment_endpoint}/status
 ```
@@ -41,7 +41,7 @@ The status endpoint also provides the ability to retrieve status for each pod th
 
 ```
 $ curl -k -XGET \
-       -H "Authentication: Bearer ${auth_token}" \
+       -H "Authorization: Bearer ${auth_token}" \
        -H "Content-Type: application/json" \
        https://${deployment_endpoint}/status/${service}/pods
 ```
@@ -80,7 +80,7 @@ Running the following command will return all pods associated with the "front" d
 
 ```
 $ curl -k -XGET \
-       -H "Authentication: Bearer ${auth_token}" \
+       -H "Authorization: Bearer ${auth_token}" \
        -H "Content-Type: application/json" \
        https://${deployment_endpoint}/status/front/pods
 ```
@@ -88,7 +88,7 @@ $ curl -k -XGET \
 Likewise, the following command will return all pods associated with the "back" deployment service
 ```
 $ curl -k -XGET \
-       -H "Authentication: Bearer ${auth_token}" \
+       -H "Authorization: Bearer ${auth_token}" \
        -H "Content-Type: application/json" \
        https://${deployment_endpoint}/status/back/pods
 

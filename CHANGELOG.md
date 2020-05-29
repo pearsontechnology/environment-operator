@@ -9,7 +9,15 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
-### **[1.4.0] [UNRELEASED]**
+### **[1.4.1] [UNRELEASED]**
+ #### Changed
+  * Volumes are sorted before comparing desired and existing state
+  * Environment variables from secrets compare properly without the key specified
+  * Volumes from secrets are used in comparing desired vs. existing state
+  * Added trace logging output
+  * Fixed documentation examples for curl
+
+### **[1.4.0] [RELEASED]**
  #### Added
   * Add Aurora CRD support
 

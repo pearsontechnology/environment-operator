@@ -76,6 +76,18 @@ environments:
     requests:
       cpu: 500m
       memory: 100Mi
+    volumes:
+      - name: ca-internal
+        path: /opt/ssl
+        type: secret
+      - name: efs-pv-assignment
+        path: /data/assignment
+        modes: ReadWriteMany
+        size: 10G
+        type: EFS
+      - name: msk-msk
+        path: /opt/ssl/kafkakeystore
+        type: secret
 - name: environment3
   namespace: environment-dev
   services:

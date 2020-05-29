@@ -126,10 +126,10 @@ type TCPSocketAction struct {
 
 // EnvVar represents environment variables in pod
 type EnvVar struct {
-	Name     string `yaml:"name"`
-	Value    string `yaml:"value"`
-	Secret   string `yaml:"secret"`
-	PodField string `yaml:"pod_field"`
+	Name     string `yaml:"name,omitempty"`
+	Value    string `yaml:"value,omitempty"`
+	Secret   string `yaml:"secret,omitempty"`
+	PodField string `yaml:"pod_field,omitempty"`
 }
 
 // Pod represents Pod in Kubernetes

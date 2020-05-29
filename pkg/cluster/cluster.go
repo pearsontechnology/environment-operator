@@ -11,6 +11,7 @@ import (
 	"github.com/pearsontechnology/environment-operator/pkg/diff"
 	"github.com/pearsontechnology/environment-operator/pkg/k8_extensions"
 	"github.com/pearsontechnology/environment-operator/pkg/translator"
+	"github.com/pearsontechnology/environment-operator/pkg/util"
 	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes"
@@ -45,14 +46,16 @@ func (cluster *Cluster) ApplyIfChanged(newConfig *bitesize.Environment) error {
 		return errors.New("could not compare against config (nil)")
 	}
 
-	log.Debugf("loading namespaces: %s", newConfig.Namespace)
-	currentConfig, err := cluster.LoadEnvironment(newConfig.Namespace)
-
+	log.Debugf("loading namespace: %s", newConfig.Namespace)
+	currentConfig, err := cluster.ScrapeResourcesForNamespace(newConfig.Namespace)
+	util.LogTraceAsYaml("ApplyIfChanged ScrapeResourcesForNamespace", currentConfig)
 	if err != nil {
 		log.Errorf("error while loading environment: %s", err.Error())
 		return err
 	}
 	if diff.Compare(*newConfig, *currentConfig) {
+		util.LogTraceAsYaml("ApplyIfChanged newConfig", newConfig)
+		util.LogTraceAsYaml("ApplyIfChanged currentConfig", currentConfig)
 		err = cluster.ApplyEnvironment(currentConfig, newConfig)
 	}
 
@@ -122,8 +125,23 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, gists *bitesize.
 		CRDClient: cluster.CRDClient,
 	}
 
+	// if no type specified, deploy:
+	//  - PersistentVolumeClaims()
+	//  - ConfigMaps()
+	//  - Deployment()
+	//  - Service()
+	//  - HPA()
+	//
+	// if ExternalURL is set, also deploy:
+	//  - Ingress()
+	//  - if ExternalSecretsEnabled
+	//     - ExternalSecrets
+	//  - If Istio enabled:
+	//     - ExternalSecret
+	//     - Gateway
+	//     - VirtualService
 	if service.Type == "" {
-		log.Debugf("applying pvcs for service %s ", service.Name)
+		log.Debugf("applying pvcs for service %s", service.Name)
 		pvc, _ := mapper.PersistentVolumeClaims()
 		for _, claim := range pvc {
 			log.Debugf("pvc: %s", claim.Name)
@@ -132,7 +150,7 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, gists *bitesize.
 			}
 		}
 
-		log.Debugf("applying configmaps for service %s ", service.Name)
+		log.Debugf("applying configmaps for service %s", service.Name)
 		cMaps, _ := mapper.ConfigMaps()
 		for _, c := range cMaps {
 			log.Debugf("configmap: %s", c.Name)
@@ -210,7 +228,7 @@ func (cluster *Cluster) ApplyService(service *bitesize.Service, gists *bitesize.
 				}
 			}
 		}
-
+		// Deploy CRD resource
 	} else {
 		crd, _ := mapper.CustomResourceDefinition()
 
@@ -265,8 +283,8 @@ func (cluster *Cluster) LoadPods(namespace string) ([]bitesize.Pod, error) {
 	return deployedPods, err
 }
 
-// LoadEnvironment returns BitesizeEnvironment object loaded from Kubernetes API
-func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment, error) {
+// ScrapeResourcesForNamespace returns BitesizeEnvironment object loaded from Kubernetes API
+func (cluster *Cluster) ScrapeResourcesForNamespace(namespace string) (*bitesize.Environment, error) {
 	serviceMap := make(ServiceMap)
 
 	client := &k8s.Client{
@@ -330,7 +348,7 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 			})
 
 			if err != nil {
-				log.Fatalf("Error creating kubernetes client: %s", err.Error())
+				log.Fatalf("Could not connect to Kubernetes: %s", err.Error())
 			}
 		}
 
@@ -360,9 +378,11 @@ func (cluster *Cluster) LoadEnvironment(namespace string) (*bitesize.Environment
 	return &bitesizeConfig, nil
 }
 
-// Only deploy k8s resources when the environment was actually deployed and changed or if the service has specified a version
+// Only deploy k8s resources when the environment was actually deployed and
+// changed or if the service has specified a version
 func shouldDeployOnChange(currentEnvironment, newEnvironment *bitesize.Environment, serviceName string) bool {
 	if !diff.ServiceChanged(serviceName) {
+		log.Tracef("Service %s did not change", serviceName)
 		return false
 	}
 
@@ -370,6 +390,7 @@ func shouldDeployOnChange(currentEnvironment, newEnvironment *bitesize.Environme
 	updatedService := newEnvironment.Services.FindByName(serviceName)
 
 	if updatedService == nil {
+		log.Tracef("No service defined in config")
 		return true
 	}
 
@@ -379,10 +400,12 @@ func shouldDeployOnChange(currentEnvironment, newEnvironment *bitesize.Environme
 	}
 
 	if currentService != nil && currentService.Status.DeployedAt != "" {
+		log.Tracef("Detected existing deployment")
 		return true
 	}
 
 	if updatedService.Version != "" {
+		log.Tracef("Service has specified a version")
 		return true
 	}
 	return false

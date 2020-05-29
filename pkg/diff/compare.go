@@ -7,6 +7,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/kylelemons/godebug/pretty"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
+	"github.com/pearsontechnology/environment-operator/pkg/util"
 	"github.com/pearsontechnology/environment-operator/pkg/util/k8s"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
@@ -14,8 +15,9 @@ import (
 // Compare creates a changeMap for the diff between environment configs and returns a boolean if changes were detected
 func Compare(desiredCfg, existingCfg bitesize.Environment) bool {
 	newChangeMap()
-	log.Tracef("existingCfg: %#v", existingCfg)
-	log.Tracef("desiredCfg: %#v", desiredCfg)
+
+	util.LogTraceAsYaml("Desired Environment Config", desiredCfg)
+	util.LogTraceAsYaml("Existing Environment Config", existingCfg)
 
 	// Following fields are ignored for diff purposes
 	desiredCfg.Tests = []bitesize.Test{}
@@ -32,64 +34,110 @@ func Compare(desiredCfg, existingCfg bitesize.Environment) bool {
 	}
 
 	for _, desiredCfgSvc := range desiredCfg.Services {
-		existingCfgSvc := existingCfg.Services.FindByName(desiredCfgSvc.Name)
-		log.Tracef("existingCfgSvc: %#v", existingCfgSvc)
+		util.LogTraceAsYaml("Desired Service Config", desiredCfgSvc)
+		serviceName := desiredCfgSvc.Name
+		log.Debugf("Checking desired configuration against running service %s", serviceName)
 
-		// Force changes for blue green "parent" service
-		if existingCfgSvc == nil && desiredCfgSvc.IsBlueGreenParentDeployment() {
-			addServiceChange(desiredCfgSvc.Name, fmt.Sprintf("Name: +%s", desiredCfgSvc.Name))
+		// retrieve existing deployed configuration
+		existingCfgSvc := existingCfg.Services.FindByName(serviceName)
+		// existingCfgSvc.Status = bitesize.ServiceStatus{} // don't compare service status
+		util.LogTraceAsYaml("Existing Service Config", existingCfgSvc)
+
+		cfgDiff := compareConfig.Compare(existingCfgSvc, desiredCfgSvc)
+
+		if cfgDiff == "" {
+			log.Debugf("No changes detected for service %s", serviceName)
+		} else {
+			log.Debugf("Detected changes for service %s. Difference in config: %s",
+				serviceName, cfgDiff)
 		}
 
-		// Ignore changes for active blue green deployment
+		// no existing deployed config; blue/green parent deployment
+		if existingCfgSvc == nil && desiredCfgSvc.IsBlueGreenParentDeployment() {
+			log.Debugf("Forcing change for blue/green \"parent\" service")
+			// add the Name field to the parent service
+			addServiceChange(serviceName, fmt.Sprintf("Name: +%s", serviceName))
+		}
+
 		if desiredCfgSvc.IsActiveBlueGreenDeployment() {
+			log.Debugf("Ignore changes for active blue/green deployment")
 			continue
 		}
 
 		if desiredCfgSvc.IsBlueGreenParentDeployment() {
+			log.Debugf("Desire a B/G Parent deployment")
 			if existingCfgSvc == nil {
-				addServiceChange(desiredCfgSvc.Name, compareConfig.Compare(nil, desiredCfgSvc))
+				log.Debugf("Applying changes for blue/green \"parent\" service")
+				generatedConfig := compareConfig.Compare(nil, desiredCfgSvc)
+				addServiceChange(serviceName, generatedConfig)
 				continue
 			}
 
+			// Compare externalURLs
 			if serviceDiff := compareConfig.Compare(existingCfgSvc.ExternalURL, desiredCfgSvc.ExternalURL); serviceDiff != "" {
-				log.Debugf("change detected for blue/green service %s", desiredCfgSvc.Name)
-				log.Tracef("changes: %v", serviceDiff)
-				addServiceChange(desiredCfgSvc.Name, serviceDiff)
+				log.Debugf("change detected for blue/green service ExternalURL %s", serviceName)
+				util.LogTraceAsYaml("Service Config Change of ExternalURL", serviceDiff)
+				addServiceChange(serviceName, serviceDiff)
 				continue
 			}
 
+			// Compare ActiveDeploymentName()
 			if serviceDiff := compareConfig.Compare(existingCfgSvc.ActiveDeploymentName(), desiredCfgSvc.ActiveDeploymentName()); serviceDiff != "" {
-				log.Debugf("change detected for blue/green service %s", desiredCfgSvc.Name)
-				log.Tracef("changes: %v", serviceDiff)
-				addServiceChange(desiredCfgSvc.Name, serviceDiff)
+				log.Debugf("change detected for blue/green service ActiveDeploymentName %s", serviceName)
+				util.LogTraceAsYaml("Service Config Change of ActiveDeploymentName()", serviceDiff)
+				addServiceChange(serviceName, serviceDiff)
 				continue
 			}
 		}
 
-		// compare configs only if deployment is found in cluster
-		// and git service has no version set
-		if (desiredCfgSvc.Version != "") || (existingCfgSvc != nil && existingCfgSvc.Version != "") {
+		// Changes are only applied if:
+		//  - config in git for service has version set
+		// OR
+		//  - deployed config for service has version set
+		gitConfigHasVersionSetForService := desiredCfgSvc.Version != ""
+		deployedConfigHasVersionSetForService := (existingCfgSvc != nil &&
+			existingCfgSvc.Version != "")
+
+		if gitConfigHasVersionSetForService || deployedConfigHasVersionSetForService {
+
+			// if service is already deployed
 			if existingCfgSvc != nil {
+				log.Tracef("Aligning currently-deployed service %s to desired state", serviceName)
+				existingCfgSvc.Status = bitesize.ServiceStatus{} // don't compare service status
 				alignServices(&desiredCfgSvc, existingCfgSvc)
 			}
 
+			// if changes are needed
 			if serviceDiff := compareConfig.Compare(existingCfgSvc, desiredCfgSvc); serviceDiff != "" {
-				log.Debugf("change detected for service %s", desiredCfgSvc.Name)
-				log.Debugf("changes: %v", serviceDiff)
-				addServiceChange(desiredCfgSvc.Name, serviceDiff)
+				log.Debugf("change detected for service %s", serviceName)
+				util.LogTraceAsYaml("Service Changes", serviceDiff)
+				addServiceChange(serviceName, serviceDiff)
 			}
+		} else {
+			log.Debugf("\"version\" field not set for Service %s. Skipping deployment.", serviceName)
 		}
 
-		if k8s.ExternalSecretsEnabled && desiredCfgSvc.IsTLSEnabled() && !desiredCfgSvc.ExternalSecretExist(desiredCfg.Namespace, desiredCfgSvc.Name) {
-			log.Debugf("changes detected for externalsecrets for %s", desiredCfgSvc.Name)
-			addServiceChange(desiredCfgSvc.Name, fmt.Sprintf("ExternalSecrets: +%s", desiredCfgSvc.Name))
+		if k8s.ExternalSecretsEnabled && desiredCfgSvc.IsTLSEnabled() &&
+			!desiredCfgSvc.ExternalSecretExist(desiredCfg.Namespace, serviceName) {
+			log.Debugf("changes detected for externalsecrets for %s", serviceName)
+			addServiceChange(serviceName, fmt.Sprintf("ExternalSecrets: +%s", serviceName))
 		}
 	}
-	return len(changeMap) > 0
+
+	cmCount := len(changeMap)
+	if cmCount == 0 {
+		log.Debugf("No changes detected for environment")
+	} else {
+		log.Debugf("Detected %d changes in environment", cmCount)
+
+	}
+	return cmCount > 0
 }
 
 // Can't think of a better word
 func alignServices(desiredCfg, currentCfg *bitesize.Service) {
+	util.LogTraceAsYaml("alignServices: Desired Service Config", desiredCfg)
+	util.LogTraceAsYaml("alignServices: Existing Service Config", currentCfg)
 
 	// Copy version from currentCfg if source version is empty
 	if desiredCfg.Version == "" {
