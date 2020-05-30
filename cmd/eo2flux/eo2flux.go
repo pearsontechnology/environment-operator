@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-
 	"github.com/jessevdk/go-flags"
 	"github.com/pearsontechnology/environment-operator/pkg/bitesize"
 	"github.com/pearsontechnology/environment-operator/pkg/flux"
@@ -19,9 +18,14 @@ type options struct {
 
 	// Docker Image base path
 	RegistryPath string `short:"r" long:"registry-path" description:"Docker registry path to inject in HelmRelease image: tags" default:"815492460363.dkr.ecr.us-east-1.amazonaws.com/glp2" required:"true"`
+
+	// Consul  values file to read
+	ConsulinFile string `short:"c" long:"Consule value file" description:"input consule value file"`
 }
 
 var opts options
+
+var helmReleases map[string]string
 
 var parser = flags.NewParser(&opts, flags.Default)
 
@@ -35,13 +39,24 @@ func main() {
 	}
 
 	environmentFile, err := bitesize.LoadFromFile(opts.InputFile)
+
+        if opts.ConsulinFile != "" {
+		consulFile, err := flux.ConsulRead(opts.ConsulinFile)
+	        helmReleases = flux.RenderHelmReleasesWithConsul(environmentFile, opts.RegistryPath, consulFile)
+		if err != nil {
+			panic(err)
+		}
+        }
+
 	if err != nil {
 		panic(err)
 	}
 
-	// retrieve dict of name: HelmRelease string
-	helmReleases := flux.RenderHelmReleases(environmentFile, opts.RegistryPath)
 
+	// retrieve dict of name: HelmRelease string
+        if opts.ConsulinFile == "" {
+		helmReleases = flux.RenderHelmReleases(environmentFile, opts.RegistryPath)
+	}
 	// write each HelmRelease to file
 	for envSvcName, helmrelease := range helmReleases {
 		outputFileName := fmt.Sprintf("%s/%s.yaml", opts.OutputDir, envSvcName)
