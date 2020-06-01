@@ -65,12 +65,20 @@ func RenderHelmReleasesWithConsul(envs *bitesize.EnvironmentsBitesize, regPath s
 				cv["value"] = key.Value
 			   }
 			    if  env.Namespace == cv["namespace"]  {
-					for _, v := range svc.EnvVars {
-						if v.Name == "service_name" && v.Value == cv["service"]{
-							evalue:= bitesize.EnvVar{Name: cv["key"], Value: cv["value"]}
-							svc.EnvVars = append(svc.EnvVars, evalue)
-						}
+				// for where service_name used in Consul is defined as an env variable and is different to BS service name
+				for _, v := range svc.EnvVars {
+					if v.Name == "service_name" && v.Value == cv["service"]{
+						evalue:= bitesize.EnvVar{Name: cv["key"], Value: cv["value"]}
+						svc.EnvVars = append(svc.EnvVars, evalue)
 					}
+				}
+				// for case where Consul values are defined at the top level ad key,value without any hierachy
+				if cv["service"] == "Any" {
+					evalue:= bitesize.EnvVar{Name: cv["key"], Value: cv["value"]}
+					svc.EnvVars = append(svc.EnvVars, evalue)
+				}
+
+
 			    }
 			}
 			val, err := RenderHelmRelease(env, svc, regPath)
