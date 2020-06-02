@@ -52,7 +52,7 @@ func RenderHelmReleasesWithConsul(envs *bitesize.EnvironmentsBitesize, regPath s
 
 			   for _, key := range cvalues {
 			   skey := strings.Split(key.Key,"/")
-			   if len(skey) == 2 {
+			   if len(skey) == 2 { // for only Consul key value is defined without any hierarchy
 				cv["namespace"] = skey[0]
 				cv["service"] = "Any"
 				cv["key"] = skey[1]
@@ -64,7 +64,13 @@ func RenderHelmReleasesWithConsul(envs *bitesize.EnvironmentsBitesize, regPath s
 				cv["key"] = skey[len(skey)-1]
 				cv["value"] = key.Value
 			   }
-			    if  env.Namespace == cv["namespace"]  {
+			   if len(skey) > 3 && skey[1] == "namespace" { // for GLP specific mapping
+				cv["namespace"] = skey[2]
+				cv["service"] = skey[3]
+				cv["key"] = skey[len(skey)-1]
+				cv["value"] = key.Value
+			   }
+			   if env.Namespace == cv["namespace"]  {
 				// for where service_name used in Consul is defined as an env variable and is different to BS service name
 				for _, v := range svc.EnvVars {
 					if v.Name == "service_name" && v.Value == cv["service"]{
@@ -79,7 +85,7 @@ func RenderHelmReleasesWithConsul(envs *bitesize.EnvironmentsBitesize, regPath s
 				}
 
 
-			    }
+			   }
 			}
 			val, err := RenderHelmRelease(env, svc, regPath)
 			if err != nil {

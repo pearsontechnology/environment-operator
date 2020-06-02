@@ -7,12 +7,14 @@ import (
     "io/ioutil"
 )
 
+// Struct definition for Consul export values
 type ConsulValues []struct {
 	Flags int    `json:"flags"`
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
 
+// Read and parse the Consul input file
 func ConsulRead(path string) (ConsulValues, error){
 
     // read our opened xmlFile as a byte array.
@@ -30,6 +32,7 @@ func ConsulRead(path string) (ConsulValues, error){
     // we unmarshal our byteArray 
     json.Unmarshal(contents, &cvalues)
 
+    // decode the base64 encoded values
     for i := 0; i < len(cvalues); i++ {
         enc_string := cvalues[i].Value
 	dec_string, err := base64.StdEncoding.DecodeString(enc_string)
@@ -41,6 +44,5 @@ func ConsulRead(path string) (ConsulValues, error){
     return cvalues, nil
 
 }
-
 
 

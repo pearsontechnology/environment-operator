@@ -40,6 +40,7 @@ func main() {
 
 	environmentFile, err := bitesize.LoadFromFile(opts.InputFile)
 
+	// Check whether there is any Consul export file is given as an input and load the contents
         if opts.ConsulinFile != "" {
 		consulFile, err := flux.ConsulRead(opts.ConsulinFile)
 	        helmReleases = flux.RenderHelmReleasesWithConsul(environmentFile, opts.RegistryPath, consulFile)
