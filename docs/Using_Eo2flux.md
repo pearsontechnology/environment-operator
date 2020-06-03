@@ -42,16 +42,16 @@ Example
 
 ## Current Operational Assumptions when using to migrate the Consul values
 
-The Consul values should be exported as one value set per Kubernetes namespace
+- The Consul values should be exported as one value set per Kubernetes namespace
 
 e.g
 ```bash
 consul kv export glp2-qa/ > /tmp/glp2-qa-kv.json
 ```
-if the key value is defined at the top level without any prefix folder, those key values are exposed in all the services considering that they are common to all the services
+- if the key value is defined at the top level without any prefix folder (e.g. `<namespace>/key`), those key values are exposed in all the services considering that they are common to all the services
 
-if the service is defined in the key according to this format <namespace>/<service>/key, those key values for exposed in the relevant service only
-if the service name used in the above format is different from the service name used in the EO manifest file service name, it is expected to map the correct service name used in the Consul as an EnvVar under each service in the EO manifest file with the key name `service_name`
+- if the service is defined in the key according to this format `<namespace>/<service>/key` , those key values for exposed in the relevant service only
+- if the service name used in the above format is different from the service name used in the EO manifest file service name, it is expected to map the correct service name used in the Consul as an EnvVar under each service in the EO manifest file with the key name `service_name`
 e.g
 ```bash
    
