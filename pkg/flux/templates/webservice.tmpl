@@ -71,7 +71,7 @@ spec:
         value: {{ .Value | quote }}
       {{- else }}
       - name: {{ .Name }}
-        value: {{ .Value}}
+        value: {{ .Value | quote }}
       {{- end }}
       {{- end }}
     {{- $deployMethod := default "rolling-upgrade" .Service.Deployment.Method . -}} 
