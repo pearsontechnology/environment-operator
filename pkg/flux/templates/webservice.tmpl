@@ -63,6 +63,12 @@ spec:
           secretKeyRef:
             key: {{ .Value }}
             name: {{ .Value }}
+      {{- else if eq .Name "application.properties" }}
+      - name: {{ .Name }}
+        value: {{ .Value | quote }}
+      {{- else if eq .Name "application.yml" }}
+      - name: {{ .Name }}
+        value: {{ .Value | quote }}
       {{- else }}
       - name: {{ .Name }}
         value: {{ .Value}}
