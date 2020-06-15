@@ -55,7 +55,7 @@ func CRDClient(groupVersion *schema.GroupVersion) (*rest.RESTClient, error) {
 
 	config.APIPath = "/apis"
 	config.ContentType = runtime.ContentTypeJSON
-	config.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
+	config.NegotiatedSerializer = serializer.WithoutConversionCodecFactory{CodecFactory: scheme.Codecs}
 
 	return rest.RESTClientFor(config)
 }
