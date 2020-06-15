@@ -75,14 +75,6 @@
   version = "v4.6.0"
 
 [[projects]]
-  digest = "1:2cd7915ab26ede7d95b8749e6b1f933f1c6d5398030684e6505940a10f31cfda"
-  name = "github.com/ghodss/yaml"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
-  version = "v1.0.0"
-
-[[projects]]
   digest = "1:582e25eccee928dc12416ea4c23b6dae8f3b5687730632aa1473ebebe80a2359"
   name = "github.com/gogo/protobuf"
   packages = [
@@ -92,14 +84,6 @@
   pruneopts = "UT"
   revision = "5628607bb4c51c3157aacc3a50f0ab707582b805"
   version = "v1.3.1"
-
-[[projects]]
-  branch = "master"
-  digest = "1:1ba1d79f2810270045c328ae5d674321db34e3aae468eb4233883b473c5c0467"
-  name = "github.com/golang/glog"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
 [[projects]]
   digest = "1:f5ce1529abc1204444ec73779f44f94e2fa8fcdb7aca3c355b0c95947e4005c6"
@@ -114,6 +98,20 @@
   pruneopts = "UT"
   revision = "6c65a5562fc06764971b7c5d05c76c75e84bdbf7"
   version = "v1.3.2"
+
+[[projects]]
+  digest = "1:ea920fc7bb1d9a2fe99782eb6a5b4e809dfbfcfabd6ab55a387353934acbf09c"
+  name = "github.com/google/go-cmp"
+  packages = [
+    "cmp",
+    "cmp/internal/diff",
+    "cmp/internal/flags",
+    "cmp/internal/function",
+    "cmp/internal/value",
+  ]
+  pruneopts = "UT"
+  revision = "7e5cb83929c528b29e5a8ac1244eab0436f79bce"
+  version = "v0.4.1"
 
 [[projects]]
   digest = "1:a6181aca1fd5e27103f9a920876f29ac72854df7345a39f3b01e61c8c94cc8af"
@@ -561,10 +559,11 @@
   version = "v2.2.7"
 
 [[projects]]
-  branch = "release-1.14"
-  digest = "1:c1eecbff5fa39a78676e0a7ed245be7338ef18e5566479bbe0e76f1ef852cd0c"
+  branch = "release-1.16"
+  digest = "1:274e6b4fd11a6a01212ee6af5ba488c7623f5eaa7339d3bb5642220d96ee8744"
   name = "k8s.io/api"
   packages = [
+    "admissionregistration/v1",
     "admissionregistration/v1beta1",
     "apps/v1",
     "apps/v1beta1",
@@ -584,6 +583,7 @@
     "coordination/v1",
     "coordination/v1beta1",
     "core/v1",
+    "discovery/v1alpha1",
     "events/v1beta1",
     "extensions/v1beta1",
     "networking/v1",
@@ -603,11 +603,11 @@
     "storage/v1beta1",
   ]
   pruneopts = "UT"
-  revision = "159aefb8556bb8ed4be7631461d1558546d304db"
+  revision = "34b6618346464b9e87b6b994ccb903b47fa781f1"
 
 [[projects]]
-  branch = "release-1.12"
-  digest = "1:e0e6009d5386fe16dd2ef6206d36529a7cffa9b6592fc38d92ae8f5c239aa213"
+  branch = "release-1.16"
+  digest = "1:ef25d072939df617a3855fedbc373b9aab36ad2b5d703f791c2eb4fac7ba09b0"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/errors",
@@ -654,11 +654,11 @@
     "third_party/forked/golang/reflect",
   ]
   pruneopts = "UT"
-  revision = "6f131bee5e2ccfaf827e56866022a46d8b864d03"
+  revision = "9402b4926e83cddfcac78460d5dca7ae87c1dc49"
 
 [[projects]]
-  branch = "release-11.0"
-  digest = "1:e0b1a869e2f45a31f0d4a110cd1bae81de2997f0b214efb7f5e2fecb57d272ca"
+  branch = "release-13.0"
+  digest = "1:ca2e4aa86ae47fa032aeb8590075a51e4f69a5ca21c48997f1440fd3c0d25562"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
@@ -666,6 +666,8 @@
     "kubernetes",
     "kubernetes/fake",
     "kubernetes/scheme",
+    "kubernetes/typed/admissionregistration/v1",
+    "kubernetes/typed/admissionregistration/v1/fake",
     "kubernetes/typed/admissionregistration/v1beta1",
     "kubernetes/typed/admissionregistration/v1beta1/fake",
     "kubernetes/typed/apps/v1",
@@ -704,6 +706,8 @@
     "kubernetes/typed/coordination/v1beta1/fake",
     "kubernetes/typed/core/v1",
     "kubernetes/typed/core/v1/fake",
+    "kubernetes/typed/discovery/v1alpha1",
+    "kubernetes/typed/discovery/v1alpha1/fake",
     "kubernetes/typed/events/v1beta1",
     "kubernetes/typed/events/v1beta1/fake",
     "kubernetes/typed/extensions/v1beta1",
@@ -760,7 +764,7 @@
     "util/retry",
   ]
   pruneopts = "UT"
-  revision = "8e412805300829bc5a39e63eaccfc8a3355e4797"
+  revision = "b063729e49a610cb5cfd329fce64b7c736784d83"
 
 [[projects]]
   digest = "1:93e82f25d75aba18436ad1ac042cb49493f096011f2541075721ed6f9e05c044"
@@ -789,6 +793,14 @@
   ]
   pruneopts = "UT"
   revision = "0a110f9eb7ab662220ed640640f50c4be9b6b485"
+
+[[projects]]
+  digest = "1:36d2b2cb1fa6e4a731e38c3582c203213cdbc52c5f202af07db6dc6eeaec88dc"
+  name = "sigs.k8s.io/yaml"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9fc95527decd95bb9d28cc2eab08179b2d0f6971"
+  version = "v1.2.0"
 
 [solve-meta]
   analyzer-name = "dep"

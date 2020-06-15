@@ -98,7 +98,7 @@ func CRDClient(group string, version string, objects ...runtime.Object) *fake.RE
 
 	return &fake.RESTClient{
 		GroupVersion:         schemeGroupVersion,
-		NegotiatedSerializer: serializer.DirectCodecFactory{CodecFactory: scheme.Codecs},
+		NegotiatedSerializer: serializer.WithoutConversionCodecFactory{CodecFactory: scheme.Codecs},
 		Client:               fake.CreateHTTPClient(f.HandleRequest),
 	}
 }
