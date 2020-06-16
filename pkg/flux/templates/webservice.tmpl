@@ -84,6 +84,11 @@ spec:
         {{ $k }}: {{ $v | quote }}
       {{- end }}
       {{- end }}
+    {{- if eq $deployMethod "bluegreen"}}
+    progressiveDelivery:
+      enabled: true
+      strategy: bluegreen
+    {{- end }}
     {{- end }}
     {{- if .Service.ExternalURL }}
     ingress:
