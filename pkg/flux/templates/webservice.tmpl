@@ -107,16 +107,29 @@ spec:
       ssl: false
     {{- end }}
     {{- end }}
-    volumes:
+    {{- if .Service.Volumes }}
+    extraVolumes:
       {{- range .Service.Volumes }}
       - name: {{ .Name }}
+        {{- if eq .Type "secret"}}
+        secret:
+          secretName: {{ .Name }}
+          defaultMode: 420
+        {{- else }}
         path: {{ .Path }}
         type: {{ .Type }}
         {{- if .Size }}
         size: {{ .Size }}
         {{- end }}
         modes: {{ .Modes }}
+        {{- end }}
       {{- end }}
+    extraVolumeMounts:
+      {{- range .Service.Volumes }}
+      - name: {{ .Name }}
+        path: {{ .Path }}
+      {{- end }}
+    {{- end }}
     {{- if .Service.HPA.Metric.Name }}
     {{- with .Service.HPA }}
     hpa:
