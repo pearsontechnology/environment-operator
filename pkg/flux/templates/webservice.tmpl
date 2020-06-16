@@ -117,7 +117,7 @@ spec:
         {{- end }}
         modes: {{ .Modes }}
       {{- end }}
-    {{- if .Service.HPA }}
+    {{- if .Service.HPA.Metric.Name }}
     {{- with .Service.HPA }}
     hpa:
       enabled: true
