@@ -9,7 +9,7 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
-### **[1.4.3] [UNRELEASED]**
+### **[1.4.3] [RELEASED]**
  #### Changed
   * Fix bug in diff comparison for blue/green services
 
