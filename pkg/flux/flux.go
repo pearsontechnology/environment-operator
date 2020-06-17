@@ -26,7 +26,7 @@ func RenderHelmReleases(envs *bitesize.EnvironmentsBitesize, regPath string) map
 			if svc.Type == "" { // EO uses nil type for web apps
 				svc.Type = "webservice"
 			}
-			key := fmt.Sprintf("%s-%s", env.Namespace, svc.Name)
+			key := fmt.Sprintf("%s", svc.Name)
 			val, err := RenderHelmRelease(env, svc, regPath)
 			if err != nil {
 				panic(err)
@@ -48,7 +48,7 @@ func RenderHelmReleasesWithConsul(envs *bitesize.EnvironmentsBitesize, regPath s
 			if svc.Type == "" { // EO uses nil type for web apps
 				svc.Type = "webservice"
 			}
-			key := fmt.Sprintf("%s-%s", env.Namespace, svc.Name)
+			key := fmt.Sprintf("%s", svc.Name)
 
 			   for _, key := range cvalues {
 			   skey := strings.Split(key.Key,"/")
