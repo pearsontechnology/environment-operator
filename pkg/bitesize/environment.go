@@ -126,11 +126,6 @@ func loadServices(env Environment) Services {
 	// Specifies their defaults and handles overrides of user-supplied config
 	var blueGreenServices Services
 	for i, svc := range env.Services {
-		if svc.IsBlueGreenParentDeployment() {
-			blueGreenServices = append(blueGreenServices, copyBlueGreenService(svc, BlueService))
-			blueGreenServices = append(blueGreenServices, copyBlueGreenService(svc, GreenService))
-		}
-
 		// Internally prepend env vars that come from secrets w/o name prefix
 		// All env from secrets in .bitesize files must be specified
 		// as name/key to remove this.
@@ -163,6 +158,11 @@ func loadServices(env Environment) Services {
 		}
 		if len(vols) > 0 {
 			env.Services[i].Volumes = vols
+		}
+
+		if svc.IsBlueGreenParentDeployment() {
+			blueGreenServices = append(blueGreenServices, copyBlueGreenService(env.Services[i], BlueService))
+			blueGreenServices = append(blueGreenServices, copyBlueGreenService(env.Services[i], GreenService))
 		}
 	}
 
