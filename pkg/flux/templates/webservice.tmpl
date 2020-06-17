@@ -132,7 +132,7 @@ spec:
     extraVolumeMounts:
       {{- range .Service.Volumes }}
       - name: {{ .Name }}
-        path: {{ .Path }}
+        mountPath: {{ .Path }}
       {{- end }}
     {{- end }}
     {{- if .Service.HPA.Metric.Name }}
