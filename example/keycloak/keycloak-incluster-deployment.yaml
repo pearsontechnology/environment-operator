@@ -1,7 +1,7 @@
 # This is an example, quick and dirty, ephemeral keycloak server
 # you can run in-cluster. Meant only for testing. Default 
 # username/password admin/admin
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:

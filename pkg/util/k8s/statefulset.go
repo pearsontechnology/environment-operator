@@ -1,7 +1,7 @@
 package k8s
 
 import (
-	"k8s.io/api/apps/v1beta2"
+	apps_v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -13,8 +13,8 @@ type StatefulSet struct {
 }
 
 // Get returns statefulset object from the k8s by name
-func (client *StatefulSet) Get(name string) (*v1beta2.StatefulSet, error) {
-	return client.AppsV1beta2().
+func (client *StatefulSet) Get(name string) (*apps_v1.StatefulSet, error) {
+	return client.AppsV1().
 		StatefulSets(client.Namespace).
 		Get(name, getOptions())
 }
@@ -26,7 +26,7 @@ func (client *StatefulSet) Exist(name string) bool {
 }
 
 // Apply updates or creates statefulset in k8s
-func (client *StatefulSet) Apply(resource *v1beta2.StatefulSet) error {
+func (client *StatefulSet) Apply(resource *apps_v1.StatefulSet) error {
 	if resource == nil {
 		return nil
 	}
@@ -38,7 +38,7 @@ func (client *StatefulSet) Apply(resource *v1beta2.StatefulSet) error {
 }
 
 // Update stateful set
-func (client *StatefulSet) Update(resource *v1beta2.StatefulSet) error {
+func (client *StatefulSet) Update(resource *apps_v1.StatefulSet) error {
 	if resource == nil {
 		return nil
 	}
@@ -49,7 +49,7 @@ func (client *StatefulSet) Update(resource *v1beta2.StatefulSet) error {
 
 	current.Spec.Replicas = resource.Spec.Replicas
 	_, err = client.
-		AppsV1beta2().
+		AppsV1().
 		StatefulSets(client.Namespace).
 		Update(current)
 
@@ -64,12 +64,12 @@ func (client *StatefulSet) Update(resource *v1beta2.StatefulSet) error {
 }
 
 // Create creates new statefulset in k8s
-func (client *StatefulSet) Create(resource *v1beta2.StatefulSet) error {
+func (client *StatefulSet) Create(resource *apps_v1.StatefulSet) error {
 	if resource == nil {
 		return nil
 	}
 	_, err := client.
-		AppsV1beta2().
+		AppsV1().
 		StatefulSets(client.Namespace).
 		Create(resource)
 	return err
@@ -77,12 +77,12 @@ func (client *StatefulSet) Create(resource *v1beta2.StatefulSet) error {
 
 // Destroy deletes statefulset from the k8 cluster
 func (client *StatefulSet) Destroy(name string) error {
-	return client.AppsV1beta2().StatefulSets(client.Namespace).Delete(name, &metav1.DeleteOptions{})
+	return client.AppsV1().StatefulSets(client.Namespace).Delete(name, &metav1.DeleteOptions{})
 }
 
 // List returns the list of k8s services maintained by pipeline
-func (client *StatefulSet) List() ([]v1beta2.StatefulSet, error) {
-	list, err := client.AppsV1beta2().StatefulSets(client.Namespace).List(listOptions())
+func (client *StatefulSet) List() ([]apps_v1.StatefulSet, error) {
+	list, err := client.AppsV1().StatefulSets(client.Namespace).List(listOptions())
 	if err != nil {
 		return nil, err
 	}

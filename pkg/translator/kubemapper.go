@@ -298,7 +298,7 @@ func (w *KubeMapper) HPA() (*autoscale_v2beta2.HorizontalPodAutoscaler, error) {
 			ScaleTargetRef: autoscale_v2beta2.CrossVersionObjectReference{
 				Kind:       "Deployment",
 				Name:       w.BiteService.Name,
-				APIVersion: "extensions/v1beta1",
+				APIVersion: "apps/v1",
 			},
 			MinReplicas: &w.BiteService.HPA.MinReplicas,
 			MaxReplicas: w.BiteService.HPA.MaxReplicas,
