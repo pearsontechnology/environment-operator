@@ -182,7 +182,7 @@ Note: The following example of environment will pull images from $DOCKER_REGISTR
  
 
 ```
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -266,7 +266,7 @@ If images are being pulled from the Bitesize S3 Registry (The Bitesize Registry 
 pod images from the Bitesize S3 registry:
 
 ```
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:

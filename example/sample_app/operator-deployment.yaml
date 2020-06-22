@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -10,7 +10,7 @@ metadata:
   name: environment-operator
   namespace: sample-app
   resourceVersion: "25691"
-  selfLink: /apis/extensions/v1beta1/namespaces/sample-app/deployments/environment-operator
+  selfLink: /apis/apps/v1/namespaces/sample-app/deployments/environment-operator
   uid: 7f184e63-b80e-11e8-af11-065fecccbff6
 spec:
   replicas: 1
