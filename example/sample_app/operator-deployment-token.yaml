@@ -10,7 +10,7 @@ data:
   git_user: B64EncodedGitusername== # echo -n username | base64
   git_token: B64EncodedGitToken==  # echo -n password | base64 
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
