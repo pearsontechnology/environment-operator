@@ -742,7 +742,7 @@ func TestApplyExistingHPA(t *testing.T) {
 				ScaleTargetRef: autoscale_v2beta2.CrossVersionObjectReference{
 					Kind:       "Deployment",
 					Name:       "hpa-service",
-					APIVersion: "extensions/v1beta1",
+					APIVersion: "apps/v1",
 				},
 				MinReplicas: &min,
 				MaxReplicas: 5,
