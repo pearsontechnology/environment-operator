@@ -120,6 +120,9 @@ spec:
         secret:
           secretName: {{ .Name }}
           defaultMode: 420
+        {{- else  if eq .Type "configMap"}}
+        configMap:
+          Name: {{ .Name }}
         {{- else }}
         path: {{ .Path }}
         type: {{ .Type }}
@@ -192,5 +195,17 @@ spec:
       {{- if .PeriodSeconds }}
       periodSeconds: {{ .PeriodSeconds }}
       {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- $configmapused := "No" -}} 
+    {{- range .Service.EnvVars }}
+    {{- if or (eq .Name "application.properties") (eq .Name "application.yml") }}
+    {{- if eq $configmapused "No" }}
+    configMaps:
+    {{- $configmapused = "Yes" -}} 
+    {{- end }}
+      {{ .Name }}:
+        {{ .Name }} : |-
+        {{ .Value | quote }}
     {{- end }}
     {{- end }}

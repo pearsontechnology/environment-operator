@@ -87,6 +87,7 @@ func RenderHelmReleasesWithConsul(envs *bitesize.EnvironmentsBitesize, regPath s
 
 			   }
 			}
+			svc = AddConfigMap(svc)
 			val, err := RenderHelmRelease(env, svc, regPath)
 			if err != nil {
 				panic(err)

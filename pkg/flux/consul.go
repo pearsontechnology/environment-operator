@@ -1,6 +1,7 @@
 package flux
 
 import (
+    "github.com/pearsontechnology/environment-operator/pkg/bitesize"
     "encoding/json"
     "encoding/base64"
     "fmt"
@@ -45,4 +46,23 @@ func ConsulRead(path string) (ConsulValues, error){
 
 }
 
+func AddConfigMap(svc bitesize.Service) (bitesize.Service){
+    for _, v := range svc.EnvVars {
+        if v.Name == "application.properties" || v.Name == "application.yml" {
+           var items []bitesize.KeyToPath           
+           items = append(items, bitesize.KeyToPath{
+                   	Key: v.Name,
+                   	Path: v.Name,
+                 	})
+	   evolume := bitesize.Volume{
+		Name: v.Name,
+ 		Type: "configMap",
+		Path: v.Name,
+		Items: items,           
+		}
+	svc.Volumes = append(svc.Volumes, evolume)
+        }
+    }
+    return svc
+}
 
