@@ -61,8 +61,8 @@ spec:
       - name: {{ .Secret }}
         valueFrom:
           secretKeyRef:
+            name: {{ .Name }}
             key: {{ .Value }}
-            name: {{ .Value }}
       {{- else if eq .Name "application.properties" }}
       {{- else if eq .Name "application.yml" }}
       {{- else }}

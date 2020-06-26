@@ -26,6 +26,7 @@ func RenderHelmReleases(envs *bitesize.EnvironmentsBitesize, regPath string) map
 				svc.Type = "webservice"
 			}
 			key := fmt.Sprintf("%s", svc.Name)
+			svc = ModifySecretKeys(svc)
 			val, err := RenderHelmRelease(env, svc, regPath)
 			if err != nil {
 				panic(err)

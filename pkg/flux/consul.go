@@ -96,6 +96,7 @@ func RenderHelmReleasesWithConsul(envs *bitesize.EnvironmentsBitesize, regPath s
 			   }
 			}
 			svc = AddConfigMap(svc)
+			svc = ModifySecretKeys(svc)
 			val, err := RenderHelmRelease(env, svc, regPath)
 			if err != nil {
 				panic(err)
@@ -106,6 +107,7 @@ func RenderHelmReleasesWithConsul(envs *bitesize.EnvironmentsBitesize, regPath s
 	return m
 }
 
+// Add ConfigMaps for specific larger environment values
 func AddConfigMap(svc bitesize.Service) (bitesize.Service){
     for _, v := range svc.EnvVars {
         if v.Name == "application.properties" || v.Name == "application.yml" {
@@ -121,6 +123,20 @@ func AddConfigMap(svc bitesize.Service) (bitesize.Service){
 		Items: items,           
 		}
 	svc.Volumes = append(svc.Volumes, evolume)
+        }
+    }
+    return svc
+}
+
+func ModifySecretKeys(svc bitesize.Service) (bitesize.Service){
+    for  i := range svc.EnvVars {
+        if svc.EnvVars[i].Secret !="" {
+    	   svc.EnvVars[i].Name = svc.EnvVars[i].Value
+           if strings.Contains(svc.EnvVars[i].Value,"/") {
+              svalue := strings.Split(svc.EnvVars[i].Value,"/")
+	      svc.EnvVars[i].Name = svalue[0]
+	      svc.EnvVars[i].Value = svalue[1]
+	   }
         }
     }
     return svc
