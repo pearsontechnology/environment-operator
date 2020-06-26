@@ -118,8 +118,8 @@ func AddConfigMap(svc bitesize.Service) (bitesize.Service){
                  	})
 	   evolume := bitesize.Volume{
 		Name: v.Name,
- 		Type: "configMap",
-		Path: v.Name,
+ 		Type: "configmap",
+		Path: "/etc/properties/",
 		Items: items,           
 		}
 	svc.Volumes = append(svc.Volumes, evolume)

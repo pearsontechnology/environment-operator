@@ -116,9 +116,16 @@ spec:
         secret:
           secretName: {{ .Name }}
           defaultMode: 420
-        {{- else  if eq .Type "configMap"}}
+        {{- else  if eq .Type "configmap"}}
         configMap:
-          Name: {{ .Name }}
+          name: {{ .Name }}
+          {{- if .Items }}
+          items:
+          {{- range .Items }}
+          - key: {{ .Key }}
+            path: {{ .Path }}
+          {{- end }}
+          {{- end }}
         {{- else }}
         path: {{ .Path }}
         type: {{ .Type }}
