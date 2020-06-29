@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.4.5] [RELEASED]**
+ #### Added
+  * Add Mongo Atlas CRD support
+
 ### **[1.4.4] [RELEASED]**
  #### Changed
   * Fix extensions/v1beta1 issue with HPA/StatefulSet
