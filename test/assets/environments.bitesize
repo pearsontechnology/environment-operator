@@ -289,3 +289,14 @@ environments:
       instance:
         count: 3
         instance_class: db.r5.4xlarge
+- name: environment16
+  namespace: environment-atlas
+  services:
+  - type: atlas
+    name: atlas_cluster
+    options:
+      diskSizeGB: "40"
+      instanceSizeName: M30
+      region: US_EAST_2
+      replicas: "3"
+      version: "3.6"
