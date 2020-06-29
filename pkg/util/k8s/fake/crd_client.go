@@ -149,6 +149,8 @@ func kindFromElem(e string) string {
 		return "HelmChart"
 	case "dynamodbs":
 		return "dynamodb"
+	case "atlases":
+		return "atlas"		
 	default:
 		return "None"
 	}
