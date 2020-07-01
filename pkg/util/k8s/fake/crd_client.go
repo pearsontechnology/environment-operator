@@ -150,7 +150,9 @@ func kindFromElem(e string) string {
 	case "dynamodbs":
 		return "dynamodb"
 	case "atlases":
-		return "atlas"		
+		return "atlas"
+	case "eses":
+		return "es"
 	default:
 		return "None"
 	}
