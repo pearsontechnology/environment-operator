@@ -300,3 +300,11 @@ environments:
       region: US_EAST_2
       replicas: "3"
       version: "3.6"
+- name: environment17
+  namespace: environment-es
+  services:
+  - type: es
+    name: es_cluster
+    options:
+      engine_version: "7.1"
+      iops: 1000
