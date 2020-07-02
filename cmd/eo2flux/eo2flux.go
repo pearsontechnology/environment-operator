@@ -20,7 +20,7 @@ type options struct {
 	RegistryPath string `short:"r" long:"registry-path" description:"Docker registry path to inject in HelmRelease image: tags" default:"410908411653.dkr.ecr.us-east-1.amazonaws.com/glp2" required:"true"`
 
 	// Consul  values file to read
-	ConsulinFile string `short:"c" long:"Consule value file" description:"input consule value file"`
+	ConsulinFile string `short:"c" long:"Consul value file" description:"input consul value file"`
 }
 
 var opts options
