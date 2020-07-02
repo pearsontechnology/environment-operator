@@ -17,7 +17,7 @@ type options struct {
 	OutputDir string `short:"o" long:"output-directory" description:"output directory for HelmRelease files" required:"true"`
 
 	// Docker Image base path
-	RegistryPath string `short:"r" long:"registry-path" description:"Docker registry path to inject in HelmRelease image: tags" default:"815492460363.dkr.ecr.us-east-1.amazonaws.com/glp2" required:"true"`
+	RegistryPath string `short:"r" long:"registry-path" description:"Docker registry path to inject in HelmRelease image: tags" default:"410908411653.dkr.ecr.us-east-1.amazonaws.com/glp2" required:"true"`
 
 	// Consul  values file to read
 	ConsulinFile string `short:"c" long:"Consule value file" description:"input consule value file"`
