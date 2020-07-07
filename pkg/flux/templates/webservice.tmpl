@@ -2,7 +2,7 @@
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
-  name: {{ .Environment.Namespace }}-{{ .Service.Name }}
+  name: {{ .Service.Name }}
   namespace: {{ .Environment.Namespace }}
   annotations:
     fluxcd.io/automated: "true"
@@ -92,8 +92,7 @@ spec:
       hosts:
         {{- range .Service.ExternalURL }}
         - host: {{ . }}
-          paths:
-          - path: /
+          paths:["/"]
         {{- end }}
     {{- if eq .Service.Ssl "true"}}
       ssl: true
