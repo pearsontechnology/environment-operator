@@ -9,14 +9,13 @@ metadata:
 spec:
   chart:
     git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
-    path: sqs
+    path: aurora
     ref: master
   {{- with .Service.Options }}
   options:
-    {{- if .instance_type }}
-    instance_type: {{ .instance_type }}
-    {{- end }}
-    {{- if .region }}
-    region: {{ .region }}
-    {{- end }}
+    cluster:
+      engine: {{ .engine }}
+    instance:
+      count: {{ .count }}
+      instance_class: {{ .instance_class }}
   {{- end }}
