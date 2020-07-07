@@ -92,7 +92,7 @@ spec:
       hosts:
         {{- range .Service.ExternalURL }}
         - host: {{ . }}
-          paths:["/"]
+          paths: ["/"]
         {{- end }}
     {{- if eq .Service.Ssl "true"}}
       ssl: true
