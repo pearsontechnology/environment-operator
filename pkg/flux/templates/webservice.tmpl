@@ -97,7 +97,7 @@ spec:
     {{- if eq .Service.Ssl "true"}}
       ssl: true
       tls:
-      - secretName: {{ .Service.Name }}-tls
+      - secretName: {{ .Service.Name }}
         hosts: 
           {{- range .Service.ExternalURL }}
           - {{ . }}
