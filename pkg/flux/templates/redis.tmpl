@@ -1,0 +1,26 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: {{ .Service.Name }}
+  namespace: {{ .Environment.Namespace }}
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  chart:
+    git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
+    path: redis
+    ref: master
+  {{- with .Service.Options }}
+  options:
+    {{- if .allocatedstorage }}
+    allocatedstorage: {{ .allocatedstorage }}
+    {{- end }}
+    {{- if .nodetype }}
+    dbinstanceclass: {{ .nodetype }}
+    {{- end }}
+    {{- if .version }}
+    version: {{ .version }}
+    {{- end }}
+
+    
