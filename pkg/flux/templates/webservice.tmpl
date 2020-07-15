@@ -5,8 +5,7 @@ metadata:
   name: {{ .Service.Name }}
   namespace: {{ .Environment.Namespace }}
   annotations:
-    fluxcd.io/automated: "true"
-    filter.fluxcd.io/chart-image: glob:{{ .Environment.Namespace }}-*
+    fluxcd.io/automated: "false"
 spec:
   chart:
     git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
