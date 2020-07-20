@@ -11,27 +11,28 @@ spec:
     git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
     path: msk
     ref: master
-  {{- with .Service.Options }}
-  options:
-    {{- if .instance_type }}
-    instance_type: {{ .instance_type | quote }}
+  values:  
+    {{- with .Service.Options }}
+    options:
+      {{- if .instance_type }}
+      instance_type: {{ .instance_type | quote }}
+      {{- end }}
+      {{- if .broker_count }}
+      broker_count: {{ .broker_count }}
+      {{- end }}
+      {{- if .volume_size_gb }}
+      volume_size_gb: {{ .volume_size_gb }}
+      {{- end }}
+      {{- if .kafka_version }}
+      kafka_version: {{ .kafka_version | quote }}
+      {{- end }}
+      {{- if .monitoring_level }}
+      monitoring_level: {{ .monitoring_level | quote }}
+      {{- end }}
+      {{- if .configuration_info }}
+      configuration_info: |-
+      {{- with .configuration_info }}
+        {{- . | nindent 6 }}
+      {{- end }}
+      {{- end }}
     {{- end }}
-    {{- if .broker_count }}
-    broker_count: {{ .broker_count }}
-    {{- end }}
-    {{- if .volume_size_gb }}
-    volume_size_gb: {{ .volume_size_gb }}
-    {{- end }}
-    {{- if .kafka_version }}
-    kafka_version: {{ .kafka_version | quote }}
-    {{- end }}
-    {{- if .monitoring_level }}
-    monitoring_level: {{ .monitoring_level | quote }}
-    {{- end }}
-    {{- if .configuration_info }}
-    configuration_info: |-
-    {{- with .configuration_info }}
-      {{- . | nindent 6 }}
-    {{- end }}
-    {{- end }}
-  {{- end }}

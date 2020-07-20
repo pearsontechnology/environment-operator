@@ -11,11 +11,12 @@ spec:
     git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
     path: aurora
     ref: master
-  {{- with .Service.Options }}
-  options:
-    cluster:
-      engine: {{ .engine }}
-    instance:
-      count: {{ .count }}
-      instance_class: {{ .instance_class }}
-  {{- end }}
+  values:
+    {{- with .Service.Options }}
+    options:
+      cluster:
+        engine: {{ .engine }}
+      instance:
+        count: {{ .count }}
+        instance_class: {{ .instance_class }}
+    {{- end }}

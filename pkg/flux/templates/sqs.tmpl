@@ -11,12 +11,13 @@ spec:
     git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
     path: sqs
     ref: master
-  {{- with .Service.Options }}
-  options:
-    {{- if .instance_type }}
-    instance_type: {{ .instance_type }}
+  values:  
+    {{- with .Service.Options }}
+    options:
+      {{- if .instance_type }}
+      instance_type: {{ .instance_type }}
+      {{- end }}
+      {{- if .region }}
+      region: {{ .region }}
+      {{- end }}
     {{- end }}
-    {{- if .region }}
-    region: {{ .region }}
-    {{- end }}
-  {{- end }}

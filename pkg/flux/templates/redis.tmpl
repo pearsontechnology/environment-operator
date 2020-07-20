@@ -11,15 +11,16 @@ spec:
     git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
     path: redis
     ref: master
-  {{- with .Service.Options }}
-  options:
-    {{- if .allocatedstorage }}
-    allocatedstorage: {{ .allocatedstorage }}
+  values:  
+    {{- with .Service.Options }}
+    options:
+      {{- if .allocatedstorage }}
+      allocatedstorage: {{ .allocatedstorage }}
+      {{- end }}
+      {{- if .nodetype }}
+      dbinstanceclass: {{ .nodetype }}
+      {{- end }}
+      {{- if .version }}
+      version: {{ .version }}
+      {{- end }}
     {{- end }}
-    {{- if .nodetype }}
-    dbinstanceclass: {{ .nodetype }}
-    {{- end }}
-    {{- if .version }}
-    version: {{ .version }}
-    {{- end }}
-  {{- end }}
