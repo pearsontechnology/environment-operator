@@ -10,7 +10,7 @@ It also currently supports to migrate the Consul values from an exported consul 
 
 ## How to use
 
-### Clone to tool source repository to your local Go environment
+### Cloning the tool source repository to your local Go environment
 
 Before clonning make sure you have set your $GOPATH and $GOBIN variables 
 
