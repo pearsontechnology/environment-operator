@@ -12,6 +12,7 @@ spec:
     name: zookeeper
     ref: master
   values:  
+    fullnameOverride: {{ .Service.Name }}
     {{- with .Service.Options }}
     options:
       {{- if .replicas }}

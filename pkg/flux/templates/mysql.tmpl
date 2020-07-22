@@ -12,6 +12,7 @@ spec:
     path: mysql
     ref: master
   values:  
+    fullnameOverride: {{ .Service.Name }}
     {{- with .Service.Options }}
     options:
       {{- if .version }}

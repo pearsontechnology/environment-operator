@@ -12,6 +12,7 @@ spec:
     path: neptune
     ref: master
   values:  
+    fullnameOverride: {{ .Service.Name }}
     {{- with .Service.Options }}
     options:
       {{- if .ApplyImmediately }}

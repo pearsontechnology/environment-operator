@@ -12,6 +12,7 @@ spec:
     path: redis
     ref: master
   values:  
+    fullnameOverride: {{ .Service.Name }}
     {{- with .Service.Options }}
     options:
       {{- if .allocatedstorage }}

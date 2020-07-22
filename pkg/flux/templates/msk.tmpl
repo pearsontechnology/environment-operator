@@ -12,6 +12,7 @@ spec:
     path: msk
     ref: master
   values:  
+    fullnameOverride: {{ .Service.Name }}
     {{- with .Service.Options }}
     options:
       {{- if .instance_type }}

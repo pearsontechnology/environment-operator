@@ -11,7 +11,8 @@ spec:
     git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
     name: kafka
     ref: master
-  values:  
+  values:
+    fullnameOverride: {{ .Service.Name }}  
     {{- with .Service.Options }}
     options:
       {{- if .replicas }}

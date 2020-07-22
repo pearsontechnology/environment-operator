@@ -12,6 +12,7 @@ spec:
     path: aurora
     ref: master
   values:
+    fullnameOverride: {{ .Service.Name }}
     {{- with .Service.Options }}
     options:
       cluster:
