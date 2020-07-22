@@ -10,7 +10,29 @@ It also currently supports to migrate the Consul values from an exported consul 
 
 ## How to use
 
-Clone to tool source repository to your local Go environment
+### Clone to tool source repository to your local Go environment
+
+Before clonning make sure you have set your $GOPATH and $GOBIN variables 
+
+```bash
+go env | egrep "GOPATH|GOBIN"       
+GOBIN="/Users/xxxxxx/go/bin"
+GOPATH="/Users/xxxxxxx/go"
+```
+If not set, set them as 
+
+```bash
+export GOPATH="/Users/xxxxxxx/go"
+export GOBIN="/Users/xxxxxx/go/bin"
+```
+then navigate to the GOPATH directory and create the src directory hierachy as follows according to the Github path
+
+```bash
+cd $GOPATH
+mkdir -p src/github.com/pearsontechnology
+cd src/github.com/pearsontechnology
+```
+and now clone the source repository to the above directory as follows
 
 ```bash
 git clone -b eo2flux git@github.com:pearsontechnology/environment-operator.git
@@ -21,13 +43,21 @@ Generate the compiled binary tool
 go install environment-operator/cmd/eo2flux/eo2flux.go
 ```
 
-Run the command `eo2flux` with the mandator command line arguments
+This will generate the binary `eo2flux` and store under the $GOBIN directory
+if compilation errors are encountered, 
+please run ```dep ensure``` command to satifsfy the dependancies etc
+inside the `environment-operator` directory
+
+Run the command `eo2flux` with the mandatory command line arguments
 
 ```bash
 ./bin/eo2flux -i <EO manifest file> -o <output directory to write the generated files>
 ```
+This will generate the flux-helm release files and store them under the output directory specified above
+please go through them and do manual adjustments if required, specially pay attention to the 
+image names and image tags
 
-Optional features 
+## Optional features 
 
 Migrate the Consul values and expose them as Env Variables
 
@@ -40,9 +70,10 @@ Example
 ./bin/eo2flux -i glp2-qa.bitesize -c glp2-qa-kv.json -o output
 ``` 
 
-## Current Operational Assumptions when using to migrate the Consul values
+### Current Operational Assumptions when using to migrate the Consul values
 
-- The Consul values should be exported as one value set per Kubernetes namespace
+- The Consul values should be exported as one value set per Kubernetes namespace, 
+  you may use the `consul kv export` command inside the Consul cluster as below
 
 e.g
 ```bash
