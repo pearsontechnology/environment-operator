@@ -38,3 +38,6 @@ spec:
       {{- end }}
       {{- end }}
     {{- end }}
+    {{- if .Service.Version }}
+    version : {{ .Service.Version }}
+    {{- end}}

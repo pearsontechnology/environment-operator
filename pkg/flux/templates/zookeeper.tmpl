@@ -31,3 +31,6 @@ spec:
       resources_requests_memory: {{ .resources_requests_memory }}
       {{- end }}
     {{- end }}
+    {{- if .Service.Version }}
+    version : {{ .Service.Version }}
+    {{- end}}

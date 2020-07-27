@@ -25,3 +25,6 @@ spec:
       version: {{ .version }}
       {{- end }}
     {{- end }}
+    {{- if .Service.Version }}
+    version : {{ .Service.Version }}
+    {{- end}}

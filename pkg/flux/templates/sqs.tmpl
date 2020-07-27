@@ -22,3 +22,6 @@ spec:
       region: {{ .region }}
       {{- end }}
     {{- end }}
+    {{- if .Service.Version }}
+    version : {{ .Service.Version }}
+    {{- end}}

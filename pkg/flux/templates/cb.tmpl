@@ -49,3 +49,6 @@ spec:
       use_mds: {{ .use_mds }}
       {{- end }}
     {{- end }}
+    {{- if .Service.Version }}
+    version : {{ .Service.Version }}
+    {{- end}}
