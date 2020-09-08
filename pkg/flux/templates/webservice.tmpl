@@ -10,7 +10,10 @@ spec:
   chart:
     git: git@gitlab.com:pearsontechnology/to-cloudengineering/helm-charts
     path: webservice
-    ref: 0.9.0
+    ref: 0.9.1
+  maxHistory: 5
+  rollback:
+    enable: true
   values:
     fullnameOverride: {{ .Service.Name }}
     replicaCount: {{ .Service.Replicas }}
