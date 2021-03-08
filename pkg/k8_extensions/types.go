@@ -11,6 +11,7 @@ var SupportedCustomResources = []string{
 	"aurora", "mongo", "mysql", "cassandra", "redis", "zookeeper", "kafka",
 	"postgres", "neptune", "sns", "msk", "docdb", "cb", "sqs", "s3", "es",
 	"helmchart", "dynamodb", "serviceentry", "gateway", "virtualservice", "atlas",
+	"cloudfront",
 }
 
 // SupportedCustomResourceAPIVersions contains all supported CRD API versions on bitesize cluster.

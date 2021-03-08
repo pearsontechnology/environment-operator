@@ -153,6 +153,8 @@ func kindFromElem(e string) string {
 		return "atlas"
 	case "eses":
 		return "es"
+	case "cloudfronts":
+		return "cloudfront"
 	default:
 		return "None"
 	}
