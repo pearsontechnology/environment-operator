@@ -308,3 +308,13 @@ environments:
     options:
       engine_version: "7.1"
       iops: 1000
+- name: environment18
+  namespace: environment-cf
+  services:
+  - type: cloudfront
+    name: cf_distro
+    options:
+      version : "v1.0.1"
+      origin_domain: "tests3.s3.ap-southeast-2.amazonaws.com"
+      domain_name: "testcf.dev.prsn.io"
+      hosted_zone: "dev.prsn.io."
