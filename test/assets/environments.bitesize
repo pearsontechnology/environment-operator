@@ -318,3 +318,16 @@ environments:
       origin_domain: "tests3.s3.ap-southeast-2.amazonaws.com"
       domain_name: "testcf.dev.prsn.io"
       hosted_zone: "dev.prsn.io."
+- name: environment19
+  namespace: environment-cron
+  services:
+  - type: cron
+    name: cron1
+    options:
+      name: test
+      schedule: "0 * * * *"
+      image: hello-world
+      tag: latest
+      failedJobsHistoryLimit: 1
+      successfulJobsHistoryLimit: 3
+      restartPolicy: OnFailure
