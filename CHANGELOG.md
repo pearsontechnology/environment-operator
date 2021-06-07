@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/). Additionally,
 - **Fixed** for any bug fixes.
 - **Security** for any security changes or fixes for vulnerabilities.
 
+### **[1.4.8] [RELEASED]**
+ #### Added
+  * Add Cronjob CRD support
+
 ### **[1.4.7] [RELEASED]**
  #### Added
   * Add CloudFront CRD support

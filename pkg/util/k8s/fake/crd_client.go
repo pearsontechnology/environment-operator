@@ -155,6 +155,8 @@ func kindFromElem(e string) string {
 		return "es"
 	case "cloudfronts":
 		return "cloudfront"
+	case "crons":
+		return "cron"
 	default:
 		return "None"
 	}
